@@ -24,6 +24,17 @@ class Tool_Site extends Tool_Base {
 				'description' => 'Get the complete Bricks Builder MCP system prompt — a comprehensive guide covering Bricks element structure, data formats, layout patterns, workflow, and custom site instructions. Read this first before building any page.',
 				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
 			],
+			[
+				'name'        => 'bricks_set_front_page',
+				'description' => 'Set the WordPress static front page (homepage). Pass a page ID to show that page as the site homepage, or pass 0 to show the latest posts.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'page_id' => [ 'type' => 'integer', 'description' => 'Page ID to use as homepage, or 0 for latest posts.' ],
+					],
+					'required'   => [ 'page_id' ],
+				],
+			],
 		];
 	}
 
@@ -35,6 +46,8 @@ class Tool_Site extends Tool_Base {
 				return $this->get_custom_instructions();
 			case 'bricks_get_system_prompt':
 				return $this->get_system_prompt();
+			case 'bricks_set_front_page':
+				return $this->set_front_page( $this->int_arg( $args, 'page_id' ) );
 		}
 		return $this->err( 'Unknown tool: ' . $name );
 	}
@@ -80,6 +93,30 @@ class Tool_Site extends Tool_Base {
 			], array_values( $taxonomies ) ),
 			'active_plugins'     => $active_plugins,
 		];
+	}
+
+	private function set_front_page( int $page_id ): array {
+		if ( $page_id > 0 ) {
+			$page = get_post( $page_id );
+			if ( ! $page || $page->post_type !== 'page' ) {
+				return $this->err( 'Page not found: ' . $page_id );
+			}
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_on_front', $page_id );
+			return [
+				'success'       => true,
+				'front_page_id' => $page_id,
+				'front_page_url'=> get_permalink( $page_id ),
+				'message'       => 'Front page set to: ' . get_the_title( $page_id ),
+			];
+		} else {
+			update_option( 'show_on_front', 'posts' );
+			update_option( 'page_on_front', 0 );
+			return [
+				'success' => true,
+				'message' => 'Front page reset to latest posts.',
+			];
+		}
 	}
 
 	private function get_custom_instructions(): array {
