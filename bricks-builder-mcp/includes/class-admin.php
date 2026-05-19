@@ -26,12 +26,12 @@ class Admin {
 	}
 
 	public function register_settings(): void {
-		register_setting( 'bmcp_settings', BMCP_INSTRUCTIONS_OPTION, [
+		register_setting( 'bmcp_settings_instructions', BMCP_INSTRUCTIONS_OPTION, [
 			'sanitize_callback' => 'sanitize_textarea_field',
 			'default'           => '',
 		] );
 
-		register_setting( 'bmcp_settings', BMCP_ENABLED_TOOLS_OPTION, [
+		register_setting( 'bmcp_settings_capabilities', BMCP_ENABLED_TOOLS_OPTION, [
 			'sanitize_callback' => [ $this, 'sanitize_enabled_tools' ],
 			'default'           => [],
 		] );

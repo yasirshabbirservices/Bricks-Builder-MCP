@@ -92,7 +92,7 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 	<!-- ====================== INSTRUCTIONS TAB ====================== -->
 	<div class="bmcp-panel" id="tab-instructions" style="display:none">
 		<form method="post" action="options.php">
-			<?php settings_fields( 'bmcp_settings' ); ?>
+			<?php settings_fields( 'bmcp_settings_instructions' ); ?>
 
 			<div class="bmcp-card">
 				<h2>Custom Instructions</h2>
@@ -117,7 +117,7 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 	<!-- ====================== CAPABILITIES TAB ====================== -->
 	<div class="bmcp-panel" id="tab-capabilities" style="display:none">
 		<form method="post" action="options.php">
-			<?php settings_fields( 'bmcp_settings' ); ?>
+			<?php settings_fields( 'bmcp_settings_capabilities' ); ?>
 
 			<div class="bmcp-card">
 				<h2>Tool Groups</h2>
