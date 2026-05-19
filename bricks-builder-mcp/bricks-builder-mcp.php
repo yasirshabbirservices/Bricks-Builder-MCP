@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://github.com/
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Yasir Shabbir
  * License:     GPL-2.0-or-later
  * Text Domain: bricks-builder-mcp
