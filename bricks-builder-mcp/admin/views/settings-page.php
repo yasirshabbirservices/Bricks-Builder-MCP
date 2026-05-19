@@ -1,38 +1,66 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$log     = get_option( BMCP_ACTIVITY_LOG_OPTION, [] );
-$enabled = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
-$groups  = [ 'pages', 'templates', 'settings', 'posts', 'media', 'woocommerce' ];
+$log      = get_option( BMCP_ACTIVITY_LOG_OPTION, [] );
+$enabled  = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
 $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 ?>
 <div class="wrap" id="bmcp-wrap">
-	<h1><span class="bmcp-logo">⚡</span> Bricks Builder MCP <span class="bmcp-version">v<?php echo esc_html( BMCP_VERSION ); ?></span></h1>
 
+	<!-- ====================== PAGE HEADER ====================== -->
+	<div class="bmcp-page-header">
+		<div class="bmcp-header-left">
+			<div class="bmcp-header-icon">⚡</div>
+			<div class="bmcp-header-text">
+				<h1>Bricks Builder MCP <span class="bmcp-version-badge">v<?php echo esc_html( BMCP_VERSION ); ?></span></h1>
+				<p>AI-powered Bricks Builder control via Model Context Protocol</p>
+			</div>
+		</div>
+		<div class="bmcp-header-right">
+			<div class="bmcp-status-pill">
+				<span class="bmcp-status-dot"></span>
+				Active &amp; Connected
+			</div>
+		</div>
+	</div>
+
+	<!-- ====================== TABS ====================== -->
 	<nav class="bmcp-tabs" role="tablist">
-		<a href="#" class="bmcp-tab active" data-tab="connection">Connection</a>
-		<a href="#" class="bmcp-tab" data-tab="instructions">Custom Instructions</a>
-		<a href="#" class="bmcp-tab" data-tab="capabilities">Capabilities</a>
-		<a href="#" class="bmcp-tab" data-tab="activity">Activity Log <?php if( ! empty( $log ) ) echo '<span class="bmcp-badge">' . count( $log ) . '</span>'; ?></a>
+		<a href="#" class="bmcp-tab active" data-tab="connection">
+			<span class="bmcp-tab-icon">⚡</span> Connection
+		</a>
+		<a href="#" class="bmcp-tab" data-tab="instructions">
+			<span class="bmcp-tab-icon">✎</span> Custom Instructions
+		</a>
+		<a href="#" class="bmcp-tab" data-tab="capabilities">
+			<span class="bmcp-tab-icon">◈</span> Capabilities
+		</a>
+		<a href="#" class="bmcp-tab" data-tab="activity">
+			<span class="bmcp-tab-icon">◷</span> Activity
+			<?php if ( ! empty( $log ) ) : ?>
+				<span class="bmcp-badge"><?php echo count( $log ); ?></span>
+			<?php endif; ?>
+		</a>
 	</nav>
 
 	<!-- ====================== CONNECTION TAB ====================== -->
-	<div class="bmcp-panel active" id="tab-connection">
+	<div class="bmcp-panel" id="tab-connection">
+
 		<div class="bmcp-card">
 			<h2>API Key</h2>
-			<p>Use this key to authenticate your Claude Code (or any MCP client) connection.</p>
+			<p>Use this key to authenticate Claude Code (or any MCP client). Never share it publicly.</p>
 
 			<div class="bmcp-key-row">
 				<code class="bmcp-key-display" id="bmcp-key-masked"><?php echo esc_html( \BricksMCP\Auth::masked_key() ); ?></code>
-				<button type="button" class="button" id="bmcp-btn-copy">Copy Key</button>
-				<button type="button" class="button button-secondary" id="bmcp-btn-regen">Regenerate</button>
+				<button type="button" class="button" id="bmcp-btn-copy">⎘ Copy</button>
+				<button type="button" class="button" id="bmcp-btn-regen">↺ Regenerate</button>
 			</div>
-			<p class="description">Never share your API key publicly. Click "Regenerate" to invalidate the old key.</p>
+			<p class="description">Regenerating invalidates the old key immediately. Update your MCP config after regenerating.</p>
 		</div>
 
 		<div class="bmcp-card">
-			<h2>Connect Claude Code</h2>
-			<p>Add this to your <code>~/.claude/settings.json</code> (or <code>.claude/settings.json</code> in your project):</p>
+			<h2>Claude Code Config</h2>
+			<p>Add this block to <code>~/.claude/settings.json</code> (global) or <code>.claude/settings.json</code> (per project):</p>
 			<div class="bmcp-config-block">
 				<pre id="bmcp-config-snippet"><?php
 					echo esc_html( json_encode( [
@@ -45,19 +73,21 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 						],
 					], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 				?></pre>
-				<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-snippet">Copy Config</button>
+				<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-snippet">⎘ Copy Config</button>
 			</div>
-			<p class="description">The config above always contains your current API key. After regenerating, the snippet updates automatically. Run <code>claude mcp list</code> to verify the connection.</p>
+			<p class="description">The Bearer token above reflects your current API key. It updates automatically when you regenerate. Run <code>claude mcp list</code> to verify the connection.</p>
 		</div>
 
 		<div class="bmcp-card">
 			<h2>Endpoint URL</h2>
+			<p>Direct MCP endpoint for manual HTTP clients or testing:</p>
 			<div class="bmcp-key-row">
 				<code class="bmcp-key-display" id="bmcp-endpoint"><?php echo esc_html( $endpoint ); ?></code>
-				<button type="button" class="button bmcp-copy-config" data-target="bmcp-endpoint">Copy URL</button>
+				<button type="button" class="button bmcp-copy-config" data-target="bmcp-endpoint">⎘ Copy URL</button>
 			</div>
 		</div>
-	</div>
+
+	</div><!-- /tab-connection -->
 
 	<!-- ====================== INSTRUCTIONS TAB ====================== -->
 	<div class="bmcp-panel" id="tab-instructions" style="display:none">
@@ -66,22 +96,23 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 
 			<div class="bmcp-card">
 				<h2>Custom Instructions</h2>
-				<p>Add context about your business, brand voice, design preferences, or any other guidance for the AI. This is appended to the built-in system prompt.</p>
+				<p>Add context about your business, brand, and preferences. This text is appended to the built-in system prompt every time the AI calls <code>bricks_get_system_prompt</code>.</p>
 
 				<textarea
 					name="<?php echo esc_attr( BMCP_INSTRUCTIONS_OPTION ); ?>"
 					id="bmcp-instructions"
-					rows="12"
+					rows="14"
 					class="large-text"
-					placeholder="Examples:&#10;- This is a SaaS company called Acme. Primary color: #3b82f6 (blue). Secondary: #f59e0b (amber).&#10;- Always use Inter font for headings and body text.&#10;- The hero section should always have a strong CTA button.&#10;- Tone of voice: professional but approachable.&#10;- Never use stock photo placeholder text — use realistic content.&#10;- Main navigation items: Home, About, Services, Pricing, Blog, Contact."
+					placeholder="Examples:&#10;— Site name: Yasir Shabbir Portfolio. Brand color: #00d68f. Secondary: #ffffff.&#10;— Typography: Inter for body, Syne for headings.&#10;— Always include a strong CTA button in hero sections.&#10;— Tone: professional, direct, no filler text.&#10;— Navigation items: Home, About, Services, Process, Portfolio, Resources, Blog, Contact.&#10;— Never use lorem ipsum — always write realistic placeholder content."
 				><?php echo esc_textarea( get_option( BMCP_INSTRUCTIONS_OPTION, '' ) ); ?></textarea>
 
-				<p class="description">These instructions are included every time the AI calls <code>bricks_get_system_prompt</code>.</p>
-
-				<?php submit_button( 'Save Instructions' ); ?>
+				<div class="bmcp-submit-row">
+					<?php submit_button( 'Save Instructions', 'primary', 'submit', false ); ?>
+					<p class="description">Changes take effect on the AI's next call to <code>bricks_get_system_prompt</code>.</p>
+				</div>
 			</div>
 		</form>
-	</div>
+	</div><!-- /tab-instructions -->
 
 	<!-- ====================== CAPABILITIES TAB ====================== -->
 	<div class="bmcp-panel" id="tab-capabilities" style="display:none">
@@ -90,30 +121,69 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 
 			<div class="bmcp-card">
 				<h2>Tool Groups</h2>
-				<p>Disable tool groups to restrict what the AI can do. Site tools (site info, element catalog, system prompt) are always enabled.</p>
+				<p>Disable groups to restrict what the AI can access. The <strong>Site</strong> group (site info, element catalog, nav menus, components, system prompt) is always on.</p>
+
+				<?php
+				$group_info = [
+					'pages'       => [
+						'label' => 'Pages',
+						'icon'  => '⊞',
+						'tools' => 'list, get, create, update, delete pages',
+						'count' => 5,
+					],
+					'templates'   => [
+						'label' => 'Templates',
+						'icon'  => '⊟',
+						'tools' => 'list, get, create, update, delete Bricks templates + template conditions',
+						'count' => 6,
+					],
+					'settings'    => [
+						'label' => 'Global Design',
+						'icon'  => '◎',
+						'tools' => 'global settings, color palette, global classes, theme styles',
+						'count' => 9,
+					],
+					'posts'       => [
+						'label' => 'Posts & CPTs',
+						'icon'  => '≡',
+						'tools' => 'list post types, list, get, create, update, delete any post type',
+						'count' => 6,
+					],
+					'media'       => [
+						'label' => 'Media Library',
+						'icon'  => '⊕',
+						'tools' => 'list media, upload from URL, get media details',
+						'count' => 3,
+					],
+					'woocommerce' => [
+						'label' => 'WooCommerce',
+						'icon'  => '◈',
+						'tools' => 'list & get products, list product categories (requires WooCommerce)',
+						'count' => 3,
+					],
+				];
+				?>
 
 				<table class="bmcp-capabilities-table">
 					<thead>
-						<tr><th>Group</th><th>Tools</th><th>Enabled</th></tr>
+						<tr>
+							<th style="width:160px">Group</th>
+							<th>Tools Included</th>
+							<th style="width:70px;text-align:center">Enabled</th>
+						</tr>
 					</thead>
 					<tbody>
-						<?php
-						$group_info = [
-							'pages'       => [ 'label' => 'Pages', 'tools' => 'list, get, create, update, delete pages' ],
-							'templates'   => [ 'label' => 'Templates', 'tools' => 'list, get, create, update, delete Bricks templates + conditions' ],
-							'settings'    => [ 'label' => 'Global Design', 'tools' => 'global settings, colors, global classes, theme styles' ],
-							'posts'       => [ 'label' => 'Posts & CPTs', 'tools' => 'list, get, create, update, delete any post type' ],
-							'media'       => [ 'label' => 'Media Library', 'tools' => 'list media, upload from URL, get media details' ],
-							'woocommerce' => [ 'label' => 'WooCommerce', 'tools' => 'list/get products, product categories (requires WooCommerce)' ],
-						];
-						foreach ( $group_info as $key => $info ):
+						<?php foreach ( $group_info as $key => $info ) :
 							$is_enabled = $enabled[ $key ] ?? true;
 						?>
 						<tr>
-							<td><strong><?php echo esc_html( $info['label'] ); ?></strong></td>
-							<td class="bmcp-tool-list"><?php echo esc_html( $info['tools'] ); ?></td>
 							<td>
-								<label class="bmcp-toggle">
+								<strong><?php echo esc_html( $info['icon'] . ' ' . $info['label'] ); ?></strong>
+								<br><span class="bmcp-tool-list"><?php echo esc_html( $info['count'] ); ?> tools</span>
+							</td>
+							<td class="bmcp-tool-list"><?php echo esc_html( $info['tools'] ); ?></td>
+							<td style="text-align:center">
+								<label class="bmcp-toggle" title="<?php echo $is_enabled ? 'Enabled — click to disable' : 'Disabled — click to enable'; ?>">
 									<input type="checkbox"
 										name="<?php echo esc_attr( BMCP_ENABLED_TOOLS_OPTION . '[' . $key . ']' ); ?>"
 										value="1"
@@ -127,23 +197,25 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 					</tbody>
 				</table>
 
-				<?php submit_button( 'Save Capabilities' ); ?>
+				<div class="bmcp-submit-row">
+					<?php submit_button( 'Save Capabilities', 'primary', 'submit', false ); ?>
+				</div>
 			</div>
 		</form>
-	</div>
+	</div><!-- /tab-capabilities -->
 
 	<!-- ====================== ACTIVITY LOG TAB ====================== -->
 	<div class="bmcp-panel" id="tab-activity" style="display:none">
 		<div class="bmcp-card">
 			<div class="bmcp-card-header">
-				<h2>Activity Log <span class="description">(last 20 requests)</span></h2>
-				<button type="button" class="button button-secondary" id="bmcp-btn-clear-log">Clear Log</button>
+				<h2>Activity Log <span class="description" style="font-weight:400;font-size:0.8rem;color:var(--text-dim)">last 20 requests</span></h2>
+				<button type="button" class="button" id="bmcp-btn-clear-log">✕ Clear Log</button>
 			</div>
 
-			<?php if ( empty( $log ) ): ?>
-				<p class="bmcp-empty">No MCP requests logged yet. Connect your MCP client and make a tool call to see activity here.</p>
-			<?php else: ?>
-				<table class="widefat striped bmcp-log-table">
+			<?php if ( empty( $log ) ) : ?>
+				<p class="bmcp-empty">No MCP requests logged yet.<br>Connect your client and make a tool call to see activity here.</p>
+			<?php else : ?>
+				<table class="bmcp-log-table">
 					<thead>
 						<tr>
 							<th>Time</th>
@@ -153,23 +225,42 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $log as $entry ): ?>
+						<?php foreach ( $log as $entry ) : ?>
 						<tr>
-							<td><?php echo esc_html( date( 'Y-m-d H:i:s', $entry['timestamp'] ) ); ?></td>
+							<td style="color:var(--text-muted);font-size:0.8rem;white-space:nowrap">
+								<?php echo esc_html( date( 'M j H:i:s', $entry['timestamp'] ) ); ?>
+							</td>
 							<td><code><?php echo esc_html( $entry['tool'] ); ?></code></td>
 							<td>
-								<?php if ( $entry['success'] ): ?>
+								<?php if ( $entry['success'] ) : ?>
 									<span class="bmcp-status ok">✓ OK</span>
-								<?php else: ?>
+								<?php else : ?>
 									<span class="bmcp-status fail">✗ FAIL</span>
 								<?php endif; ?>
 							</td>
-							<td class="bmcp-error-cell"><?php echo esc_html( $entry['error'] ?? '' ); ?></td>
+							<td class="bmcp-error-cell"><?php echo esc_html( $entry['error'] ?? '—' ); ?></td>
 						</tr>
 						<?php endforeach; ?>
 					</tbody>
 				</table>
 			<?php endif; ?>
 		</div>
+	</div><!-- /tab-activity -->
+
+	<!-- ====================== FOOTER ====================== -->
+	<div class="bmcp-footer">
+		<div class="bmcp-footer-left">
+			<div class="bmcp-footer-avatar">YS</div>
+			<div class="bmcp-footer-info">
+				<strong>Yasir Shabbir</strong>
+				<span>Full-Stack Developer</span>
+			</div>
+		</div>
+		<div class="bmcp-footer-links">
+			<a href="mailto:contact@yasirshabbir.com">✉ contact@yasirshabbir.com</a>
+			<span class="bmcp-divider"></span>
+			<a href="https://yasirshabbir.com" target="_blank" rel="noopener">↗ yasirshabbir.com</a>
+		</div>
 	</div>
-</div>
+
+</div><!-- /#bmcp-wrap -->
