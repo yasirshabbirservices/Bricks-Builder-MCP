@@ -104,7 +104,7 @@ $mem_cats   = \BricksMCP\Memory_Manager::get_categories();
 
 			<div class="bmcp-card">
 				<h2>Custom Instructions</h2>
-				<p>Add context about your business, brand, and preferences. This text is appended to the built-in system prompt every time the AI calls <code>bricks_get_system_prompt</code>.</p>
+				<p>Site-specific rules appended to the AI's built-in system prompt on every <code>bricks_get_system_prompt</code> call. Pre-filled with sensible defaults — edit freely to match your project.</p>
 
 				<textarea
 					name="<?php echo esc_attr( BMCP_INSTRUCTIONS_OPTION ); ?>"

@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://yasirshabbir.com
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.0.4
+ * Version:     1.0.5
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     GPL-2.0-or-later
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',              '1.0.4' );
+define( 'BMCP_VERSION',              '1.0.5' );
 define( 'BMCP_PLUGIN_FILE',          __FILE__ );
 define( 'BMCP_PLUGIN_DIR',           plugin_dir_path( __FILE__ ) );
 define( 'BMCP_PLUGIN_URL',           plugin_dir_url( __FILE__ ) );
@@ -85,6 +85,49 @@ function bmcp_activate() {
 	];
 	if ( get_option( BMCP_ENABLED_TOOLS_OPTION ) === false ) {
 		update_option( BMCP_ENABLED_TOOLS_OPTION, $default_tools, false );
+	}
+
+	if ( get_option( BMCP_INSTRUCTIONS_OPTION ) === false ) {
+		$default_instructions = <<<'INSTRUCTIONS'
+* Use Advanced Custom Fields (ACF), ACF Pro, or JetEngine whenever available instead of relying on native WordPress functions or building unnecessary custom solutions for post types, taxonomies, meta fields, relationships, options pages, or dynamic content structures.
+
+* Follow the existing design system consistently. Always reuse predefined CSS variables, global classes, spacing, typography, colors, and utility patterns already implemented on the website.
+
+* Prefer native Bricks Builder functionality before introducing custom PHP, JavaScript, or sandbox functions. Use built-in dynamic data, query loops, conditions, interactions, and templating whenever possible. Fully test all custom implementations before deployment.
+
+* Keep the media library properly organized. Upload and manage assets inside their appropriate folders/categories using HappyFiles Pro if it exists to maintain a scalable and maintainable media structure.
+
+* Reuse existing components, templates, global styles, and utility classes before creating new ones to maintain consistency and reduce maintenance overhead.
+
+* Maintain clean, modular, and scalable architecture. Avoid duplicate logic, unnecessary abstractions, plugin bloat, and over-engineering.
+
+* Prioritize performance-first development:
+  - Minimize unnecessary scripts and dependencies
+  - Reduce database queries where possible
+  - Optimize DOM structure and asset loading
+  - Avoid heavy frontend libraries unless required
+
+* Follow WordPress security best practices:
+  - Sanitize and validate all inputs
+  - Escape outputs correctly
+  - Use nonce verification where needed
+  - Apply proper capability/permission checks
+  - Secure all API and AJAX endpoints
+
+* Build mobile-first, responsive layouts by default and ensure consistency across desktop, tablet, and mobile breakpoints.
+
+* Ensure all custom code is production-ready, maintainable, and documented where necessary for future scalability and team collaboration.
+
+* Before releasing any feature or update, always verify:
+  - Responsive behavior
+  - Dynamic data accuracy
+  - Accessibility basics
+  - Cross-browser compatibility
+  - Error handling and fallback states
+  - Performance impact
+  - Console/network errors
+INSTRUCTIONS;
+		update_option( BMCP_INSTRUCTIONS_OPTION, $default_instructions, false );
 	}
 }
 
