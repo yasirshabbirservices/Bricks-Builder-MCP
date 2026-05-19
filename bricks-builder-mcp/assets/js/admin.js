@@ -291,6 +291,153 @@ jQuery( function ( $ ) {
 		}
 	} );
 
+	// =========================================================================
+	// HISTORY TAB
+	// =========================================================================
+
+	var histPage   = 1;
+	var histArea   = '';
+	var histLoaded = false;
+
+	var areaLabels = {
+		content: 'Content', header: 'Header', footer: 'Footer',
+		global_settings: 'Global Settings', color_palette: 'Color Palette',
+		global_classes: 'Global Classes', theme_styles: 'Theme Styles',
+		components: 'Components'
+	};
+
+	function loadHistory() {
+		$( '#bmcp-history-list' ).html( '<p class="bmcp-empty">Loading…</p>' );
+		$( '#bmcp-history-pagination' ).empty();
+
+		$.post( cfg.ajaxUrl, {
+			action: 'bmcp_history_list',
+			nonce:  cfg.nonce,
+			page:   histPage,
+			area:   histArea,
+		}, function ( res ) {
+			if ( ! res.success ) return;
+			renderHistoryTable( res.data );
+		} );
+	}
+
+	function renderHistoryTable( data ) {
+		var items = data.items || [];
+
+		if ( ! items.length ) {
+			$( '#bmcp-history-list' ).html( '<p class="bmcp-empty">No snapshots yet. Snapshots are created automatically before every AI write operation.</p>' );
+			$( '#bmcp-history-pagination' ).empty();
+			return;
+		}
+
+		var rows = items.map( function ( s ) {
+			var date    = new Date( s.created_at * 1000 );
+			var dateStr = date.toLocaleDateString( undefined, { month: 'short', day: 'numeric' } ) +
+			              ' ' + date.toLocaleTimeString( undefined, { hour: '2-digit', minute: '2-digit' } );
+			var areaLabel = areaLabels[ s.area ] || s.area;
+
+			return '<tr>' +
+				'<td style="color:var(--text-muted);font-size:0.78rem;white-space:nowrap">' + escHtml( dateStr ) + '</td>' +
+				'<td>' +
+					'<div class="bmcp-mem-title">' + escHtml( s.post_title ) + '</div>' +
+					'<div class="bmcp-mem-preview">' + escHtml( s.description ) + '</div>' +
+				'</td>' +
+				'<td><span class="bmcp-mem-badge cat">' + escHtml( areaLabel ) + '</span></td>' +
+				'<td style="color:var(--text-dim);font-size:0.78rem"><code>' + escHtml( s.tool_name || '—' ) + '</code></td>' +
+				'<td>' +
+					'<div class="bmcp-mem-actions">' +
+						'<button class="button button-primary bmcp-btn-restore-snap" data-id="' + s.id + '" title="Restore this snapshot">↺ Restore</button>' +
+						'<button class="button bmcp-btn-del-snap" data-id="' + s.id + '" title="Delete snapshot">Del</button>' +
+					'</div>' +
+				'</td>' +
+			'</tr>';
+		} );
+
+		var table = '<table class="bmcp-memory-table">' +
+			'<thead><tr><th>Time</th><th>Description</th><th>Area</th><th>Tool</th><th></th></tr></thead>' +
+			'<tbody>' + rows.join( '' ) + '</tbody>' +
+		'</table>';
+
+		$( '#bmcp-history-list' ).html( table );
+		renderHistPagination( data );
+		bindHistoryActions();
+	}
+
+	function renderHistPagination( data ) {
+		var $p = $( '#bmcp-history-pagination' );
+		if ( data.total_pages <= 1 ) { $p.empty(); return; }
+
+		var html = '';
+		if ( data.page > 1 ) {
+			html += '<button class="bmcp-page-btn" data-page="' + ( data.page - 1 ) + '">← Prev</button>';
+		}
+		var start = Math.max( 1, data.page - 2 );
+		var end   = Math.min( data.total_pages, data.page + 2 );
+		for ( var i = start; i <= end; i++ ) {
+			html += '<button class="bmcp-page-btn' + ( i === data.page ? ' active' : '' ) + '" data-page="' + i + '">' + i + '</button>';
+		}
+		if ( data.page < data.total_pages ) {
+			html += '<button class="bmcp-page-btn" data-page="' + ( data.page + 1 ) + '">Next →</button>';
+		}
+		html += '<span style="color:var(--text-dim);font-size:0.78rem;margin-left:6px">' + data.total + ' total</span>';
+		$p.html( html );
+		$p.find( '.bmcp-page-btn' ).on( 'click', function () {
+			histPage = parseInt( $( this ).data( 'page' ), 10 );
+			loadHistory();
+		} );
+	}
+
+	function bindHistoryActions() {
+		$( '.bmcp-btn-restore-snap' ).on( 'click', function () {
+			var id   = $( this ).data( 'id' );
+			var $btn = $( this );
+			if ( ! confirm( 'Restore snapshot #' + id + '? The current state will be auto-saved first so you can undo.' ) ) return;
+
+			$btn.prop( 'disabled', true ).text( 'Restoring…' );
+			$.post( cfg.ajaxUrl, { action: 'bmcp_history_restore', nonce: cfg.nonce, id: id }, function ( res ) {
+				if ( res.success ) {
+					loadHistory();
+				} else {
+					alert( res.data || 'Restore failed.' );
+					$btn.prop( 'disabled', false ).text( '↺ Restore' );
+				}
+			} ).fail( function () {
+				$btn.prop( 'disabled', false ).text( '↺ Restore' );
+			} );
+		} );
+
+		$( '.bmcp-btn-del-snap' ).on( 'click', function () {
+			var id = $( this ).data( 'id' );
+			if ( ! confirm( 'Delete snapshot #' + id + '? This cannot be undone.' ) ) return;
+			$.post( cfg.ajaxUrl, { action: 'bmcp_history_delete', nonce: cfg.nonce, id: id }, function ( res ) {
+				if ( res.success ) loadHistory();
+			} );
+		} );
+	}
+
+	$( '#bmcp-hist-area-filter' ).on( 'change', function () {
+		histArea = $( this ).val();
+		histPage = 1;
+		loadHistory();
+	} );
+
+	$( '#bmcp-btn-clear-history' ).on( 'click', function () {
+		if ( ! confirm( 'Clear all snapshots? This cannot be undone.' ) ) return;
+		var $btn = $( this );
+		$btn.prop( 'disabled', true );
+		$.post( cfg.ajaxUrl, { action: 'bmcp_history_clear', nonce: cfg.nonce }, function ( res ) {
+			if ( res.success ) loadHistory();
+			$btn.prop( 'disabled', false );
+		} ).fail( function () { $btn.prop( 'disabled', false ); } );
+	} );
+
+	$( '[data-tab="history"]' ).on( 'click', function () {
+		if ( ! histLoaded ) {
+			histLoaded = true;
+			loadHistory();
+		}
+	} );
+
 	// ---- Utility ----
 	function escHtml( str ) {
 		return String( str ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );

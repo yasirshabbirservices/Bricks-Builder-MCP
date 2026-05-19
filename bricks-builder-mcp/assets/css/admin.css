@@ -1094,6 +1094,48 @@ body.settings_page_bricks-mcp #wpbody-content {
 	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
 }
 
+/* ---- HISTORY PAGINATION ---- */
+#bmcp-history-pagination {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	justify-content: center;
+	margin-top: 4px;
+	flex-wrap: wrap;
+}
+
+/* ---- HISTORY RESTORE BUTTON ---- */
+.bmcp-btn-restore-snap {
+	color: var(--brand) !important;
+	border-color: rgba(0,214,143,0.35) !important;
+	background: var(--brand-dim) !important;
+}
+.bmcp-btn-restore-snap:hover {
+	background: rgba(0,214,143,0.18) !important;
+	border-color: rgba(0,214,143,0.55) !important;
+}
+.bmcp-btn-del-snap { color: var(--danger) !important; border-color: rgba(249,95,114,0.3) !important; }
+.bmcp-btn-del-snap:hover { background: var(--danger-dim) !important; }
+
+/* ---- MEMORY TOOLBAR — search input type ---- */
+.bmcp-memory-toolbar input[type="search"] {
+	flex: 1;
+	min-width: 180px;
+	background: var(--surface-3) !important;
+	border: 1px solid var(--border) !important;
+	border-radius: var(--radius-sm) !important;
+	color: var(--text) !important;
+	padding: 7px 12px !important;
+	font-size: 0.84rem !important;
+	height: auto !important;
+	box-shadow: none !important;
+}
+.bmcp-memory-toolbar input[type="search"]:focus {
+	border-color: var(--brand) !important;
+	outline: none !important;
+	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
+}
+
 /* ---- WP ADMIN OVERRIDES (scoped) ---- */
 #bmcp-wrap h1 { color: var(--text); }
 #bmcp-wrap p.submit { margin: 0; padding: 0; }

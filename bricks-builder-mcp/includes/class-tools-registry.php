@@ -28,6 +28,7 @@ class Tools_Registry {
 			new Tools\Tool_Components(),
 			new Tools\Tool_Site(),
 			new Tools\Tool_Memory(),
+			new Tools\Tool_History(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -82,6 +83,12 @@ class Tools_Registry {
 		$handler = $this->tools[ $name ] ?? null;
 		if ( ! $handler ) {
 			return new \WP_Error( 'bmcp_unknown_tool', "Unknown tool: {$name}" );
+		}
+
+		// Auto-snapshot before any write operation so the AI can restore its own mistakes
+		$snapshot_info = $this->get_snapshot_info( $name, $args );
+		if ( $snapshot_info !== null ) {
+			History_Manager::capture( $snapshot_info[0], $snapshot_info[1], $name );
 		}
 
 		$result = $handler->execute( $name, $args );
@@ -164,7 +171,55 @@ class Tools_Registry {
 			'bricks_memory_update' => 'site',
 			'bricks_memory_delete' => 'site',
 			'bricks_memory_search' => 'site',
+			// history / snapshots (always on)
+			'bricks_snapshot_list'    => 'site',
+			'bricks_snapshot_get'     => 'site',
+			'bricks_snapshot_restore' => 'site',
+			'bricks_snapshot_delete'  => 'site',
 		];
+	}
+
+	/**
+	 * Returns [post_id, area] to snapshot before the given write tool executes, or null if no snapshot needed.
+	 */
+	private function get_snapshot_info( string $name, array $args ): ?array {
+		switch ( $name ) {
+			// Page writes
+			case 'bricks_update_page':
+			case 'bricks_delete_page':
+				return [ (int) ( $args['id'] ?? 0 ), $args['area'] ?? 'content' ];
+
+			// Template writes
+			case 'bricks_update_template':
+			case 'bricks_delete_template':
+			case 'bricks_set_template_conditions':
+				return [ (int) ( $args['id'] ?? 0 ), 'content' ];
+
+			// Global settings writes (post_id = 0 → global option)
+			case 'bricks_update_global_settings':
+				return [ 0, 'global_settings' ];
+			case 'bricks_update_color_palette':
+				return [ 0, 'color_palette' ];
+			case 'bricks_create_global_class':
+			case 'bricks_update_global_class':
+				return [ 0, 'global_classes' ];
+			case 'bricks_update_theme_styles':
+				return [ 0, 'theme_styles' ];
+
+			// Post writes
+			case 'bricks_update_post':
+			case 'bricks_delete_post':
+				return [ (int) ( $args['id'] ?? 0 ), 'content' ];
+
+			// Component writes
+			case 'bricks_create_component':
+			case 'bricks_update_component':
+			case 'bricks_delete_component':
+				return [ 0, 'components' ];
+
+			default:
+				return null;
+		}
 	}
 
 	private function get_enabled_groups(): array {

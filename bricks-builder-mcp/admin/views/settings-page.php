@@ -6,6 +6,9 @@ $enabled    = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
 $endpoint   = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 $mem_total  = count( \BricksMCP\Memory_Manager::get_all() );
 $mem_cats   = \BricksMCP\Memory_Manager::get_categories();
+
+global $wpdb;
+$hist_total = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . \BricksMCP\History_Manager::table() );
 $api_key    = \BricksMCP\Auth::get_key();
 $site_name  = get_bloginfo( 'name' );
 
@@ -122,6 +125,12 @@ $cfg_standard;
 			<span class="bmcp-tab-icon" aria-hidden="true">◎</span> Memory
 			<?php if ( $mem_total > 0 ) : ?>
 				<span class="bmcp-badge" aria-label="<?php echo esc_attr( $mem_total . ' memories' ); ?>"><?php echo $mem_total; ?></span>
+			<?php endif; ?>
+		</a>
+		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-history"      data-tab="history"      aria-controls="tab-history">
+			<span class="bmcp-tab-icon" aria-hidden="true">⏎</span> History
+			<?php if ( $hist_total > 0 ) : ?>
+				<span class="bmcp-badge" aria-label="<?php echo esc_attr( $hist_total . ' snapshots' ); ?>"><?php echo $hist_total; ?></span>
 			<?php endif; ?>
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-activity"     data-tab="activity"     aria-controls="tab-activity">
@@ -410,6 +419,35 @@ $cfg_standard;
 			</div>
 		</div>
 	</div>
+
+	<!-- ====================== HISTORY TAB ====================== -->
+	<div class="bmcp-panel" id="tab-history" role="tabpanel" aria-labelledby="nav-tab-history" style="display:none">
+		<div class="bmcp-card">
+			<div class="bmcp-card-header">
+				<h2>Content History <span class="description" style="font-weight:400;font-size:0.8rem;color:var(--text-dim)">up to 200 snapshots</span></h2>
+				<button type="button" class="button" id="bmcp-btn-clear-history" aria-label="Clear all snapshots">✕ Clear All</button>
+			</div>
+			<p style="margin-bottom:16px">A snapshot is automatically saved before every AI write operation. Use these restore points to undo any unwanted change. Restoring is also undoable — the current state is always snapshotted first.</p>
+
+			<div class="bmcp-memory-toolbar" role="search" aria-label="Filter history">
+				<label for="bmcp-hist-area-filter" class="bmcp-sr-only">Filter by area</label>
+				<select id="bmcp-hist-area-filter" aria-label="Filter by content area">
+					<option value="">All Areas</option>
+					<option value="content">Content</option>
+					<option value="header">Header</option>
+					<option value="footer">Footer</option>
+					<option value="global_settings">Global Settings</option>
+					<option value="color_palette">Color Palette</option>
+					<option value="global_classes">Global Classes</option>
+					<option value="theme_styles">Theme Styles</option>
+					<option value="components">Components</option>
+				</select>
+			</div>
+
+			<div id="bmcp-history-list" aria-live="polite"><p class="bmcp-empty">Click the History tab to load snapshots.</p></div>
+			<nav id="bmcp-history-pagination" aria-label="History pagination"></nav>
+		</div>
+	</div><!-- /tab-history -->
 
 	<!-- ====================== ACTIVITY LOG TAB ====================== -->
 	<div class="bmcp-panel" id="tab-activity" role="tabpanel" aria-labelledby="nav-tab-activity" style="display:none">

@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://yasirshabbir.com
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.0.7
+ * Version:     1.1.0
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     GPL-2.0-or-later
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',              '1.0.7' );
+define( 'BMCP_VERSION',              '1.1.0' );
 define( 'BMCP_PLUGIN_FILE',          __FILE__ );
 define( 'BMCP_PLUGIN_DIR',           plugin_dir_path( __FILE__ ) );
 define( 'BMCP_PLUGIN_URL',           plugin_dir_url( __FILE__ ) );
@@ -24,6 +24,7 @@ define( 'BMCP_INSTRUCTIONS_OPTION',  'bmcp_custom_instructions' );
 define( 'BMCP_ENABLED_TOOLS_OPTION', 'bmcp_enabled_tools' );
 define( 'BMCP_ACTIVITY_LOG_OPTION',  'bmcp_activity_log' );
 define( 'BMCP_REST_NAMESPACE',       'bricks-mcp/v1' );
+define( 'BMCP_DB_VERSION_OPTION',    'bmcp_db_version' );
 
 // Bricks DB key fallbacks (used when Bricks constants not yet defined)
 define( 'BMCP_DB_PAGE_CONTENT',      '_bricks_page_content_2' );
@@ -60,6 +61,8 @@ register_activation_hook( __FILE__, 'bmcp_activate' );
 register_deactivation_hook( __FILE__, 'bmcp_deactivate' );
 
 function bmcp_activate() {
+	\BricksMCP\History_Manager::create_table();
+
 	if ( get_option( BMCP_API_KEY_OPTION ) === false ) {
 		$key = wp_generate_password( 32, false );
 		update_option( BMCP_API_KEY_OPTION, $key, false );
@@ -138,6 +141,12 @@ function bmcp_deactivate() {
 add_action( 'plugins_loaded', 'bmcp_init' );
 
 function bmcp_init() {
+	// Create history table on first run after upgrade (idempotent via dbDelta)
+	if ( get_option( BMCP_DB_VERSION_OPTION ) !== BMCP_VERSION ) {
+		\BricksMCP\History_Manager::create_table();
+		update_option( BMCP_DB_VERSION_OPTION, BMCP_VERSION, false );
+	}
+
 	// Admin
 	if ( is_admin() ) {
 		new \BricksMCP\Admin();

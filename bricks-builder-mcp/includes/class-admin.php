@@ -16,6 +16,10 @@ class Admin {
 		add_action( 'wp_ajax_bmcp_memory_list',     [ $this, 'ajax_memory_list' ] );
 		add_action( 'wp_ajax_bmcp_memory_save',     [ $this, 'ajax_memory_save' ] );
 		add_action( 'wp_ajax_bmcp_memory_delete',   [ $this, 'ajax_memory_delete' ] );
+		add_action( 'wp_ajax_bmcp_history_list',    [ $this, 'ajax_history_list' ] );
+		add_action( 'wp_ajax_bmcp_history_restore', [ $this, 'ajax_history_restore' ] );
+		add_action( 'wp_ajax_bmcp_history_delete',  [ $this, 'ajax_history_delete' ] );
+		add_action( 'wp_ajax_bmcp_history_clear',   [ $this, 'ajax_history_clear' ] );
 	}
 
 	public function register_menu(): void {
@@ -183,6 +187,70 @@ class Admin {
 			wp_send_json_error( 'Memory not found.' );
 		}
 
+		wp_send_json_success();
+	}
+
+	// -------------------------------------------------------------------------
+	// History AJAX
+	// -------------------------------------------------------------------------
+
+	public function ajax_history_list(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$page    = max( 1, (int) ( $_POST['page'] ?? 1 ) );
+		$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+		$area    = sanitize_key( $_POST['area'] ?? '' );
+
+		$result = History_Manager::get_paginated( $page, 15, $post_id, $area );
+		wp_send_json_success( $result );
+	}
+
+	public function ajax_history_restore(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$id  = (int) ( $_POST['id'] ?? 0 );
+		$row = History_Manager::restore( $id, 'admin_restore' );
+
+		if ( ! $row ) {
+			wp_send_json_error( 'Snapshot not found.' );
+		}
+
+		wp_send_json_success( [ 'restored' => true, 'snapshot' => $row ] );
+	}
+
+	public function ajax_history_delete(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$id      = (int) ( $_POST['id'] ?? 0 );
+		$deleted = History_Manager::delete( $id );
+
+		if ( ! $deleted ) {
+			wp_send_json_error( 'Snapshot not found.' );
+		}
+
+		wp_send_json_success();
+	}
+
+	public function ajax_history_clear(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		History_Manager::clear_all();
 		wp_send_json_success();
 	}
 }
