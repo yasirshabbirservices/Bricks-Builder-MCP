@@ -49,15 +49,17 @@ jQuery( function ( $ ) {
 			nonce:  cfg.nonce,
 		}, function ( res ) {
 			if ( res.success ) {
-				var oldKey = cfg.apiKey;
 				cfg.apiKey = res.data.key;
 
-				// Update masked display
+				// Update masked display instantly
 				$( '#bmcp-key-masked' ).text( res.data.masked );
 
-				// Update config snippet in-place with new key
+				// Replace any Bearer token in snippet using regex — works even if oldKey was stale
 				var $snippet = $( '#bmcp-config-snippet' );
-				$snippet.text( $snippet.text().replace( 'Bearer ' + oldKey, 'Bearer ' + res.data.key ) );
+				$snippet.text( $snippet.text().replace( /Bearer\s+\S+/g, 'Bearer ' + res.data.key ) );
+
+				// Also update data-key attribute so copy always has latest
+				$snippet.attr( 'data-key', res.data.key );
 
 				// Visual confirmation (no alert popup)
 				$btn.text( '✓ Updated' ).addClass( 'button-primary' );

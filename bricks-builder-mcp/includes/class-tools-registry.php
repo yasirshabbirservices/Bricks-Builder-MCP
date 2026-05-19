@@ -24,6 +24,8 @@ class Tools_Registry {
 			new Tools\Tool_Posts(),
 			new Tools\Tool_Media(),
 			new Tools\Tool_WooCommerce(),
+			new Tools\Tool_Menus(),
+			new Tools\Tool_Components(),
 			new Tools\Tool_Site(),
 		];
 
@@ -138,10 +140,22 @@ class Tools_Registry {
 			'bricks_list_products'            => 'woocommerce',
 			'bricks_get_product'              => 'woocommerce',
 			'bricks_list_product_categories'  => 'woocommerce',
+			// menus (always on)
+			'bricks_list_nav_menus'   => 'site',
+			'bricks_create_nav_menu'  => 'site',
+			'bricks_get_nav_menu'     => 'site',
+			'bricks_update_nav_menu'  => 'site',
+			// components (always on)
+			'bricks_list_components'   => 'site',
+			'bricks_get_component'     => 'site',
+			'bricks_create_component'  => 'site',
+			'bricks_update_component'  => 'site',
+			'bricks_delete_component'  => 'site',
 			// site
 			'bricks_get_site_info'           => 'site',
 			'bricks_get_custom_instructions' => 'site',
 			'bricks_get_system_prompt'       => 'site',
+			'bricks_set_front_page'          => 'site',
 		];
 	}
 
