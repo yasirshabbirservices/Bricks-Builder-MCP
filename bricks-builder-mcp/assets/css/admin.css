@@ -1,0 +1,254 @@
+/* Bricks Builder MCP — Admin Styles */
+
+#bmcp-wrap {
+	max-width: 900px;
+}
+
+#bmcp-wrap h1 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 1.5rem;
+	margin-bottom: 20px;
+}
+
+.bmcp-logo {
+	font-size: 1.8rem;
+}
+
+.bmcp-version {
+	font-size: 0.75rem;
+	font-weight: 400;
+	color: #8c8f94;
+	background: #f0f0f1;
+	padding: 2px 8px;
+	border-radius: 12px;
+	vertical-align: middle;
+}
+
+/* ---- TABS ---- */
+.bmcp-tabs {
+	display: flex;
+	gap: 0;
+	border-bottom: 2px solid #e0e0e0;
+	margin-bottom: 24px;
+}
+
+.bmcp-tab {
+	text-decoration: none;
+	color: #50575e;
+	padding: 10px 20px;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	font-weight: 500;
+	transition: all 0.15s;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.bmcp-tab:hover {
+	color: #2271b1;
+}
+
+.bmcp-tab.active {
+	color: #2271b1;
+	border-bottom-color: #2271b1;
+}
+
+.bmcp-badge {
+	background: #2271b1;
+	color: #fff;
+	font-size: 0.7rem;
+	padding: 1px 6px;
+	border-radius: 10px;
+	font-weight: 700;
+}
+
+/* ---- CARDS ---- */
+.bmcp-card {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 24px;
+	margin-bottom: 20px;
+}
+
+.bmcp-card h2 {
+	margin-top: 0;
+	font-size: 1.1rem;
+	color: #1d2327;
+}
+
+.bmcp-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+
+.bmcp-card-header h2 {
+	margin: 0;
+}
+
+/* ---- KEY ROW ---- */
+.bmcp-key-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 12px 0;
+	flex-wrap: wrap;
+}
+
+.bmcp-key-display {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 8px 14px;
+	font-family: monospace;
+	font-size: 0.9rem;
+	color: #1d2327;
+	flex: 1;
+	min-width: 200px;
+	word-break: break-all;
+}
+
+/* ---- CONFIG BLOCK ---- */
+.bmcp-config-block {
+	position: relative;
+	margin: 12px 0;
+}
+
+.bmcp-config-block pre {
+	background: #1e1e1e;
+	color: #d4d4d4;
+	padding: 16px;
+	border-radius: 6px;
+	font-size: 0.85rem;
+	line-height: 1.6;
+	overflow-x: auto;
+	margin: 0 0 8px 0;
+}
+
+.bmcp-copy-config {
+	float: right;
+}
+
+/* ---- CAPABILITIES TABLE ---- */
+.bmcp-capabilities-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 16px;
+}
+
+.bmcp-capabilities-table th {
+	text-align: left;
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border-bottom: 2px solid #e0e0e0;
+	font-weight: 600;
+}
+
+.bmcp-capabilities-table td {
+	padding: 12px 12px;
+	border-bottom: 1px solid #f0f0f1;
+	vertical-align: middle;
+}
+
+.bmcp-tool-list {
+	color: #646970;
+	font-size: 0.875rem;
+}
+
+/* ---- TOGGLE SWITCH ---- */
+.bmcp-toggle {
+	position: relative;
+	display: inline-block;
+	width: 42px;
+	height: 24px;
+	cursor: pointer;
+}
+
+.bmcp-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.bmcp-toggle-slider {
+	position: absolute;
+	inset: 0;
+	background: #c3c4c7;
+	border-radius: 24px;
+	transition: 0.2s;
+}
+
+.bmcp-toggle-slider::before {
+	content: '';
+	position: absolute;
+	width: 18px;
+	height: 18px;
+	left: 3px;
+	top: 3px;
+	background: #fff;
+	border-radius: 50%;
+	transition: 0.2s;
+}
+
+.bmcp-toggle input:checked + .bmcp-toggle-slider {
+	background: #2271b1;
+}
+
+.bmcp-toggle input:checked + .bmcp-toggle-slider::before {
+	transform: translateX(18px);
+}
+
+/* ---- LOG TABLE ---- */
+.bmcp-log-table {
+	font-size: 0.875rem;
+}
+
+.bmcp-log-table code {
+	font-size: 0.8rem;
+	background: #f6f7f7;
+	padding: 2px 6px;
+	border-radius: 3px;
+}
+
+.bmcp-status {
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 12px;
+	font-size: 0.8rem;
+}
+
+.bmcp-status.ok {
+	color: #1a7431;
+	background: #d5f5e3;
+}
+
+.bmcp-status.fail {
+	color: #8b1a1a;
+	background: #fde8e8;
+}
+
+.bmcp-error-cell {
+	color: #d63638;
+	font-size: 0.8rem;
+	max-width: 280px;
+	word-break: break-word;
+}
+
+/* ---- MISC ---- */
+.bmcp-empty {
+	color: #8c8f94;
+	font-style: italic;
+	text-align: center;
+	padding: 30px;
+}
+
+#bmcp-instructions {
+	font-family: monospace;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
