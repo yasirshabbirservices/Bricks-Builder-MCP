@@ -168,20 +168,36 @@ Every Bricks element MUST have this exact structure:
 
 ```json
 {
-  "id": "abc123",      // 6-char alphanumeric, UNIQUE per page
-  "name": "container", // element type string
-  "parent": 0,         // 0 = root level; otherwise parent element's id string
+  "id": "abc123",      // 6-char lowercase alphanumeric, UNIQUE per page
+  "name": "container", // element type string — see allowed names below
+  "parent": 0,         // 0 for root-level; otherwise the parent element's id string
   "children": [],      // ordered array of child element id strings
-  "settings": {}       // element settings object (see below)
+  "settings": {},      // all styling and configuration
+  "label": "Optional label shown in builder"
 }
 ```
 
 **Critical rules:**
-- Every id must be unique across the entire elements array.
-- If element A has `"children": ["b1c2d3"]`, then the element with id `"b1c2d3"` must have `"parent": "abc123"`.
-- Root elements use `"parent": 0` (integer zero, not string).
-- Non-nestable elements (heading, text-basic, button, image, icon, text-link, etc.) must have `"children": []`.
-- **DO NOT invent settings key names.** Only use keys shown in this guide or returned by `bricks_get_elements`. If you are unsure of a key, use `_cssCustom` for the CSS instead.
+- Every `id` must be unique across the entire elements array. Use 6 random lowercase alphanumeric characters (e.g. `"mqwvfx"`, `"r7k2np"`) — never sequential like `"elem01"`.
+- Every ID listed in any element's `children` array MUST have a matching element in the flat array. Orphaned IDs silently break the layout.
+- Root-level elements use `"parent": 0` (integer zero, not the string `"0"`).
+- Leaf elements (heading, text-basic, button, image, icon, etc.) must have `"children": []`.
+- **Never invent settings key names.** Only use keys documented in this guide. If unsure of a key, use `_cssCustom` for the CSS instead.
+
+---
+
+## CRITICAL: Page Element Hierarchy
+
+**Always follow this 3-level structure — never place content directly inside a section or container:**
+
+```
+section   (parent: 0) — outermost wrapper, maps to <section>
+  └── container   (parent: section.id) — content-width centering wrapper
+        └── block / div   (parent: container.id) — flex/grid layout container
+              └── [content elements: heading, text-basic, button, image, icon, …]
+```
+
+Content elements (heading, text-basic, button, image, icon, text-link) must always be inside a `block` or `div`, not directly inside `container` or `section`.
 
 ---
 
@@ -190,8 +206,8 @@ Every Bricks element MUST have this exact structure:
 **Always prefer global classes over inline settings.** Call `bricks_get_global_classes` at the start of every session and map class names to their IDs.
 
 ```json
-// CORRECT — use the class ID from bricks_get_global_classes result
-{"_cssGlobalClasses": ["a1b2c3", "d4e5f6"]}
+// CORRECT — apply the class ID from bricks_get_global_classes
+{"_cssGlobalClasses": ["icnnin", "aswtwb"]}
 
 // WRONG — duplicating styles that already exist as global classes
 {"_typography": {"font-size": "2rem", "font-weight": "700"}}
@@ -201,265 +217,334 @@ Every Bricks element MUST have this exact structure:
 1. Call `bricks_get_global_classes` → note all class names and their IDs.
 2. When building an element, check: does a class like `btn`, `h1`, `h2`, `body-text-s`, `section-padding-l` etc. already exist?
 3. If yes → set `_cssGlobalClasses: ["<classId>"]` and omit redundant inline settings.
-4. If no → write inline settings, then consider creating a class with `bricks_create_global_class` for reuse.
+4. If no → write inline settings, then consider creating a reusable class with `bricks_create_global_class`.
 
-**Multiple classes:** `"_cssGlobalClasses": ["classId1", "classId2"]` — order matters, later classes win on conflicts.
+Multiple classes: `"_cssGlobalClasses": ["id1", "id2"]` — order matters, later wins on conflicts.
 
 ---
 
-## CRITICAL: Container Flex Settings
+## Settings Reference — Sizing & Layout
 
-The container element is Bricks' primary layout block. **You MUST set `_display: "flex"` explicitly** — without it, `_direction`, `_justifyContent`, `_alignItems`, and gap settings generate NO CSS output.
+**All dimension values are plain CSS strings — never use `{size, unit}` objects:**
 
 ```json
-{
-  "name": "container",
-  "settings": {
-    "_display": "flex",                           // REQUIRED — activates all flex controls
-    "_direction": "row",                          // "row" | "column" | "row-reverse" | "column-reverse"
-    "_justifyContent": "space-between",           // "flex-start"|"center"|"flex-end"|"space-between"|"space-around"
-    "_alignItems": "center",                      // "flex-start"|"center"|"flex-end"|"stretch"
-    "_columnGap": {"size": 24, "unit": "px"},     // MUST be {size, unit} object — never a plain string
-    "_rowGap": {"size": 16, "unit": "px"},        // MUST be {size, unit} object — never a plain string
-    "_flexWrap": "wrap",                          // "wrap" | "nowrap"
-    "_padding": {"top": "40px", "right": "20px", "bottom": "40px", "left": "20px"},
-    "_margin": {"top": "0", "right": "auto", "bottom": "0", "left": "auto"},
-    "_widthMax": {"size": 1200, "unit": "px"},    // max-width — key is _widthMax, NOT _maxWidth
-    "_width": {"size": 100, "unit": "%"},         // MUST be {size, unit} object
-    "_background": {"color": {"hex": "#ffffff"}},
-    "_cssCustom": "any: raw-css-here;"            // fallback for complex styles not covered by controls
+"_width":    "100%",          // or "35%", "var(--container-width)"
+"_widthMin": "14rem",
+"_widthMax": "128rem",        // max-width — key is _widthMax, NOT _maxWidth
+"_height":   "50rem",
+"_heightMin": "10rem",
+"_heightMax": "none"
+```
+
+**Display & Flex:**
+
+```json
+"_display": "flex",            // REQUIRED to activate flex controls on containers
+"_direction": "row",           // "row" | "column" | "row-reverse" | "column-reverse"
+"_flexWrap": "wrap",           // "wrap" | "nowrap"
+"_justifyContent": "center",   // "flex-start"|"center"|"flex-end"|"space-between"|"space-around"
+"_alignItems": "center",       // "flex-start"|"center"|"flex-end"|"stretch"
+"_alignContent": "flex-start",
+"_columnGap": "2rem",          // plain string — "2rem", "24px", "var(--space-m)"
+"_rowGap": "2rem",             // plain string
+"_flexGrow": "1",              // string "1" or "0" — fills remaining flex space
+"_flexShrink": "0",            // string "0" prevents shrinking
+"_order": "1",
+"_overflow": "hidden"          // "hidden" | "auto" | "scroll" | "visible"
+```
+
+**Grid:**
+
+```json
+"_display": "grid",
+"_gridTemplateColumns": "repeat(3, minmax(0, 1fr))",  // plain string — any CSS value
+"_gridTemplateRows": "auto",
+"_gridGap": "2rem",            // plain string — "2rem", "24px", "var(--space-m)"
+"_gridAutoRows": "30rem"       // plain string
+```
+
+**Spacing — always plain strings with units:**
+
+```json
+"_padding": {"top": "6rem",  "right": "2rem", "bottom": "6rem",  "left": "2rem"},
+"_margin":  {"top": "2rem",  "right": "0",    "bottom": "2rem",  "left": "0"},
+"_margin":  {"top": "0",     "right": "auto", "bottom": "0",     "left": "auto"}
+```
+
+Padding and margin values are strings: `"2rem"`, `"20px"`, `"0"`, `"auto"`, or CSS variables like `"var(--space-m)"`. Only specify sides you need.
+
+**Positioning:**
+
+```json
+"_position": "absolute",       // "relative" | "absolute" | "fixed" | "sticky"
+"_top":    "0",                // plain string: "0", "2rem", "50%"
+"_right":  "0",
+"_bottom": "0",
+"_left":   "0",
+"_zIndex": "2"                 // string
+```
+
+**Other shared keys:**
+
+```json
+"_alignSelf":      "center",           // "auto"|"flex-start"|"center"|"flex-end"|"stretch"
+"_objectFit":      "cover",            // "cover"|"contain"|"fill" (images/video)
+"_objectPosition": "50% 50%",
+"_cssTransition":  "all .5s",          // plain string
+"_cssCustom":      ".sel { prop: val; }",  // raw CSS for this element only
+"_cssClasses":     "extra-class",          // plain space-separated string (not global classes)
+"_cssGlobalClasses": ["classId1", "classId2"]  // array of IDs from bricks_get_global_classes
+```
+
+---
+
+## Settings Reference — Typography
+
+```json
+"_typography": {
+  "font-family": "Inter",
+  "font-size":   "1.8rem",
+  "font-weight": "600",
+  "line-height": "1.3",
+  "color": {
+    "hex": "#161616",
+    "raw": "var(--color-heading)"
+  },
+  "text-align":       "center",
+  "letter-spacing":   "0.05em",
+  "text-transform":   "uppercase",
+  "text-decoration":  "none",
+  "font-style":       "italic"
+}
+```
+
+Color in typography is ALWAYS an object, never a plain string. Use `"raw"` for CSS variables, `"hex"` for hardcoded colors. Both can be present simultaneously — `raw` takes precedence at runtime.
+
+---
+
+## Settings Reference — Colors
+
+Colors are always objects. Three valid formats:
+
+```json
+// Hex only
+"_background": {"color": {"hex": "#1a1a2e"}}
+
+// CSS variable via `raw` field
+"_background": {"color": {"raw": "var(--color-primary)"}}
+
+// Both — hex as fallback, raw applied at runtime
+"_background": {"color": {"hex": "#0055FF", "raw": "var(--color-primary)"}}
+
+// WRONG — never put a CSS var in the hex field
+"_background": {"color": {"hex": "var(--color-primary)"}}
+```
+
+The `raw` field works in all color contexts: `_background`, `_typography.color`, `_border.color`, icon colors, etc.
+
+**Background image:**
+
+```json
+"_background": {
+  "image": {"url": "https://example.com/image.jpg", "external": true, "filename": "image.jpg"},
+  "position": "center center",
+  "repeat": "no-repeat",
+  "size": "cover"
+}
+```
+
+**Gradient overlay:**
+
+```json
+"_gradient": {
+  "applyTo": "overlay",
+  "colors": [
+    {"id": "aaa111", "color": {"hex": "#000000", "rgb": "rgba(0,0,0,0.1)"}},
+    {"id": "bbb222", "color": {"hex": "#000000", "rgb": "rgba(0,0,0,0.7)"}}
+  ]
+}
+```
+
+---
+
+## Settings Reference — Border & Shadow
+
+**Border** — radius lives INSIDE the border object, not as a separate `_borderRadius` key:
+
+```json
+"_border": {
+  "style": "solid",
+  "width": {
+    "top": "0.1rem", "right": "0.1rem", "bottom": "0.1rem", "left": "0.1rem"
+  },
+  "color": {"hex": "#e6e6e6", "raw": "var(--color-border)"},
+  "radius": {
+    "top": "1rem", "right": "1rem", "bottom": "1rem", "left": "1rem"
   }
 }
 ```
 
-**CRITICAL: Dimension format rules — ALWAYS use `{"size": N, "unit": "px|%|vh|vw|em|rem"}` objects for:**
-- `_width`, `_height` — e.g. `{"size": 300, "unit": "px"}` or `{"size": 50, "unit": "%"}`
-- `_widthMax` (max-width), `_widthMin` (min-width) — e.g. `{"size": 1200, "unit": "px"}`
-- `_heightMin` (min-height), `_heightMax` (max-height) — e.g. `{"size": 100, "unit": "vh"}`
-- `_columnGap`, `_rowGap` — e.g. `{"size": 24, "unit": "px"}`
-- `_top`, `_right`, `_bottom`, `_left` (positioning offsets) — e.g. `{"size": 5, "unit": "%"}`
+Pill/round: `"top": "50vh"` on all radius sides. CSS variable: `"top": "var(--radius-s)"`.
 
-**NEVER use plain strings like `"50%"`, `"300px"`, or `"1200px"` for these dimension controls** — Bricks will silently discard them and generate no CSS.
+**Box shadow** — `offsetX/Y/blur/spread` are numeric strings WITHOUT units:
 
-**For ALL elements**, these shared style keys apply:
-- `_padding` / `_margin` → `{"top":"16px","right":"24px","bottom":"16px","left":"24px"}` (plain strings OK)
-- `_background` → `{"color":{"hex":"#hex"}}` or `{"color":{"raw":"var(--color-primary)"}}` or `{"image":{"url":"...","size":"cover","position":"center"}}`
-- `_border` → `{"color":{"hex":"#e2e8f0"}, "width":{"top":"1px","right":"1px","bottom":"1px","left":"1px"}, "style":"solid"}`
-- `_borderRadius` → `{"top":"8px","right":"8px","bottom":"8px","left":"8px"}` (keys: top/right/bottom/left)
-- `_boxShadow` → `[{"color":{"hex":"#000"},"offsetX":"0px","offsetY":"4px","blur":"12px","spread":"0px"}]`
-- `_width` / `_height` / `_widthMax` / `_heightMin` → `{"size": N, "unit": "px|%|vh"}` (see above)
-- `_zIndex` → integer number `2` (NOT a string)
-- `_position` → `"relative"` | `"absolute"` | `"fixed"` | `"sticky"` (plain string — it's a select)
-- `_top` / `_right` / `_bottom` / `_left` → `{"size": 5, "unit": "%"}` (see dimension rules above)
-- `_overflow` → `"hidden"` | `"auto"` | `"scroll"` | `"visible"` (plain string)
-- `_flexGrow` → integer `1` or `0` — NOT a string. Use on flex children to fill remaining space
-- `_flexShrink` → integer `0` or `1` — prevents shrinking when set to `0`
-- `_alignSelf` → `"auto"` | `"flex-start"` | `"center"` | `"flex-end"` | `"stretch"` (plain string)
-- `_objectFit` → `"cover"` | `"contain"` | `"fill"` (images and video)
-- `_objectPosition` → `"50% 50%"` | `"top"` | `"center"` etc. (plain string)
-- `_cssTransition` → `"all 0.3s ease"` or `"opacity 0.2s, transform 0.3s"` (plain string)
-- `_typography` → see Typography section below
-- `_cssCustom` → raw CSS injected for this element only (use for `clip-path`, `white-space`, `filter`, etc.)
-- `_cssGlobalClasses` → array of global class IDs from `bricks_get_global_classes`
+```json
+"_boxShadow": {
+  "values": {
+    "offsetX": "0",
+    "offsetY": "4",
+    "blur": "8",
+    "spread": "0"
+  },
+  "color": {
+    "hex": "#636363",
+    "rgb": "rgba(99, 99, 99, 0.2)"
+  }
+}
+```
 
 ---
 
 ## CRITICAL: Responsive Breakpoints
 
-Bricks uses desktop-first responsive design. Every settings key can have a breakpoint-specific override using the suffix `:breakpoint`:
+Any settings key can have a breakpoint-specific override using the suffix `:breakpoint`:
 
-```
-{settingsKey}:{breakpointName}
-```
-
-**Breakpoint names (default pixel widths):**
-
-| Suffix | Screen | Default width |
-|--------|--------|--------------|
-| *(none)* | Desktop (base) | all sizes |
-| `:tablet` | Tablet landscape | ≤ 1024px |
-| `:tablet_portrait` | Tablet portrait | ≤ 768px |
-| `:mobile_landscape` | Mobile landscape | ≤ 480px |
-| `:mobile` | Mobile portrait | ≤ 375px |
-
-**Examples:**
+| Suffix | Screen |
+|--------|--------|
+| *(none)* | Desktop (base — all sizes) |
+| `:tablet` | ≤ 1024px |
+| `:tablet_portrait` | ≤ 768px |
+| `:mobile_landscape` | ≤ 480px |
+| `:mobile_portrait` | ≤ 375px (note: guide also calls this `:mobile`) |
 
 ```json
 {
-  "name": "container",
-  "settings": {
-    "_display": "flex",
-    "_direction": "row",
-    "_direction:tablet": "column",
-    "_width": {"size": 50, "unit": "%"},
-    "_width:tablet_portrait": {"size": 100, "unit": "%"},
-    "_padding": {"top": "80px", "right": "40px", "bottom": "80px", "left": "40px"},
-    "_padding:tablet": {"top": "60px", "right": "24px", "bottom": "60px", "left": "24px"},
-    "_padding:mobile": {"top": "40px", "right": "16px", "bottom": "40px", "left": "16px"},
-    "_display:mobile": "none"
-  }
+  "_padding": {"top": "8rem", "bottom": "8rem", "left": "2rem", "right": "2rem"},
+  "_padding:tablet_portrait": {"top": "4rem", "bottom": "4rem"},
+  "_padding:mobile_landscape": {"top": "2rem", "bottom": "2rem"},
+  "_direction": "row",
+  "_direction:tablet_portrait": "column",
+  "_width": "50%",
+  "_width:tablet_portrait": "100%",
+  "_gridTemplateColumns": "repeat(3, minmax(0, 1fr))",
+  "_gridTemplateColumns:tablet_portrait": "repeat(2, minmax(0, 1fr))",
+  "_gridTemplateColumns:mobile_portrait": "1fr",
+  "_display:mobile_landscape": "none"
 }
-```
-
-**Common responsive patterns:**
-
-```json
-// 2-column → 1-column on mobile
-"_display": "flex",
-"_direction": "row",
-"_flexWrap": "wrap",
-"_width": {"size": 50, "unit": "%"},
-"_width:tablet_portrait": {"size": 100, "unit": "%"}
-
-// Hide on mobile
-"_display:mobile": "none"
-
-// Stack nav items vertically on tablet
-"_direction": "row",
-"_direction:tablet": "column"
-
-// Full-width button on mobile
-"_width:mobile": {"size": 100, "unit": "%"}
 ```
 
 **Rules:**
-- Always use the SAME value type at all breakpoints — if desktop is `{"size":50,"unit":"%"}`, then tablet must also be `{"size":100,"unit":"%"}` (not `"100%"`).
-- Never add breakpoint suffixes to non-style keys like `text`, `link`, `tag`, `items`, etc. — only style/layout keys accept breakpoints.
-- For text sizing use `_typography:tablet`, `_typography:mobile` — works the same way.
+- Always use the SAME value format at all breakpoints — if desktop is `"50%"`, tablet must also be `"100%"` (not an object).
+- Never add breakpoint suffixes to non-style keys (`text`, `link`, `tag`, `items`, etc.).
+- For text sizing: `_typography:tablet_portrait`, `_typography:mobile_landscape`.
+- **Always** add mobile breakpoints for: section padding, multi-column layouts (collapse to 1 col), heading sizes, hide-on-mobile elements.
 
 ---
 
-## Typography Settings
-
-For all text-bearing elements, use `_typography` with kebab-case keys:
+## Standard Section Template
 
 ```json
-{
-  "_typography": {
-    "font-family": "Inter, sans-serif",
-    "font-size": "1.125rem",
-    "font-weight": "700",
-    "line-height": "1.6",
-    "letter-spacing": "0.02em",
-    "color": {"hex": "#1e293b"},
-    "text-align": "center",
-    "text-transform": "uppercase",
-    "text-decoration": "none"
+[
+  {
+    "id": "sec001", "name": "section", "parent": 0, "children": ["con001"],
+    "settings": {
+      "_padding": {
+        "top": "var(--section-padding-l)", "bottom": "var(--section-padding-l)",
+        "left": "var(--section-padding-lr)", "right": "var(--section-padding-lr)"
+      }
+    },
+    "label": "Section Name"
   },
-  "_typography:tablet": {
-    "font-size": "1rem"
+  {
+    "id": "con001", "name": "container", "parent": "sec001", "children": ["blk001"],
+    "settings": {
+      "_width": "var(--container-width)",
+      "_margin": {"left": "auto", "right": "auto"}
+    }
   },
-  "_typography:mobile": {
-    "font-size": "0.9rem",
-    "text-align": "left"
+  {
+    "id": "blk001", "name": "block", "parent": "con001", "children": [],
+    "settings": {
+      "_display": "flex",
+      "_direction": "column",
+      "_rowGap": "var(--space-l)"
+    }
   }
-}
+]
 ```
-
----
-
-## Color Format
-
-Bricks color fields support three formats — choose the right one for the situation:
-
-```json
-// Solid hex color (most common)
-"_background": {"color": {"hex": "#1a1a2e"}}
-
-// CSS variable via the `raw` field — use this for design-token colors
-"_background": {"color": {"raw": "var(--color-primary)"}}
-
-// Both together — hex as a fallback, raw as the applied value
-"_background": {"color": {"hex": "#0055FF", "raw": "var(--color-primary)"}}
-
-// WRONG — CSS variables must go in the `raw` field, not `hex`
-"_background": {"color": {"hex": "var(--color-primary)"}}
-```
-
-The `raw` field applies as-is in the CSS output. Use it for any `--css-variable` or `rgba()` value that doesn't fit as a hex string. Works in `_background`, `_typography`, `_border`, `_boxShadow`, icon colors, etc.
-
-**Call `bricks_get_global_classes` and `bricks_get_color_palette` first** — the site's design system is already defined there. Build with those IDs, not hardcoded values.
 
 ---
 
 ## Layout Column Templates
 
-These are the standard column patterns for this site. Always use `_display:"flex"` + `_flexWrap:"wrap"` for responsive grids.
-
-**2-column (50/50):**
-```json
-// parent container
-{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":24,"unit":"px"},"_rowGap":{"size":24,"unit":"px"}}
-// each child column
-{"_width":{"size":50,"unit":"%"},"_width:tablet_portrait":{"size":100,"unit":"%"},"_cssCustom":"flex: 1 1 calc(50% - 12px);"}
-```
-
-**3-column (33/33/33):**
-```json
-// parent container
-{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":24,"unit":"px"},"_rowGap":{"size":24,"unit":"px"}}
-// each child column
-{"_width":{"size":33.333,"unit":"%"},"_width:tablet_portrait":{"size":50,"unit":"%"},"_width:mobile":{"size":100,"unit":"%"},"_cssCustom":"flex: 1 1 calc(33.333% - 16px);"}
-```
-
-**4-column (25/25/25/25):**
-```json
-// parent container
-{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":20,"unit":"px"},"_rowGap":{"size":20,"unit":"px"}}
-// each child column
-{"_width":{"size":25,"unit":"%"},"_width:tablet":{"size":50,"unit":"%"},"_width:mobile":{"size":100,"unit":"%"},"_cssCustom":"flex: 1 1 calc(25% - 15px);"}
-```
-
-**Asymmetric 2-column (60/40 or 40/60):**
-```json
-// parent container
-{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":24,"unit":"px"},"_rowGap":{"size":24,"unit":"px"}}
-// 60% column
-{"_width":{"size":60,"unit":"%"},"_width:tablet_portrait":{"size":100,"unit":"%"},"_flexGrow":0}
-// 40% column
-{"_width":{"size":40,"unit":"%"},"_width:tablet_portrait":{"size":100,"unit":"%"},"_flexGrow":0}
-```
-
----
-
-## CSS Grid Layout
-
-Use `_display:"grid"` for fixed-column grid layouts. The key settings:
-
-| Key | Type | Example |
-|-----|------|---------|
-| `_display` | string | `"grid"` |
-| `_gridTemplateColumns` | plain string | `"1fr 1fr 1fr"` or `"repeat(3, 1fr)"` or `"var(--grid-3)"` |
-| `_gridGap` | `{size, unit}` | `{"size": 24, "unit": "px"}` |
-| `_gridAutoRows` | plain string | `"200px"` or `"minmax(180px, auto)"` |
+**2-column grid (preferred for even columns):**
 
 ```json
-// 3-column auto-responsive grid
-{
-  "name": "container",
-  "settings": {
-    "_display": "grid",
-    "_gridTemplateColumns": "repeat(3, 1fr)",
-    "_gridGap": {"size": 24, "unit": "px"},
-    "_gridAutoRows": "minmax(200px, auto)",
-    "_gridTemplateColumns:tablet_portrait": "repeat(2, 1fr)",
-    "_gridTemplateColumns:mobile_landscape": "1fr"
-  }
-}
-
-// 4-column grid with CSS variable columns
 {
   "settings": {
     "_display": "grid",
-    "_gridTemplateColumns": "var(--grid-4)",
-    "_gridGap": {"size": 16, "unit": "px"},
-    "_gridTemplateColumns:tablet_portrait": "var(--grid-2)",
-    "_gridTemplateColumns:mobile_landscape": "1fr"
+    "_gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+    "_gridGap": "var(--space-l)",
+    "_gridTemplateColumns:tablet_portrait": "1fr",
+    "_gridGap:tablet_portrait": "var(--space-m)"
   }
 }
 ```
 
-**Grid vs Flex:** Use grid when you need equal-height rows or a strict column count. Use flex when columns should wrap naturally or have unequal widths. Never mix both on the same container.
+**3-column grid:**
+
+```json
+{
+  "settings": {
+    "_display": "grid",
+    "_gridTemplateColumns": "repeat(3, minmax(0, 1fr))",
+    "_gridGap": "var(--space-m)",
+    "_gridTemplateColumns:tablet_portrait": "repeat(2, minmax(0, 1fr))",
+    "_gridTemplateColumns:mobile_portrait": "1fr"
+  }
+}
+```
+
+**4-column grid:**
+
+```json
+{
+  "settings": {
+    "_display": "grid",
+    "_gridTemplateColumns": "repeat(4, minmax(0, 1fr))",
+    "_gridGap": "var(--space-s)",
+    "_gridTemplateColumns:tablet_portrait": "repeat(2, minmax(0, 1fr))",
+    "_gridTemplateColumns:mobile_portrait": "1fr"
+  }
+}
+```
+
+**Flex row (unequal columns or natural wrapping):**
+
+```json
+{
+  "settings": {
+    "_display": "flex",
+    "_direction": "row",
+    "_flexWrap": "wrap",
+    "_columnGap": "var(--space-m)",
+    "_rowGap": "var(--space-m)",
+    "_justifyContent": "center",
+    "_alignItems": "center"
+  }
+}
+```
+
+**Asymmetric flex (e.g. 60/40):**
+
+```json
+// 60% child
+{"_width": "60%", "_width:tablet_portrait": "100%"}
+// 40% child
+{"_width": "40%", "_width:tablet_portrait": "100%", "_flexGrow": "1"}
+```
+
+**Grid vs Flex:** Use grid for equal-height rows or strict column counts. Use flex for unequal widths or natural wrapping. Never mix both on the same container.
 
 ---
 
@@ -516,330 +601,334 @@ Use `_display:"grid"` for fixed-column grid layouts. The key settings:
 
 ---
 
-## Navigation: nav-nested Element
+## Element: nav-nested
 
-`nav-nested` is Bricks' custom nestable nav — no WordPress menu required. Its direct children are `text-link` elements (or `dropdown` for dropdowns).
+`nav-nested` is Bricks' nestable nav element. Its direct children are `text-link` (or `dropdown`) elements. Include a `toggle` element as a sibling for the mobile hamburger.
 
 ```json
-{
-  "id": "nav001", "name": "nav-nested", "parent": "hdr002",
-  "children": ["nl001","nl002","nl003"],
+{"id": "nav001", "name": "nav-nested", "parent": "blk001", "children": ["nl001","nl002","nl003"],
   "settings": {
-    "_display": "flex",
-    "_direction": "row",
-    "_alignItems": "center",
-    "_columnGap": {"size": 4, "unit": "px"},
-    "menuAlignment": "row",
-    "mobileMenu": "tablet_portrait"
+    "mobileMenu": "tablet_portrait",
+    "gap": "2.5rem"
   }
 },
-{
-  "id": "nl001", "name": "text-link", "parent": "nav001", "children": [],
+{"id": "nl001", "name": "text-link", "parent": "nav001", "children": [],
   "settings": {
     "text": "Home",
-    "link": {"type": "external", "url": "/"},
-    "_typography": {"font-size": "15px", "font-weight": "500", "color": {"hex": "#8d9e93"}, "text-decoration": "none"},
-    "_padding": {"top": "6px", "right": "16px", "bottom": "6px", "left": "16px"},
-    "_background": {"color": {"hex": "#00e87a"}},
-    "_borderRadius": {"top": "50px", "right": "50px", "bottom": "50px", "left": "50px"},
-    "_cssCustom": "color: #060f09 !important;"
+    "link": {"type": "external", "url": "/"}
   }
 },
-{
-  "id": "nl002", "name": "text-link", "parent": "nav001", "children": [],
+{"id": "nl002", "name": "text-link", "parent": "nav001", "children": [],
   "settings": {
     "text": "About",
-    "link": {"type": "external", "url": "#about"},
-    "_typography": {"font-size": "15px", "font-weight": "500", "color": {"hex": "#8d9e93"}, "text-decoration": "none"},
-    "_padding": {"top": "6px", "right": "12px", "bottom": "6px", "left": "12px"}
+    "link": {"type": "external", "url": "#about"}
   }
 }
 ```
 
-**`mobileMenu`** controls at which breakpoint nav items collapse into a hamburger. Values match Bricks breakpoint names: `"mobile"`, `"mobile_landscape"` (default), `"tablet_portrait"`, `"tablet"`, `"desktop"`, `"always"`, `"never"`.
+**`mobileMenu`** controls at which breakpoint items collapse into a hamburger: `"mobile"`, `"mobile_landscape"` (default), `"tablet_portrait"`, `"tablet"`, `"always"`, `"never"`.
 
-For **WordPress-menu-driven nav**, use `nav-menu` with `"menu": <menu_term_id>`. First call `bricks_list_nav_menus` or `bricks_create_nav_menu` to get/create the menu.
+For **WordPress-menu-driven nav**, use `nav-menu` with `"menu": <menu_term_id>`. Call `bricks_list_nav_menus` to get the menu ID first.
 
 ---
 
-## Form Element
+## Element: form
 
 Use the native `form` element — never build forms from raw HTML inputs.
 
 ```json
-{
-  "id": "frm001", "name": "form", "parent": "sec001", "children": [],
+{"id": "frm001", "name": "form", "parent": "blk001", "children": [],
   "settings": {
     "fields": [
-      {"id": "name", "type": "text",     "label": "Full Name",      "placeholder": "John Doe",          "required": true,  "width": "100"},
-      {"id": "email","type": "email",    "label": "Email Address",  "placeholder": "you@example.com",   "required": true,  "width": "100"},
-      {"id": "msg",  "type": "textarea", "label": "Your Message",   "placeholder": "How can we help?",  "required": false, "width": "100"},
-      {"id": "sub",  "type": "submit",   "label": "Send Message",   "width": "auto"}
+      {"type": "email",    "label": "Email",   "placeholder": "Your Email",  "required": true,  "id": "field1", "width": "60"},
+      {"type": "submit",   "label": "Subscribe","id": "field2"}
     ],
-    "successMessage": "Thank you! We will be in touch soon.",
-    "errorMessage": "Please fill in all required fields."
+    "submitButtonStyle": "primary",
+    "submitButtonText": "Subscribe",
+    "submitButtonSize": "sm"
   }
 }
 ```
 
 ---
 
-## List Element
-
-Use `list` for any bulleted/icon list — never use `ul`/`li` in raw HTML.
+## Element: heading
 
 ```json
-{
-  "id": "lst001", "name": "list", "parent": "sec001", "children": [],
+{"id": "hdg001", "name": "heading", "parent": "blk001", "children": [],
   "settings": {
-    "items": [
-      {"icon": {"library": "fontawesome", "name": "fas fa-check-circle"}, "content": "Feature one description"},
-      {"icon": {"library": "fontawesome", "name": "fas fa-check-circle"}, "content": "Feature two description"}
+    "text": "Your Heading",
+    "tag": "h1",
+    "_typography": {"font-size": "5rem", "font-weight": "700", "line-height": "1.1"}
+  }
+}
+```
+
+`tag` options: `"h1"` through `"h6"`, `"p"`, `"div"`, `"span"`. **Always specify `tag` — omitting defaults to h2 which may break SEO.**
+
+---
+
+## Element: button
+
+```json
+{"id": "btn001", "name": "button", "parent": "blk001", "children": [],
+  "settings": {
+    "text": "Get Started",
+    "style": "primary",
+    "link": {"type": "external", "url": "#"}
+  }
+}
+```
+
+`style` options: `"primary"`, `"secondary"`, `"light"`, `"dark"`, `"outline"`, `"text"`
+
+---
+
+## Element: image
+
+```json
+{"id": "img001", "name": "image", "parent": "blk001", "children": [],
+  "settings": {
+    "image": {"url": "https://example.com/image.jpg", "external": true, "filename": "image.jpg"},
+    "tag": "figure"
+  }
+}
+```
+
+For WordPress media library images, add `"id": 123` alongside `"url"`.
+
+---
+
+## Element: icon
+
+```json
+{"id": "ico001", "name": "icon", "parent": "blk001", "children": [],
+  "settings": {
+    "icon": {"library": "themify", "icon": "ti-star"},
+    "iconColor": {"hex": "#202020"},
+    "iconSize": "5rem"
+  }
+}
+```
+
+**Icon libraries:** `"themify"`, `"fontawesomeSolid"`, `"fontawesomeRegular"`, `"fontawesomeBrands"`
+
+Examples: `{"library": "fontawesomeSolid", "icon": "fas fa-rocket"}`, `{"library": "fontawesomeBrands", "icon": "fab fa-github"}`
+
+---
+
+## Element: text-link
+
+```json
+{"id": "lnk001", "name": "text-link", "parent": "blk001", "children": [],
+  "settings": {
+    "text": "Learn more",
+    "link": {"type": "external", "url": "#"},
+    "icon": {"library": "fontawesomeRegular", "icon": "fa fa-paper-plane"},
+    "gap": "0.8rem"
+  }
+}
+```
+
+---
+
+## Element: social-icons
+
+Use `"icons"` array (NOT `"items"`). For a social icon list, each entry uses `"icon"` key. For a text navigation list (e.g. footer menu), use `"label"` instead of `"icon"`:
+
+```json
+{"id": "soc001", "name": "social-icons", "parent": "blk001", "children": [],
+  "settings": {
+    "icons": [
+      {"icon": {"library": "fontawesomeBrands", "icon": "fab fa-github"},   "id": "s1", "link": {"type": "external", "url": "https://github.com/"}},
+      {"icon": {"library": "fontawesomeBrands", "icon": "fab fa-linkedin"}, "id": "s2", "link": {"type": "external", "url": "https://linkedin.com/"}},
+      {"icon": {"library": "fontawesomeBrands", "icon": "fab fa-twitter"},  "id": "s3", "link": {"type": "external", "url": "https://twitter.com/"}}
     ],
-    "iconColor": {"hex": "#00e87a"},
-    "_columnGap": {"size": 12, "unit": "px"},
-    "_rowGap": {"size": 16, "unit": "px"}
+    "iconSize": "20px",
+    "iconColor": {"hex": "#8d9e93"},
+    "_columnGap": "12px"
   }
+}
+```
+
+Footer text nav list (using `"label"` instead of `"icon"`):
+
+```json
+{
+  "icons": [
+    {"label": "About Us",  "id": "m1", "link": {"type": "external", "url": "#"}},
+    {"label": "Services",  "id": "m2", "link": {"type": "external", "url": "#"}},
+    {"label": "Contact",   "id": "m3", "link": {"type": "external", "url": "#"}}
+  ],
+  "direction": "column",
+  "justifyIcons": "flex-start"
 }
 ```
 
 ---
 
-## Accordion (FAQ)
-
-Use `accordion-nested` — children are nestable blocks each containing a title div and content div.
+## Element: icon-box (feature block)
 
 ```json
-{
-  "id": "acc001", "name": "accordion-nested", "parent": "sec001",
-  "children": ["ai001","ai002"],
+{"id": "ib001", "name": "icon-box", "parent": "blk001", "children": [],
   "settings": {
-    "iconOpen":   {"library": "fontawesome", "name": "fas fa-minus"},
-    "iconClosed": {"library": "fontawesome", "name": "fas fa-plus"},
-    "openFirstItem": true
-  }
-},
-{
-  "id": "ai001", "name": "block", "parent": "acc001",
-  "children": ["at001","ac001"],
-  "settings": {"tag": "div"}
-},
-{
-  "id": "at001", "name": "heading", "parent": "ai001", "children": [],
-  "settings": {"text": "What services do you offer?", "tag": "h3"}
-},
-{
-  "id": "ac001", "name": "text-basic", "parent": "ai001", "children": [],
-  "settings": {"text": "We offer web design, development, and digital marketing services."}
-}
-```
-
----
-
-## Tabs
-
-Use `tabs-nested` for tabbed content.
-
-```json
-{
-  "id": "tab001", "name": "tabs-nested", "parent": "sec001",
-  "children": ["tp001","tp002"],
-  "settings": {"layout": "horizontal"}
-},
-{
-  "id": "tp001", "name": "block", "parent": "tab001",
-  "children": ["tl001","tc001"],
-  "settings": {"label": "Design"}
-},
-{
-  "id": "tl001", "name": "heading", "parent": "tp001", "children": [],
-  "settings": {"text": "Design", "tag": "span"}
-},
-{
-  "id": "tc001", "name": "text-basic", "parent": "tp001", "children": [],
-  "settings": {"text": "Our design process focuses on user experience and brand identity."}
-}
-```
-
----
-
-## Posts Loop
-
-Use the `posts` element with query builder to display any post type dynamically:
-
-```json
-{
-  "id": "pst001", "name": "posts", "parent": "sec001",
-  "children": ["pc001"],
-  "settings": {
-    "query": {
-      "post_type": ["post"],
-      "posts_per_page": 6,
-      "orderby": "date",
-      "order": "DESC"
-    },
-    "columns": "3",
-    "_columnGap": {"size": 24, "unit": "px"},
-    "_rowGap": {"size": 32, "unit": "px"}
-  }
-},
-{
-  "id": "pc001", "name": "container", "parent": "pst001",
-  "children": ["pi001","ptt001","pe001","prb001"],
-  "settings": {
-    "_display": "flex",
-    "_direction": "column",
-    "_background": {"color": {"hex": "#ffffff"}},
-    "_borderRadius": {"top": "12px", "right": "12px", "bottom": "12px", "left": "12px"},
-    "_cssCustom": "overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"
-  }
-},
-{
-  "id": "pi001", "name": "post-image", "parent": "pc001", "children": [],
-  "settings": {"size": "medium", "_height": {"size": 200, "unit": "px"}, "_cssCustom": "object-fit: cover; width: 100%;"}
-},
-{
-  "id": "ptt001", "name": "post-title", "parent": "pc001", "children": [],
-  "settings": {"tag": "h3", "_padding": {"top": "16px","right": "20px","bottom": "8px","left": "20px"}}
-},
-{
-  "id": "pe001", "name": "post-excerpt", "parent": "pc001", "children": [],
-  "settings": {"_padding": {"top": "0","right": "20px","bottom": "16px","left": "20px"}}
-},
-{
-  "id": "prb001", "name": "button", "parent": "pc001", "children": [],
-  "settings": {
-    "text": "Read More →",
-    "link": {"type": "post", "url": "{post_url}"},
-    "_margin": {"top": "auto","right": "20px","bottom": "20px","left": "20px"}
-  }
-}
-```
-
----
-
-## Icon Box (Features)
-
-Use `icon-box` for icon + title + text — never build this manually:
-
-```json
-{
-  "id": "ib001", "name": "icon-box", "parent": "con001", "children": [],
-  "settings": {
-    "icon": {"library": "fontawesome", "name": "fas fa-rocket"},
+    "icon": {"library": "fontawesomeSolid", "icon": "fas fa-rocket"},
     "iconPosition": "top",
     "iconSize": "40px",
     "iconColor": {"hex": "#00e87a"},
     "title": "Fast Delivery",
     "titleTag": "h3",
-    "content": "Launch your project in record time with our optimized workflow.",
-    "_padding": {"top": "32px","right": "24px","bottom": "32px","left": "24px"},
-    "_background": {"color": {"hex": "#0d2318"}},
-    "_borderRadius": "12px"
+    "content": "Launch your project in record time.",
+    "_padding": {"top": "2rem", "right": "1.5rem", "bottom": "2rem", "left": "1.5rem"},
+    "_background": {"color": {"raw": "var(--color-white)"}},
+    "_border": {
+      "radius": {"top": "var(--radius-m)", "right": "var(--radius-m)", "bottom": "var(--radius-m)", "left": "var(--radius-m)"}
+    }
   }
 }
 ```
 
 ---
 
-## Social Icons
+## Element: list (bulleted/icon list)
 
 ```json
-{
-  "id": "soc001", "name": "social-icons", "parent": "sec001", "children": [],
+{"id": "lst001", "name": "list", "parent": "blk001", "children": [],
   "settings": {
     "items": [
-      {"icon": {"library": "fontawesome", "name": "fab fa-github"},  "link": {"url": "https://github.com/username"}},
-      {"icon": {"library": "fontawesome", "name": "fab fa-linkedin"},"link": {"url": "https://linkedin.com/in/username"}},
-      {"icon": {"library": "fontawesome", "name": "fab fa-twitter"}, "link": {"url": "https://twitter.com/username"}}
+      {"icon": {"library": "fontawesomeSolid", "icon": "fas fa-check-circle"}, "content": "Feature one"},
+      {"icon": {"library": "fontawesomeSolid", "icon": "fas fa-check-circle"}, "content": "Feature two"}
     ],
-    "iconSize": "20px",
-    "iconColor": {"hex": "#8d9e93"},
-    "_columnGap": {"size": 12, "unit": "px"}
+    "iconColor": {"hex": "#00e87a"},
+    "_columnGap": "12px",
+    "_rowGap": "16px"
   }
 }
 ```
 
 ---
 
-## Testimonials
+## Element: accordion-nested (FAQ)
 
 ```json
-{
-  "id": "tst001", "name": "testimonials", "parent": "sec001", "children": [],
+{"id": "acc001", "name": "accordion-nested", "parent": "blk001",
+  "children": ["ai001"],
   "settings": {
-    "items": [
-      {
-        "content": "Working with Yasir was an absolute pleasure. Delivered on time and exceeded expectations.",
-        "name": "Sarah Johnson",
-        "position": "CEO, TechCorp",
-        "image": {"url": "https://example.com/avatar.jpg"}
-      }
-    ],
-    "columns": "3",
-    "_columnGap": {"size": 24, "unit": "px"}
-  }
-}
-```
-
----
-
-## Counter / Stats
-
-```json
-{
-  "id": "cnt001", "name": "counter", "parent": "sec001", "children": [],
-  "settings": {
-    "number": "500",
-    "suffix": "+",
-    "prefix": "",
-    "label": "Projects Delivered",
-    "duration": 2000,
-    "_typography": {"font-size": "2.5rem", "font-weight": "700", "color": {"hex": "#00e87a"}}
-  }
-}
-```
-
----
-
-## Table of Contents
-
-```json
-{
-  "id": "toc001", "name": "post-toc", "parent": "sec001", "children": [],
-  "settings": {
-    "title": "Table of Contents",
-    "headingLevels": ["h2", "h3"],
-    "collapsible": true
-  }
-}
-```
-
----
-
-## Slider
-
-```json
-{
-  "id": "sld001", "name": "slider-nested", "parent": "sec001",
-  "children": ["sl001","sl002"],
-  "settings": {
-    "autoplay": true,
-    "autoplaySpeed": 4000,
-    "arrows": true,
-    "dots": true,
-    "loop": true
+    "iconOpen":   {"library": "fontawesomeSolid", "icon": "fas fa-minus"},
+    "iconClosed": {"library": "fontawesomeSolid", "icon": "fas fa-plus"},
+    "openFirstItem": true
   }
 },
+{"id": "ai001", "name": "block", "parent": "acc001", "children": ["at001","ac001"], "settings": {"tag": "div"}},
+{"id": "at001", "name": "heading", "parent": "ai001", "children": [], "settings": {"text": "Question?", "tag": "h3"}},
+{"id": "ac001", "name": "text-basic", "parent": "ai001", "children": [], "settings": {"text": "Answer text here."}}
+```
+
+---
+
+## Dynamic Data (Query Loops & Post Templates)
+
+Use dynamic data tags in `"text"` fields for posts element loops or single post templates:
+
+| Tag | Output |
+|-----|--------|
+| `{post_title}` | Post title |
+| `{post_excerpt}` | Post excerpt |
+| `{post_url}` | Post permalink |
+| `{featured_image}` | Featured image URL |
+| `{author_name}` | Author display name |
+| `{post_date}` | Publication date |
+
+Enable a loop on any block element:
+
+```json
 {
-  "id": "sl001", "name": "container", "parent": "sld001", "children": ["slh001","slt001"],
-  "settings": {
-    "_display": "flex", "_direction": "column", "_justifyContent": "center", "_alignItems": "center",
-    "_heightMin": {"size": 400, "unit": "px"},
-    "_background": {"color": {"hex": "#0d2318"}}
+  "hasLoop": true,
+  "query": {
+    "objectType": "post",
+    "post_type": ["post"],
+    "posts_per_page": "6"
   }
 }
 ```
+
+---
+
+## BricksTemplate Design System
+
+This site uses the BricksTemplate design system. **Always prefer these CSS variables over hardcoded values** — use them in `"raw"` color fields, `_cssCustom`, padding/margin values, and dimension strings.
+
+**Colors** — use `{"raw": "var(--color-name)"}` in any color object:
+
+| Variable | Usage |
+|----------|-------|
+| `var(--color-primary)` | Primary brand color |
+| `var(--color-primary-hover)` | Primary hover state |
+| `var(--color-secondary)` | Secondary brand color |
+| `var(--color-tertiary)` | Tertiary brand color |
+| `var(--color-heading)` | All heading text |
+| `var(--color-text)` | Body text |
+| `var(--color-text-muted)` | Muted body text |
+| `var(--color-border)` | Borders and dividers |
+| `var(--color-white)` | Pure white |
+| `var(--color-black)` | Pure black |
+| `var(--color-primary-bg)` | Light primary background |
+
+**Spacing** (fluid clamp scale — use as plain strings in padding/margin/gap):
+
+`var(--space-xs)`, `var(--space-s)`, `var(--space-m)`, `var(--space-l)`, `var(--space-xl)`, `var(--space-xxl)`
+
+**Border radius:**
+
+`var(--radius-xs)` (0.3rem), `var(--radius-s)` (0.6rem), `var(--radius-m)` (1.2rem), `var(--radius-l)` (2.3rem), `var(--radius-50)` (50vh — pill)
+
+**Section padding:**
+
+`var(--section-padding-l)` — large vertical padding (fluid), `var(--section-padding-lr)` — horizontal padding
+
+**Widths:**
+
+`var(--container-width)` — 128rem (default max container width)
+
+**Global CSS Classes** — add to `"_cssGlobalClasses": ["id"]`:
+
+| ID | Class | Purpose |
+|----|-------|---------|
+| `icnnin` | `btn` | Base button style |
+| `jmpexw` | `btn--xl` | XL button size |
+| `ucbglo` | `btn--l` | Large button size |
+| `aswtwb` | `btn--m` | Medium button size |
+| `rhrfey` | `btn__round` | Pill/round border radius |
+| `tccljv` | `btn__white` | White background button |
+| `jgucoo` | `btn__black` | Black background button |
+| `mrlpju` | `h1` | H1 typography |
+| `rblwep` | `h2` | H2 typography |
+| `xdlghw` | `h3` | H3 typography |
+| `zcdcay` | `body-text-s` | Small body text |
+| `xnbiuz` | `body-text-m` | Medium body text |
+| `jvlvec` | `section-padding-l` | Large section padding |
+| `xqjblc` | `section-padding-m` | Medium section padding |
+
+Example — primary button with medium size and round corners:
+```json
+"_cssGlobalClasses": ["icnnin", "aswtwb", "rhrfey"]
+```
+
+---
+
+## Common Mistakes (Do Not Make These)
+
+1. **Wrong color format** — Colors must be objects: `{"hex": "#fff"}` or `{"raw": "var(--color-white)"}`. Never plain strings.
+2. **Missing parent/children sync** — Every ID in `children` must have a matching element. Every non-root element must have a valid `parent`.
+3. **Hardcoding instead of using variables** — Use `var(--color-primary)` not `#0055FF`, `var(--space-m)` not `4rem`, `var(--radius-s)` not `0.6rem`.
+4. **Wrong hierarchy** — Never place `heading`, `text-basic`, or `button` directly inside `section` or `container`. Always go through a `block` or `div`.
+5. **Non-unique IDs** — All 6-char IDs must be unique in the array.
+6. **Missing mobile breakpoints** — Multi-column layouts MUST have `_gridTemplateColumns:mobile_portrait: "1fr"` or `_direction:tablet_portrait: "column"`.
+7. **`_cssGlobalClasses` as string** — Must be an array: `["classId"]`, never `"classId"`.
+8. **Shadow offset units** — `offsetX`, `offsetY`, `blur`, `spread` in `_boxShadow.values` are numeric strings WITHOUT units: `"4"` not `"4px"`.
+9. **Wrong icon library name** — Use `"fontawesomeSolid"`, `"fontawesomeRegular"`, `"fontawesomeBrands"`, `"themify"` — NOT `"fontawesome"`.
+10. **`social-icons` items key** — Use `"icons"` array, not `"items"`.
+11. **`_borderRadius` as a separate key** — Border radius goes INSIDE `"_border": {"radius": {...}}`, not as a separate `_borderRadius` key.
 
 ---
 
