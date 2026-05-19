@@ -8,10 +8,19 @@ jQuery( function ( $ ) {
 	$( '.bmcp-tab' ).on( 'click', function ( e ) {
 		e.preventDefault();
 		var tab = $( this ).data( 'tab' );
-		$( '.bmcp-tab' ).removeClass( 'active' );
-		$( this ).addClass( 'active' );
+		$( '.bmcp-tab' ).removeClass( 'active' ).attr( 'aria-selected', 'false' );
+		$( this ).addClass( 'active' ).attr( 'aria-selected', 'true' );
 		$( '.bmcp-panel' ).hide();
 		$( '#tab-' + tab ).show();
+	} );
+
+	// ---- AI Client sub-tab switching ----
+	$( '.bmcp-client-tab' ).on( 'click', function () {
+		var client = $( this ).data( 'client' );
+		$( '.bmcp-client-tab' ).removeClass( 'active' ).attr( 'aria-selected', 'false' );
+		$( this ).addClass( 'active' ).attr( 'aria-selected', 'true' );
+		$( '.bmcp-client-panel' ).hide().removeClass( 'active' );
+		$( '#bmcp-panel-' + client ).show().addClass( 'active' );
 	} );
 
 	// ---- Copy helpers ----
@@ -30,9 +39,9 @@ jQuery( function ( $ ) {
 	$( '.bmcp-copy-config' ).on( 'click', function () {
 		var target = $( this ).data( 'target' );
 		var text   = $( '#' + target ).text();
-		// For the config snippet, ensure it carries the live key (catches edge cases)
-		if ( target === 'bmcp-config-snippet' && cfg.apiKey ) {
-			text = text.replace( /Bearer [^\s"]+/, 'Bearer ' + cfg.apiKey );
+		// Always swap in the live API key in case it was regenerated
+		if ( cfg.apiKey ) {
+			text = text.replace( /Bearer [^\s"\\]+/g, 'Bearer ' + cfg.apiKey );
 		}
 		copyText( text, $( this ) );
 	} );
@@ -54,12 +63,10 @@ jQuery( function ( $ ) {
 				// Update masked display instantly
 				$( '#bmcp-key-masked' ).text( res.data.masked );
 
-				// Replace any Bearer token in snippet using regex — works even if oldKey was stale
-				var $snippet = $( '#bmcp-config-snippet' );
-				$snippet.text( $snippet.text().replace( /Bearer\s+\S+/g, 'Bearer ' + res.data.key ) );
-
-				// Also update data-key attribute so copy always has latest
-				$snippet.attr( 'data-key', res.data.key );
+				// Replace Bearer token in all config pre elements
+				$( 'pre[id^="bmcp-config-"]' ).each( function () {
+					$( this ).text( $( this ).text().replace( /Bearer\s+\S+/g, 'Bearer ' + res.data.key ) );
+				} );
 
 				// Visual confirmation (no alert popup)
 				$btn.text( '✓ Updated' ).addClass( 'button-primary' );
