@@ -40,14 +40,14 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 							'bricks-builder' => [
 								'type'    => 'http',
 								'url'     => $endpoint,
-								'headers' => [ 'Authorization' => 'Bearer YOUR_API_KEY_HERE' ],
+								'headers' => [ 'Authorization' => 'Bearer ' . \BricksMCP\Auth::get_key() ],
 							],
 						],
 					], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 				?></pre>
 				<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-snippet">Copy Config</button>
 			</div>
-			<p class="description">Replace <code>YOUR_API_KEY_HERE</code> with your API key above. Then run <code>claude mcp list</code> to verify the connection.</p>
+			<p class="description">The config above always contains your current API key. After regenerating, the snippet updates automatically. Run <code>claude mcp list</code> to verify the connection.</p>
 		</div>
 
 		<div class="bmcp-card">

@@ -30,6 +30,10 @@ jQuery( function ( $ ) {
 	$( '.bmcp-copy-config' ).on( 'click', function () {
 		var target = $( this ).data( 'target' );
 		var text   = $( '#' + target ).text();
+		// For the config snippet, ensure it carries the live key (catches edge cases)
+		if ( target === 'bmcp-config-snippet' && cfg.apiKey ) {
+			text = text.replace( /Bearer [^\s"]+/, 'Bearer ' + cfg.apiKey );
+		}
 		copyText( text, $( this ) );
 	} );
 
@@ -45,15 +49,22 @@ jQuery( function ( $ ) {
 			nonce:  cfg.nonce,
 		}, function ( res ) {
 			if ( res.success ) {
+				var oldKey = cfg.apiKey;
 				cfg.apiKey = res.data.key;
+
+				// Update masked display
 				$( '#bmcp-key-masked' ).text( res.data.masked );
 
-				// Update config snippet with note
-				var snippet = $( '#bmcp-config-snippet' );
-				var text = snippet.text();
-				snippet.text( text ); // keep formatted
+				// Update config snippet in-place with new key
+				var $snippet = $( '#bmcp-config-snippet' );
+				$snippet.text( $snippet.text().replace( 'Bearer ' + oldKey, 'Bearer ' + res.data.key ) );
 
-				alert( cfg.strings.regenerated || 'API key regenerated. Update your Claude Code config.' );
+				// Visual confirmation (no alert popup)
+				$btn.text( '✓ Updated' ).addClass( 'button-primary' );
+				setTimeout( function () {
+					$btn.text( 'Regenerate' ).removeClass( 'button-primary' ).prop( 'disabled', false );
+				}, 2500 );
+				return;
 			}
 			$btn.prop( 'disabled', false ).text( 'Regenerate' );
 		} ).fail( function () {
