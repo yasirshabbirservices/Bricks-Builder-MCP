@@ -175,35 +175,44 @@ The container element is Bricks' primary layout block. **You MUST set `_display:
 {
   "name": "container",
   "settings": {
-    "_display": "flex",                // REQUIRED — activates all flex controls
-    "_direction": "row",               // "row" | "column" | "row-reverse" | "column-reverse"
-    "_justifyContent": "space-between",// "flex-start"|"center"|"flex-end"|"space-between"|"space-around"
-    "_alignItems": "center",           // "flex-start"|"center"|"flex-end"|"stretch"
-    "_columnGap": "24px",             // gap between columns
-    "_rowGap": "16px",                // gap between rows
-    "_flexWrap": "wrap",               // "wrap" | "nowrap"
+    "_display": "flex",                           // REQUIRED — activates all flex controls
+    "_direction": "row",                          // "row" | "column" | "row-reverse" | "column-reverse"
+    "_justifyContent": "space-between",           // "flex-start"|"center"|"flex-end"|"space-between"|"space-around"
+    "_alignItems": "center",                      // "flex-start"|"center"|"flex-end"|"stretch"
+    "_columnGap": {"size": 24, "unit": "px"},     // MUST be {size, unit} object — never a plain string
+    "_rowGap": {"size": 16, "unit": "px"},        // MUST be {size, unit} object — never a plain string
+    "_flexWrap": "wrap",                          // "wrap" | "nowrap"
     "_padding": {"top": "40px", "right": "20px", "bottom": "40px", "left": "20px"},
     "_margin": {"top": "0", "right": "auto", "bottom": "0", "left": "auto"},
-    "_maxWidth": "1200px",
-    "_width": "100%",
+    "_widthMax": {"size": 1200, "unit": "px"},    // max-width — key is _widthMax, NOT _maxWidth
+    "_width": {"size": 100, "unit": "%"},         // MUST be {size, unit} object
     "_background": {"color": {"hex": "#ffffff"}},
-    "_cssCustom": "any: raw-css-here;"  // fallback for complex styles
+    "_cssCustom": "any: raw-css-here;"            // fallback for complex styles not covered by controls
   }
 }
 ```
 
+**CRITICAL: Dimension format rules — ALWAYS use `{"size": N, "unit": "px|%|vh|vw|em|rem"}` objects for:**
+- `_width`, `_height` — e.g. `{"size": 300, "unit": "px"}` or `{"size": 50, "unit": "%"}`
+- `_widthMax` (max-width), `_widthMin` (min-width) — e.g. `{"size": 1200, "unit": "px"}`
+- `_heightMin` (min-height), `_heightMax` (max-height) — e.g. `{"size": 100, "unit": "vh"}`
+- `_columnGap`, `_rowGap` — e.g. `{"size": 24, "unit": "px"}`
+- `_top`, `_right`, `_bottom`, `_left` (positioning offsets) — e.g. `{"size": 5, "unit": "%"}`
+
+**NEVER use plain strings like `"50%"`, `"300px"`, or `"1200px"` for these dimension controls** — Bricks will silently discard them and generate no CSS.
+
 **For ALL elements**, these shared style keys apply:
-- `_padding` / `_margin` → `{"top":"16px","right":"24px","bottom":"16px","left":"24px"}`
+- `_padding` / `_margin` → `{"top":"16px","right":"24px","bottom":"16px","left":"24px"}` (spacing: plain strings OK)
 - `_background` → `{"color":{"hex":"#hex"}}` or `{"image":{"url":"...","size":"cover","position":"center"}}`
-- `_border` → `{"width":"1px","style":"solid","color":{"hex":"#e2e8f0"}}`
-- `_borderRadius` → `"8px"` or `{"top-left":"8px","top-right":"8px","bottom-right":"8px","bottom-left":"8px"}`
+- `_border` → `{"color":{"hex":"#e2e8f0"}, "width":{"top":"1px","right":"1px","bottom":"1px","left":"1px"}, "style":"solid"}`
+- `_borderRadius` → `{"top":"8px","right":"8px","bottom":"8px","left":"8px"}` (keys: top/right/bottom/left)
 - `_boxShadow` → `[{"color":{"hex":"#000"},"offsetX":"0px","offsetY":"4px","blur":"12px","spread":"0px"}]`
-- `_width` / `_height` / `_maxWidth` / `_minHeight` → CSS size string
-- `_zIndex` → string number `"100"`
-- `_position` → `"relative"` | `"absolute"` | `"fixed"` | `"sticky"`
-- `_top` / `_right` / `_bottom` / `_left` → CSS position values
+- `_width` / `_height` / `_widthMax` / `_heightMin` → `{"size": N, "unit": "px|%|vh"}` (see above)
+- `_zIndex` → integer number `2` (NOT a string)
+- `_position` → `"relative"` | `"absolute"` | `"fixed"` | `"sticky"` (plain string — it's a select)
+- `_top` / `_right` / `_bottom` / `_left` → `{"size": 5, "unit": "%"}` (see dimension rules above)
 - `_typography` → see Typography section below
-- `_cssCustom` → raw CSS injected for this element only
+- `_cssCustom` → raw CSS injected for this element only (use for overflow, box-shadow, white-space, etc.)
 - `_cssGlobalClasses` → array of global class IDs from `bricks_get_global_classes`
 
 ---
@@ -295,7 +304,7 @@ For all text-bearing elements, use `_typography` with kebab-case keys:
     "_display": "flex",
     "_direction": "row",
     "_alignItems": "center",
-    "_columnGap": "4px",
+    "_columnGap": {"size": 4, "unit": "px"},
     "menuAlignment": "row"
   }
 },
@@ -307,7 +316,7 @@ For all text-bearing elements, use `_typography` with kebab-case keys:
     "_typography": {"font-size": "15px", "font-weight": "500", "color": {"hex": "#8d9e93"}, "text-decoration": "none"},
     "_padding": {"top": "6px", "right": "16px", "bottom": "6px", "left": "16px"},
     "_background": {"color": {"hex": "#00e87a"}},
-    "_borderRadius": "50px",
+    "_borderRadius": {"top": "50px", "right": "50px", "bottom": "50px", "left": "50px"},
     "_cssCustom": "color: #060f09 !important;"
   }
 },
@@ -361,8 +370,8 @@ Use `list` for any bulleted/icon list — never use `ul`/`li` in raw HTML.
       {"icon": {"library": "fontawesome", "name": "fas fa-check-circle"}, "content": "Feature two description"}
     ],
     "iconColor": {"hex": "#00e87a"},
-    "_columnGap": "12px",
-    "_rowGap": "16px"
+    "_columnGap": {"size": 12, "unit": "px"},
+    "_rowGap": {"size": 16, "unit": "px"}
   }
 }
 ```
@@ -443,8 +452,8 @@ Use the `posts` element with query builder to display any post type dynamically:
       "order": "DESC"
     },
     "columns": "3",
-    "_columnGap": "24px",
-    "_rowGap": "32px"
+    "_columnGap": {"size": 24, "unit": "px"},
+    "_rowGap": {"size": 32, "unit": "px"}
   }
 },
 {
@@ -454,13 +463,13 @@ Use the `posts` element with query builder to display any post type dynamically:
     "_display": "flex",
     "_direction": "column",
     "_background": {"color": {"hex": "#ffffff"}},
-    "_borderRadius": "12px",
+    "_borderRadius": {"top": "12px", "right": "12px", "bottom": "12px", "left": "12px"},
     "_cssCustom": "overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"
   }
 },
 {
   "id": "pi001", "name": "post-image", "parent": "pc001", "children": [],
-  "settings": {"size": "medium", "_height": "200px", "_cssCustom": "object-fit: cover; width: 100%;"}
+  "settings": {"size": "medium", "_height": {"size": 200, "unit": "px"}, "_cssCustom": "object-fit: cover; width: 100%;"}
 },
 {
   "id": "ptt001", "name": "post-title", "parent": "pc001", "children": [],
@@ -519,7 +528,7 @@ Use `icon-box` for icon + title + text — never build this manually:
     ],
     "iconSize": "20px",
     "iconColor": {"hex": "#8d9e93"},
-    "_columnGap": "12px"
+    "_columnGap": {"size": 12, "unit": "px"}
   }
 }
 ```
@@ -541,7 +550,7 @@ Use `icon-box` for icon + title + text — never build this manually:
       }
     ],
     "columns": "3",
-    "_columnGap": "24px"
+    "_columnGap": {"size": 24, "unit": "px"}
   }
 }
 ```
@@ -599,7 +608,7 @@ Use `icon-box` for icon + title + text — never build this manually:
   "id": "sl001", "name": "container", "parent": "sld001", "children": ["slh001","slt001"],
   "settings": {
     "_display": "flex", "_direction": "column", "_justifyContent": "center", "_alignItems": "center",
-    "_minHeight": "400px",
+    "_heightMin": {"size": 400, "unit": "px"},
     "_background": {"color": {"hex": "#0d2318"}}
   }
 }
