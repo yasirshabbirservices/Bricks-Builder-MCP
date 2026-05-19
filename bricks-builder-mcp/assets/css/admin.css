@@ -427,8 +427,16 @@ body.settings_page_bricks-mcp #wpbody-content {
 }
 
 .bmcp-copy-config {
-	float: right;
-	margin-top: 10px !important;
+	position: absolute !important;
+	top: 10px !important;
+	right: 10px !important;
+	margin: 0 !important;
+	float: none !important;
+	z-index: 1;
+}
+
+.bmcp-config-block pre {
+	padding-right: 90px !important;
 }
 
 /* ---- SETUP INTRO BLOCK ---- */

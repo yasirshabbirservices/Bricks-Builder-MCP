@@ -66,7 +66,7 @@ $cfg_general =
 "══════════════════════════════════════════════════════════\n\n" .
 "  1  bricks_get_system_prompt    Bricks element format guide + site rules\n" .
 "  2  bricks_get_site_info        WP/Bricks versions, active plugins, theme\n" .
-'  3  bricks_memory_search ""     load all saved knowledge about this site' . "\n" .
+"  3  bricks_memory_list            load all saved knowledge about this site\n" .
 "  4  bricks_get_color_palette    brand colors and design tokens\n" .
 "  5  bricks_get_global_classes   reusable CSS utility classes\n\n" .
 "══════════════════════════════════════════════════════════\n" .
@@ -471,8 +471,7 @@ $cfg_standard;
 				</div>
 			</div>
 			<div class="bmcp-footer-meta">
-				<span>Built by</span>
-				<a href="https://yasirshabbir.com" target="_blank" rel="noopener noreferrer" class="bmcp-footer-link">Yasir Shabbir</a>
+				<span>Open source</span>
 				<span class="bmcp-footer-dot" aria-hidden="true">·</span>
 				<span>GPL-2.0-or-later</span>
 			</div>

@@ -147,9 +147,14 @@ class Tool_Memory extends Tool_Base {
 
 	private function search_memories( array $args ): array|\WP_Error {
 		$query = sanitize_text_field( $args['query'] ?? '' );
-		if ( ! $query ) {
-			return $this->err( 'query is required.' );
+
+		// Empty query returns all memories (useful for bootstrap load)
+		if ( $query === '' ) {
+			$all = \BricksMCP\Memory_Manager::get_all();
+			$results = array_values( $all );
+			return $this->success( [ 'results' => $results, 'count' => count( $results ) ] );
 		}
+
 		$results = \BricksMCP\Memory_Manager::search( $query );
 		return $this->success( [ 'results' => $results, 'count' => count( $results ) ] );
 	}
