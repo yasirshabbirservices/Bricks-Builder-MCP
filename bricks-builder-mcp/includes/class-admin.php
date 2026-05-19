@@ -11,8 +11,11 @@ class Admin {
 		add_action( 'admin_menu',            [ $this, 'register_menu' ] );
 		add_action( 'admin_init',            [ $this, 'register_settings' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
-		add_action( 'wp_ajax_bmcp_regenerate_key', [ $this, 'ajax_regenerate_key' ] );
-		add_action( 'wp_ajax_bmcp_clear_log',      [ $this, 'ajax_clear_log' ] );
+		add_action( 'wp_ajax_bmcp_regenerate_key',  [ $this, 'ajax_regenerate_key' ] );
+		add_action( 'wp_ajax_bmcp_clear_log',       [ $this, 'ajax_clear_log' ] );
+		add_action( 'wp_ajax_bmcp_memory_list',     [ $this, 'ajax_memory_list' ] );
+		add_action( 'wp_ajax_bmcp_memory_save',     [ $this, 'ajax_memory_save' ] );
+		add_action( 'wp_ajax_bmcp_memory_delete',   [ $this, 'ajax_memory_delete' ] );
 	}
 
 	public function register_menu(): void {
@@ -111,6 +114,75 @@ class Admin {
 		}
 
 		delete_option( BMCP_ACTIVITY_LOG_OPTION );
+		wp_send_json_success();
+	}
+
+	// -------------------------------------------------------------------------
+	// Memory AJAX
+	// -------------------------------------------------------------------------
+
+	public function ajax_memory_list(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$page     = max( 1, (int) ( $_POST['page'] ?? 1 ) );
+		$category = sanitize_key( $_POST['category'] ?? '' );
+		$search   = sanitize_text_field( $_POST['search'] ?? '' );
+
+		$result = Memory_Manager::get_paginated( $page, 15, $category, $search );
+		wp_send_json_success( $result );
+	}
+
+	public function ajax_memory_save(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$id = sanitize_text_field( $_POST['id'] ?? '' );
+
+		$data = [
+			'category'   => sanitize_key( $_POST['category'] ?? 'general' ),
+			'title'      => sanitize_text_field( $_POST['title'] ?? '' ),
+			'content'    => sanitize_textarea_field( $_POST['content'] ?? '' ),
+			'importance' => sanitize_key( $_POST['importance'] ?? 'medium' ),
+			'tags'       => array_filter( array_map( 'trim', explode( ',', sanitize_text_field( $_POST['tags'] ?? '' ) ) ) ),
+		];
+
+		if ( empty( $data['title'] ) || empty( $data['content'] ) ) {
+			wp_send_json_error( 'Title and content are required.' );
+		}
+
+		if ( $id ) {
+			$memory = Memory_Manager::update( $id, $data );
+			if ( ! $memory ) {
+				wp_send_json_error( 'Memory not found.' );
+			}
+		} else {
+			$memory = Memory_Manager::add( $data );
+		}
+
+		wp_send_json_success( [ 'memory' => $memory ] );
+	}
+
+	public function ajax_memory_delete(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$id      = sanitize_text_field( $_POST['id'] ?? '' );
+		$deleted = Memory_Manager::delete( $id );
+
+		if ( ! $deleted ) {
+			wp_send_json_error( 'Memory not found.' );
+		}
+
 		wp_send_json_success();
 	}
 }

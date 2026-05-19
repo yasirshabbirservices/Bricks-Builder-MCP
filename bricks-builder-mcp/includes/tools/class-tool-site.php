@@ -681,8 +681,51 @@ bricks_set_template_conditions(template_id, conditions)
 | Posts/CPTs | `bricks_list_post_types`, `bricks_list_posts`, `bricks_get_post`, `bricks_create_post`, `bricks_update_post`, `bricks_delete_post` |
 | Media | `bricks_list_media`, `bricks_upload_media_from_url`, `bricks_get_media` |
 | WooCommerce | `bricks_list_products`, `bricks_get_product`, `bricks_list_product_categories` |
+| Memory | `bricks_memory_list`, `bricks_memory_get`, `bricks_memory_add`, `bricks_memory_update`, `bricks_memory_delete`, `bricks_memory_search` |
 
 PROMPT
-			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' );
+			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )
+			. $this->build_memory_section();
+	}
+
+	private function build_memory_section(): string {
+		$hi = \BricksMCP\Memory_Manager::get_high_importance();
+
+		$bootstrap = <<<'BOOTSTRAP'
+
+
+---
+
+## AI Memory System
+
+You have access to a persistent memory system via `bricks_memory_*` tools. Use it proactively:
+
+**On every new session (first thing you do):**
+1. Call `bricks_get_site_info` — capture active plugins, Bricks version, CPTs, front page
+2. Call `bricks_get_color_palette` + `bricks_get_global_classes` — capture design tokens
+3. Call `bricks_memory_list` (category by category if needed) — load what you already know
+4. Update stale memories with `bricks_memory_update` if site info has changed
+
+**During work:**
+- After discovering a pattern that works → `bricks_memory_add` (category: bricks/design)
+- After fixing an error → `bricks_memory_add` (category: errors, importance: high)
+- After learning a user preference → `bricks_memory_add` (category: preferences, importance: high)
+- If you make a mistake you already have a memory for → update the memory's content to be clearer
+
+**Memory categories:** site | design | errors | bricks | preferences | components | general
+**Importance high** = automatically shown in every session; use for critical patterns, known bugs, preferences
+BOOTSTRAP;
+
+		if ( empty( $hi ) ) {
+			return $bootstrap;
+		}
+
+		$lines = [];
+		foreach ( $hi as $m ) {
+			$tags = ! empty( $m['tags'] ) ? ' [' . implode( ', ', $m['tags'] ) . ']' : '';
+			$lines[] = "### {$m['title']}{$tags} (ID: {$m['id']})\n{$m['content']}";
+		}
+
+		return $bootstrap . "\n\n---\n\n## High-Priority Memories (auto-loaded)\n\n" . implode( "\n\n", $lines );
 	}
 }

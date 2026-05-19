@@ -708,6 +708,227 @@ body.settings_page_bricks-mcp #wpbody-content {
 	gap: 12px;
 }
 
+/* ---- MEMORY TOOLBAR ---- */
+.bmcp-memory-toolbar {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+}
+
+.bmcp-memory-toolbar select,
+.bmcp-memory-toolbar input[type="text"] {
+	background: var(--surface-3) !important;
+	border: 1px solid var(--border) !important;
+	border-radius: var(--radius-sm) !important;
+	color: var(--text) !important;
+	padding: 7px 12px !important;
+	font-size: 0.84rem !important;
+	height: auto !important;
+	box-shadow: none !important;
+}
+
+.bmcp-memory-toolbar input[type="text"] {
+	flex: 1;
+	min-width: 180px;
+}
+
+.bmcp-memory-toolbar select:focus,
+.bmcp-memory-toolbar input[type="text"]:focus {
+	border-color: var(--brand) !important;
+	outline: none !important;
+	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
+}
+
+/* ---- MEMORY TABLE ---- */
+.bmcp-memory-table {
+	width: 100%;
+	border-collapse: collapse;
+	border-radius: var(--radius-sm);
+	overflow: hidden;
+	border: 1px solid var(--border);
+	margin-bottom: 16px;
+}
+
+.bmcp-memory-table th {
+	text-align: left;
+	padding: 10px 14px;
+	background: var(--surface-3) !important;
+	border-bottom: 1px solid var(--border);
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--text-muted);
+	font-weight: 600;
+}
+
+.bmcp-memory-table td {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--border);
+	vertical-align: top;
+	background: var(--surface);
+	color: var(--text);
+	font-size: 0.84rem;
+}
+
+.bmcp-memory-table tr:last-child td { border-bottom: none; }
+.bmcp-memory-table tr:hover td { background: rgba(0,214,143,0.03); }
+
+.bmcp-mem-title { font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.bmcp-mem-preview { color: var(--text-muted); font-size: 0.8rem; line-height: 1.4; }
+
+.bmcp-mem-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.bmcp-mem-badge.cat   { background: var(--brand-dim); color: var(--brand); border: 1px solid rgba(0,214,143,0.2); }
+.bmcp-mem-badge.high  { background: rgba(0,214,143,0.15); color: var(--brand); }
+.bmcp-mem-badge.medium{ background: rgba(255,255,255,0.05); color: var(--text-muted); }
+.bmcp-mem-badge.low   { background: transparent; color: var(--text-dim); }
+
+.bmcp-mem-actions { display: flex; gap: 6px; white-space: nowrap; }
+.bmcp-mem-actions .button { padding: 4px 10px !important; font-size: 0.78rem !important; }
+.bmcp-btn-edit-mem { color: var(--brand) !important; border-color: rgba(0,214,143,0.3) !important; }
+.bmcp-btn-del-mem  { color: var(--danger) !important; border-color: rgba(249,95,114,0.3) !important; }
+.bmcp-btn-del-mem:hover { background: var(--danger-dim) !important; }
+
+/* ---- MEMORY PAGINATION ---- */
+#bmcp-memory-pagination {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	justify-content: center;
+	margin-top: 4px;
+	flex-wrap: wrap;
+}
+
+.bmcp-page-btn {
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	color: var(--text-muted);
+	border-radius: var(--radius-sm);
+	padding: 5px 12px;
+	font-size: 0.8rem;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+
+.bmcp-page-btn:hover { background: var(--surface-3); color: var(--text); }
+.bmcp-page-btn.active { background: var(--brand-dim); border-color: rgba(0,214,143,0.3); color: var(--brand); font-weight: 600; }
+.bmcp-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- MODAL ---- */
+.bmcp-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.bmcp-modal-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0,0,0,0.7);
+	backdrop-filter: blur(2px);
+}
+
+.bmcp-modal-inner {
+	position: relative;
+	background: var(--surface);
+	border: 1px solid var(--border-2);
+	border-radius: var(--radius-lg);
+	width: 100%;
+	max-width: 580px;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+	z-index: 1;
+}
+
+.bmcp-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 24px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+.bmcp-modal-header h3 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--text);
+}
+
+.bmcp-modal-close {
+	background: none;
+	border: none;
+	color: var(--text-muted);
+	font-size: 1rem;
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 4px;
+	transition: color 0.15s;
+}
+
+.bmcp-modal-close:hover { color: var(--text); }
+
+.bmcp-modal-body {
+	padding: 20px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.bmcp-modal-footer {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	padding: 16px 24px 20px;
+	border-top: 1px solid var(--border);
+}
+
+/* ---- FORM FIELDS (modal) ---- */
+.bmcp-field { display: flex; flex-direction: column; gap: 6px; }
+.bmcp-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+.bmcp-field label .description { font-weight: 400; margin-left: 6px; }
+
+.bmcp-field-row { display: flex; gap: 12px; }
+.bmcp-field-row .bmcp-field { flex: 1; }
+
+.bmcp-field input[type="text"],
+.bmcp-field select,
+.bmcp-field textarea {
+	background: var(--surface-3) !important;
+	border: 1px solid var(--border) !important;
+	border-radius: var(--radius-sm) !important;
+	color: var(--text) !important;
+	font-size: 0.84rem !important;
+	padding: 9px 12px !important;
+	width: 100% !important;
+	box-shadow: none !important;
+	font-family: inherit !important;
+	transition: border-color 0.15s !important;
+}
+
+.bmcp-field textarea { resize: vertical !important; line-height: 1.6 !important; }
+
+.bmcp-field input[type="text"]:focus,
+.bmcp-field select:focus,
+.bmcp-field textarea:focus {
+	border-color: var(--brand) !important;
+	outline: none !important;
+	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
+}
+
 /* ---- WP ADMIN OVERRIDES (scoped) ---- */
 #bmcp-wrap h1 { color: var(--text); }
 #bmcp-wrap p.submit { margin: 0; padding: 0; }

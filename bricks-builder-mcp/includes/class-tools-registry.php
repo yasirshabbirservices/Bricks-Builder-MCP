@@ -27,6 +27,7 @@ class Tools_Registry {
 			new Tools\Tool_Menus(),
 			new Tools\Tool_Components(),
 			new Tools\Tool_Site(),
+			new Tools\Tool_Memory(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -156,6 +157,13 @@ class Tools_Registry {
 			'bricks_get_custom_instructions' => 'site',
 			'bricks_get_system_prompt'       => 'site',
 			'bricks_set_front_page'          => 'site',
+			// memory (always on)
+			'bricks_memory_list'   => 'site',
+			'bricks_memory_get'    => 'site',
+			'bricks_memory_add'    => 'site',
+			'bricks_memory_update' => 'site',
+			'bricks_memory_delete' => 'site',
+			'bricks_memory_search' => 'site',
 		];
 	}
 

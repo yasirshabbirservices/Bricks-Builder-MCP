@@ -1,9 +1,11 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$log      = get_option( BMCP_ACTIVITY_LOG_OPTION, [] );
-$enabled  = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
-$endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
+$log        = get_option( BMCP_ACTIVITY_LOG_OPTION, [] );
+$enabled    = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
+$endpoint   = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
+$mem_total  = count( \BricksMCP\Memory_Manager::get_all() );
+$mem_cats   = \BricksMCP\Memory_Manager::get_categories();
 ?>
 <div class="wrap" id="bmcp-wrap">
 
@@ -34,6 +36,12 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 		</a>
 		<a href="#" class="bmcp-tab" data-tab="capabilities">
 			<span class="bmcp-tab-icon">◈</span> Capabilities
+		</a>
+		<a href="#" class="bmcp-tab" data-tab="memory">
+			<span class="bmcp-tab-icon">◈</span> Memory
+			<?php if ( $mem_total > 0 ) : ?>
+				<span class="bmcp-badge"><?php echo $mem_total; ?></span>
+			<?php endif; ?>
 		</a>
 		<a href="#" class="bmcp-tab" data-tab="activity">
 			<span class="bmcp-tab-icon">◷</span> Activity
@@ -203,6 +211,82 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 			</div>
 		</form>
 	</div><!-- /tab-capabilities -->
+
+	<!-- ====================== MEMORY TAB ====================== -->
+	<div class="bmcp-panel" id="tab-memory" style="display:none">
+		<div class="bmcp-card">
+			<div class="bmcp-card-header">
+				<h2>AI Memory <span class="description" style="font-weight:400;font-size:0.8rem;color:var(--text-dim)">up to 500 entries</span></h2>
+				<button type="button" class="button button-primary" id="bmcp-btn-add-memory">+ Add Memory</button>
+			</div>
+			<p style="margin-bottom:16px">Memories are included in every AI session automatically. Add site facts, design patterns, errors and fixes — the AI will also add and update memories on its own.</p>
+
+			<div class="bmcp-memory-toolbar">
+				<select id="bmcp-mem-cat-filter">
+					<option value="">All Categories</option>
+					<?php foreach ( $mem_cats as $slug => $label ) : ?>
+						<option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<input type="text" id="bmcp-mem-search" placeholder="Search memories…" autocomplete="off">
+			</div>
+
+			<div id="bmcp-memory-list"><p class="bmcp-empty">Loading…</p></div>
+			<div id="bmcp-memory-pagination"></div>
+		</div>
+	</div><!-- /tab-memory -->
+
+	<!-- ====================== MEMORY MODAL ====================== -->
+	<div id="bmcp-memory-modal" class="bmcp-modal" style="display:none">
+		<div class="bmcp-modal-backdrop"></div>
+		<div class="bmcp-modal-inner">
+			<div class="bmcp-modal-header">
+				<h3 id="bmcp-modal-title">Add Memory</h3>
+				<button type="button" class="bmcp-modal-close">✕</button>
+			</div>
+			<div class="bmcp-modal-body">
+				<input type="hidden" id="bmcp-mem-id">
+
+				<div class="bmcp-field-row">
+					<div class="bmcp-field">
+						<label>Category</label>
+						<select id="bmcp-mem-cat">
+							<?php foreach ( $mem_cats as $slug => $label ) : ?>
+								<option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+					<div class="bmcp-field">
+						<label>Importance</label>
+						<select id="bmcp-mem-importance">
+							<option value="high">High — always in system prompt</option>
+							<option value="medium" selected>Medium</option>
+							<option value="low">Low</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="bmcp-field">
+					<label>Title</label>
+					<input type="text" id="bmcp-mem-title" placeholder="Short descriptive title">
+				</div>
+
+				<div class="bmcp-field">
+					<label>Content</label>
+					<textarea id="bmcp-mem-content" rows="6" placeholder="Full memory content — include enough detail to be useful without additional context."></textarea>
+				</div>
+
+				<div class="bmcp-field">
+					<label>Tags <span class="description">comma separated</span></label>
+					<input type="text" id="bmcp-mem-tags" placeholder="e.g. hero, layout, bricks">
+				</div>
+			</div>
+			<div class="bmcp-modal-footer">
+				<button type="button" class="button bmcp-modal-cancel">Cancel</button>
+				<button type="button" class="button button-primary" id="bmcp-modal-save">Save Memory</button>
+			</div>
+		</div>
+	</div>
 
 	<!-- ====================== ACTIVITY LOG TAB ====================== -->
 	<div class="bmcp-panel" id="tab-activity" style="display:none">
