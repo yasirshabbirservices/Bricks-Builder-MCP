@@ -1,10 +1,11 @@
 <?php
 /**
  * Plugin Name: Bricks Builder MCP
- * Plugin URI:  https://github.com/
+ * Plugin URI:  https://yasirshabbir.com
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.0.2
+ * Version:     1.0.3
  * Author:      Yasir Shabbir
+ * Author URI:  https://yasirshabbir.com
  * License:     GPL-2.0-or-later
  * Text Domain: bricks-builder-mcp
  */
@@ -13,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',              '1.0.1' );
+define( 'BMCP_VERSION',              '1.0.3' );
 define( 'BMCP_PLUGIN_FILE',          __FILE__ );
 define( 'BMCP_PLUGIN_DIR',           plugin_dir_path( __FILE__ ) );
 define( 'BMCP_PLUGIN_URL',           plugin_dir_url( __FILE__ ) );

@@ -257,8 +257,6 @@ $endpoint = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 			</div>
 		</div>
 		<div class="bmcp-footer-links">
-			<a href="mailto:contact@yasirshabbir.com">✉ contact@yasirshabbir.com</a>
-			<span class="bmcp-divider"></span>
 			<a href="https://yasirshabbir.com" target="_blank" rel="noopener">↗ yasirshabbir.com</a>
 		</div>
 	</div>
