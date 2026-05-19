@@ -2,7 +2,6 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 $log        = get_option( BMCP_ACTIVITY_LOG_OPTION, [] );
-$enabled    = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
 $endpoint   = rest_url( BMCP_REST_NAMESPACE . '/mcp' );
 $mem_total  = count( \BricksMCP\Memory_Manager::get_all() );
 $mem_cats   = \BricksMCP\Memory_Manager::get_categories();
@@ -286,46 +285,116 @@ $cfg_standard;
 		<form method="post" action="options.php">
 			<?php settings_fields( 'bmcp_settings_capabilities' ); ?>
 
-			<div class="bmcp-card">
-				<h2>Tool Groups</h2>
-				<p>Disable groups to restrict what the AI can access. The <strong>Site</strong> group (site info, element catalog, nav menus, components, system prompt, memory) is always on.</p>
+			<?php
+			$tool_states = get_option( BMCP_TOOL_STATES_OPTION, [] );
 
-				<?php
-				$group_info = [
-					'pages'       => [ 'label' => 'Pages',        'icon' => '⊞', 'tools' => 'list, get, create, update, delete pages',                                  'count' => 5 ],
-					'templates'   => [ 'label' => 'Templates',     'icon' => '⊟', 'tools' => 'list, get, create, update, delete Bricks templates + template conditions', 'count' => 6 ],
-					'settings'    => [ 'label' => 'Global Design', 'icon' => '◎', 'tools' => 'global settings, color palette, global classes, theme styles',             'count' => 9 ],
-					'posts'       => [ 'label' => 'Posts & CPTs',  'icon' => '≡', 'tools' => 'list post types, list, get, create, update, delete any post type',         'count' => 6 ],
-					'media'       => [ 'label' => 'Media Library', 'icon' => '⊕', 'tools' => 'list media, upload from URL, get media details',                           'count' => 3 ],
-					'woocommerce' => [ 'label' => 'WooCommerce',   'icon' => '◈', 'tools' => 'list & get products, list product categories (requires WooCommerce)',      'count' => 3 ],
-				];
-				?>
+			$cap_groups = [
+				'pages' => [
+					'label' => 'Pages', 'icon' => '⊞',
+					'tools' => [
+						'bricks_list_pages'  => [ 'label' => 'List Pages',   'desc' => 'Browse all pages with status and URL' ],
+						'bricks_get_page'    => [ 'label' => 'Get Page',     'desc' => 'Read page elements and metadata' ],
+						'bricks_create_page' => [ 'label' => 'Create Page',  'desc' => 'Create new WordPress pages' ],
+						'bricks_update_page' => [ 'label' => 'Update Page',  'desc' => 'Edit page content and Bricks elements' ],
+						'bricks_delete_page' => [ 'label' => 'Delete Page',  'desc' => 'Trash or permanently delete pages' ],
+					],
+				],
+				'templates' => [
+					'label' => 'Templates', 'icon' => '⊟',
+					'tools' => [
+						'bricks_list_templates'          => [ 'label' => 'List Templates',          'desc' => 'Browse all Bricks templates' ],
+						'bricks_get_template'            => [ 'label' => 'Get Template',            'desc' => 'Read template elements and type' ],
+						'bricks_create_template'         => [ 'label' => 'Create Template',         'desc' => 'Create header / footer / section templates' ],
+						'bricks_update_template'         => [ 'label' => 'Update Template',         'desc' => 'Edit template elements' ],
+						'bricks_delete_template'         => [ 'label' => 'Delete Template',         'desc' => 'Delete templates' ],
+						'bricks_set_template_conditions' => [ 'label' => 'Set Template Conditions', 'desc' => 'Control where a template appears' ],
+					],
+				],
+				'settings' => [
+					'label' => 'Global Design', 'icon' => '◎',
+					'tools' => [
+						'bricks_get_global_settings'    => [ 'label' => 'Get Global Settings',    'desc' => 'Read Bricks global settings' ],
+						'bricks_update_global_settings' => [ 'label' => 'Update Global Settings', 'desc' => 'Write Bricks global settings' ],
+						'bricks_get_color_palette'      => [ 'label' => 'Get Color Palette',      'desc' => 'Read brand color palette' ],
+						'bricks_update_color_palette'   => [ 'label' => 'Update Color Palette',   'desc' => 'Replace the color palette' ],
+						'bricks_get_global_classes'     => [ 'label' => 'Get Global Classes',     'desc' => 'Read reusable CSS classes' ],
+						'bricks_create_global_class'    => [ 'label' => 'Create Global Class',    'desc' => 'Add a new CSS utility class' ],
+						'bricks_update_global_class'    => [ 'label' => 'Update Global Class',    'desc' => 'Edit an existing CSS class' ],
+						'bricks_get_theme_styles'       => [ 'label' => 'Get Theme Styles',       'desc' => 'Read theme style entries' ],
+						'bricks_update_theme_styles'    => [ 'label' => 'Update Theme Styles',    'desc' => 'Edit theme style entries' ],
+					],
+				],
+				'posts' => [
+					'label' => 'Posts & CPTs', 'icon' => '≡',
+					'tools' => [
+						'bricks_list_post_types' => [ 'label' => 'List Post Types', 'desc' => 'List all registered public post types' ],
+						'bricks_list_posts'      => [ 'label' => 'List Posts',      'desc' => 'Browse posts of any type' ],
+						'bricks_get_post'        => [ 'label' => 'Get Post',        'desc' => 'Read post content and elements' ],
+						'bricks_create_post'     => [ 'label' => 'Create Post',     'desc' => 'Create new posts or CPT entries' ],
+						'bricks_update_post'     => [ 'label' => 'Update Post',     'desc' => 'Edit post content and meta' ],
+						'bricks_delete_post'     => [ 'label' => 'Delete Post',     'desc' => 'Trash or delete posts' ],
+					],
+				],
+				'media' => [
+					'label' => 'Media Library', 'icon' => '⊕',
+					'tools' => [
+						'bricks_list_media'            => [ 'label' => 'List Media',            'desc' => 'Browse media library items' ],
+						'bricks_upload_media_from_url' => [ 'label' => 'Upload Media from URL', 'desc' => 'Import images from external URLs' ],
+						'bricks_get_media'             => [ 'label' => 'Get Media',             'desc' => 'Read media file metadata' ],
+					],
+				],
+				'woocommerce' => [
+					'label' => 'WooCommerce', 'icon' => '◈',
+					'tools' => [
+						'bricks_list_products'           => [ 'label' => 'List Products',           'desc' => 'Browse WooCommerce products (requires WooCommerce)' ],
+						'bricks_get_product'             => [ 'label' => 'Get Product',             'desc' => 'Read product details' ],
+						'bricks_list_product_categories' => [ 'label' => 'List Product Categories', 'desc' => 'Browse product categories' ],
+					],
+				],
+			];
 
-				<table class="bmcp-capabilities-table">
+			foreach ( $cap_groups as $group_key => $group ) :
+				$group_tools    = array_keys( $group['tools'] );
+				$enabled_count  = count( array_filter( $group_tools, fn( $t ) => ( $tool_states[ $t ] ?? true ) ) );
+				$total_count    = count( $group_tools );
+				$all_on         = $enabled_count === $total_count;
+			?>
+			<div class="bmcp-card bmcp-cap-group" data-group="<?php echo esc_attr( $group_key ); ?>" style="padding:0;overflow:hidden;margin-bottom:12px;">
+				<div class="bmcp-cap-group-header">
+					<div class="bmcp-cap-group-title">
+						<span class="bmcp-cap-group-icon" aria-hidden="true"><?php echo esc_html( $group['icon'] ); ?></span>
+						<strong><?php echo esc_html( $group['label'] ); ?></strong>
+						<span class="bmcp-cap-count"><?php echo esc_html( $enabled_count . ' / ' . $total_count ); ?> enabled</span>
+					</div>
+					<button type="button" class="button bmcp-cap-toggle-all" data-group="<?php echo esc_attr( $group_key ); ?>" aria-label="Toggle all <?php echo esc_attr( $group['label'] ); ?> tools">
+						<?php echo $all_on ? 'Disable All' : 'Enable All'; ?>
+					</button>
+				</div>
+				<table class="bmcp-capabilities-table" style="border:none;border-radius:0;margin:0;">
 					<thead>
 						<tr>
-							<th scope="col" style="width:160px">Group</th>
-							<th scope="col">Tools Included</th>
-							<th scope="col" style="width:70px;text-align:center">Enabled</th>
+							<th scope="col" style="width:200px;padding-left:20px">Tool</th>
+							<th scope="col">Description</th>
+							<th scope="col" style="width:70px;text-align:center">On</th>
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $group_info as $key => $info ) :
-							$is_enabled = $enabled[ $key ] ?? true;
+						<?php foreach ( $group['tools'] as $tool_name => $tool_info ) :
+							$is_on = $tool_states[ $tool_name ] ?? true;
 						?>
-						<tr>
-							<td>
-								<strong><?php echo esc_html( $info['icon'] . ' ' . $info['label'] ); ?></strong>
-								<br><span class="bmcp-tool-list"><?php echo esc_html( $info['count'] ); ?> tools</span>
+						<tr class="bmcp-cap-tool-row" data-tool="<?php echo esc_attr( $tool_name ); ?>" data-group="<?php echo esc_attr( $group_key ); ?>">
+							<td style="padding-left:20px">
+								<code style="font-size:0.76rem"><?php echo esc_html( $tool_name ); ?></code>
+								<div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px"><?php echo esc_html( $tool_info['label'] ); ?></div>
 							</td>
-							<td class="bmcp-tool-list"><?php echo esc_html( $info['tools'] ); ?></td>
+							<td style="font-size:0.82rem;color:var(--text-muted)"><?php echo esc_html( $tool_info['desc'] ); ?></td>
 							<td style="text-align:center">
 								<label class="bmcp-toggle">
 									<input type="checkbox"
-										name="<?php echo esc_attr( BMCP_ENABLED_TOOLS_OPTION . '[' . $key . ']' ); ?>"
+										name="<?php echo esc_attr( BMCP_TOOL_STATES_OPTION . '[' . $tool_name . ']' ); ?>"
 										value="1"
-										<?php checked( $is_enabled ); ?>
-										aria-label="<?php echo esc_attr( 'Enable ' . $info['label'] . ' tools' ); ?>"
+										<?php checked( $is_on ); ?>
+										aria-label="<?php echo esc_attr( 'Enable ' . $tool_info['label'] ); ?>"
 									/>
 									<span class="bmcp-toggle-slider" aria-hidden="true"></span>
 								</label>
@@ -334,11 +403,14 @@ $cfg_standard;
 						<?php endforeach; ?>
 					</tbody>
 				</table>
-
-				<div class="bmcp-submit-row">
-					<?php submit_button( 'Save Capabilities', 'primary', 'submit', false ); ?>
-				</div>
 			</div>
+			<?php endforeach; ?>
+
+			<div class="bmcp-submit-row" style="padding-top:16px">
+				<?php submit_button( 'Save Capabilities', 'primary', 'submit', false ); ?>
+				<p class="description">Site tools (system prompt, memory, history, nav menus, components) are always on and cannot be disabled.</p>
+			</div>
+
 		</form>
 	</div><!-- /tab-capabilities -->
 

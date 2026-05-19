@@ -47,6 +47,18 @@ class Tools_Registry {
 		}
 	}
 
+	/**
+	 * Returns every tool name registered across all groups. Used by Admin sanitize callback.
+	 */
+	public static function get_all_tool_names(): array {
+		return array_keys( ( new self() )->tap_load_and_get_map() );
+	}
+
+	/** Internal: load tools just enough to return the full group map. */
+	private function tap_load_and_get_map(): array {
+		return $this->get_tool_group_map();
+	}
+
 	public function get_all_definitions(): array {
 		$seen        = [];
 		$definitions = [];
@@ -60,24 +72,22 @@ class Tools_Registry {
 			$definitions         = array_merge( $definitions, $handler->define() );
 		}
 
-		// Filter by enabled tool groups
-		$enabled = $this->get_enabled_groups();
-		$group_map = $this->get_tool_group_map();
+		$tool_states = $this->get_tool_states();
 
-		return array_values( array_filter( $definitions, function ( $def ) use ( $enabled, $group_map ) {
-			$name  = $def['name'] ?? '';
-			$group = $group_map[ $name ] ?? 'site';
-			return $enabled[ $group ] ?? true;
+		return array_values( array_filter( $definitions, function ( $def ) use ( $tool_states ) {
+			$tool = $def['name'] ?? '';
+			if ( array_key_exists( $tool, $tool_states ) && ! $tool_states[ $tool ] ) {
+				return false;
+			}
+			return true;
 		} ) );
 	}
 
 	public function dispatch( string $name, array $args ): array|\WP_Error {
-		$enabled   = $this->get_enabled_groups();
-		$group_map = $this->get_tool_group_map();
-		$group     = $group_map[ $name ] ?? 'site';
-
-		if ( ! ( $enabled[ $group ] ?? true ) ) {
-			return new \WP_Error( 'bmcp_disabled', "Tool group '{$group}' is disabled. Enable it in Bricks MCP settings." );
+		// Per-tool enabled check
+		$tool_states = $this->get_tool_states();
+		if ( array_key_exists( $name, $tool_states ) && ! $tool_states[ $name ] ) {
+			return new \WP_Error( 'bmcp_disabled', "Tool '{$name}' is disabled. Enable it under Bricks MCP → Settings → Capabilities." );
 		}
 
 		$handler = $this->tools[ $name ] ?? null;
@@ -222,18 +232,13 @@ class Tools_Registry {
 		}
 	}
 
-	private function get_enabled_groups(): array {
-		$stored = get_option( BMCP_ENABLED_TOOLS_OPTION, [] );
-		$defaults = [
-			'pages'       => true,
-			'templates'   => true,
-			'settings'    => true,
-			'posts'       => true,
-			'media'       => true,
-			'woocommerce' => true,
-			'site'        => true,
-		];
-		return array_merge( $defaults, is_array( $stored ) ? $stored : [] );
+	private function get_tool_states(): array {
+		$stored = get_option( BMCP_TOOL_STATES_OPTION, [] );
+		if ( ! is_array( $stored ) ) {
+			return [];
+		}
+		// Default: all tools enabled. An entry in $stored must be explicitly false to disable.
+		return $stored;
 	}
 
 	// -------------------------------------------------------------------------

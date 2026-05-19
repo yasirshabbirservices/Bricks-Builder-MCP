@@ -1119,8 +1119,10 @@ body.settings_page_bricks-mcp #wpbody-content {
 
 /* ---- MEMORY TOOLBAR — search input type ---- */
 .bmcp-memory-toolbar input[type="search"] {
-	flex: 1;
-	min-width: 180px;
+	flex: 1 1 0 !important;
+	min-width: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
 	background: var(--surface-3) !important;
 	border: 1px solid var(--border) !important;
 	border-radius: var(--radius-sm) !important;
@@ -1129,11 +1131,77 @@ body.settings_page_bricks-mcp #wpbody-content {
 	font-size: 0.84rem !important;
 	height: auto !important;
 	box-shadow: none !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
 }
 .bmcp-memory-toolbar input[type="search"]:focus {
 	border-color: var(--brand) !important;
 	outline: none !important;
 	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
+}
+.bmcp-memory-toolbar input[type="search"]::placeholder {
+	color: var(--text-dim) !important;
+}
+
+/* ---- CAPABILITIES — per-tool group layout ---- */
+.bmcp-cap-group {
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.bmcp-cap-group-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 20px;
+	background: var(--surface-2);
+	border-bottom: 1px solid var(--border);
+	gap: 12px;
+}
+
+.bmcp-cap-group-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.bmcp-cap-group-icon {
+	font-size: 1rem;
+	opacity: 0.8;
+}
+
+.bmcp-cap-group-title strong {
+	color: var(--text);
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.bmcp-cap-count {
+	font-size: 0.75rem;
+	color: var(--text-dim);
+	background: var(--surface-3);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 1px 8px;
+}
+
+.bmcp-cap-toggle-all {
+	font-size: 0.78rem !important;
+	padding: 4px 12px !important;
+	flex-shrink: 0;
+}
+
+.bmcp-cap-tool-row td code {
+	font-size: 0.76rem !important;
+	letter-spacing: 0 !important;
+}
+
+.bmcp-cap-tool-row.bmcp-disabled td {
+	opacity: 0.45;
+}
+.bmcp-cap-tool-row.bmcp-disabled td:last-child {
+	opacity: 1;
 }
 
 /* ---- WP ADMIN OVERRIDES (scoped) ---- */

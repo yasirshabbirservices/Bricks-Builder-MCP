@@ -145,6 +145,23 @@ You are connected to **{$site_name}** ({$site_url}) running Bricks Builder v{$br
 
 ---
 
+## START OF SESSION CHECKLIST (always run these first)
+
+Before building anything, run these in order:
+1. `bricks_get_site_info` — front page ID, Bricks version, active plugins, CPTs
+2. `bricks_get_color_palette` — **never hardcode a color hex; use palette values**
+3. `bricks_get_global_classes` — **always apply matching classes via `_cssGlobalClasses`**
+4. `bricks_memory_list` — load all remembered patterns, errors, and preferences
+5. `bricks_snapshot_list` — review recent changes if continuing from a previous session
+
+---
+
+## MISTAKES AND UNDO
+
+If you write something wrong, call `bricks_snapshot_list` to see what was auto-saved before your writes, then call `bricks_snapshot_restore` with the correct ID. Restoring is always safe — the current state is snapshotted before the restore, so nothing is permanently lost. Confirm with the user before restoring.
+
+---
+
 ## Element JSON Structure
 
 Every Bricks element MUST have this exact structure:
@@ -164,6 +181,29 @@ Every Bricks element MUST have this exact structure:
 - If element A has `"children": ["b1c2d3"]`, then the element with id `"b1c2d3"` must have `"parent": "abc123"`.
 - Root elements use `"parent": 0` (integer zero, not string).
 - Non-nestable elements (heading, text-basic, button, image, icon, text-link, etc.) must have `"children": []`.
+- **DO NOT invent settings key names.** Only use keys shown in this guide or returned by `bricks_get_elements`. If you are unsure of a key, use `_cssCustom` for the CSS instead.
+
+---
+
+## CRITICAL: Global Classes — Use First, Inline Last
+
+**Always prefer global classes over inline settings.** Call `bricks_get_global_classes` at the start of every session and map class names to their IDs.
+
+```json
+// CORRECT — use the class ID from bricks_get_global_classes result
+{"_cssGlobalClasses": ["a1b2c3", "d4e5f6"]}
+
+// WRONG — duplicating styles that already exist as global classes
+{"_typography": {"font-size": "2rem", "font-weight": "700"}}
+```
+
+**Workflow:**
+1. Call `bricks_get_global_classes` → note all class names and their IDs.
+2. When building an element, check: does a class like `btn`, `h1`, `h2`, `body-text-s`, `section-padding-l` etc. already exist?
+3. If yes → set `_cssGlobalClasses: ["<classId>"]` and omit redundant inline settings.
+4. If no → write inline settings, then consider creating a class with `bricks_create_global_class` for reuse.
+
+**Multiple classes:** `"_cssGlobalClasses": ["classId1", "classId2"]` — order matters, later classes win on conflicts.
 
 ---
 
@@ -202,8 +242,8 @@ The container element is Bricks' primary layout block. **You MUST set `_display:
 **NEVER use plain strings like `"50%"`, `"300px"`, or `"1200px"` for these dimension controls** — Bricks will silently discard them and generate no CSS.
 
 **For ALL elements**, these shared style keys apply:
-- `_padding` / `_margin` → `{"top":"16px","right":"24px","bottom":"16px","left":"24px"}` (spacing: plain strings OK)
-- `_background` → `{"color":{"hex":"#hex"}}` or `{"image":{"url":"...","size":"cover","position":"center"}}`
+- `_padding` / `_margin` → `{"top":"16px","right":"24px","bottom":"16px","left":"24px"}` (plain strings OK)
+- `_background` → `{"color":{"hex":"#hex"}}` or `{"color":{"raw":"var(--color-primary)"}}` or `{"image":{"url":"...","size":"cover","position":"center"}}`
 - `_border` → `{"color":{"hex":"#e2e8f0"}, "width":{"top":"1px","right":"1px","bottom":"1px","left":"1px"}, "style":"solid"}`
 - `_borderRadius` → `{"top":"8px","right":"8px","bottom":"8px","left":"8px"}` (keys: top/right/bottom/left)
 - `_boxShadow` → `[{"color":{"hex":"#000"},"offsetX":"0px","offsetY":"4px","blur":"12px","spread":"0px"}]`
@@ -211,9 +251,81 @@ The container element is Bricks' primary layout block. **You MUST set `_display:
 - `_zIndex` → integer number `2` (NOT a string)
 - `_position` → `"relative"` | `"absolute"` | `"fixed"` | `"sticky"` (plain string — it's a select)
 - `_top` / `_right` / `_bottom` / `_left` → `{"size": 5, "unit": "%"}` (see dimension rules above)
+- `_overflow` → `"hidden"` | `"auto"` | `"scroll"` | `"visible"` (plain string)
+- `_flexGrow` → integer `1` or `0` — NOT a string. Use on flex children to fill remaining space
+- `_flexShrink` → integer `0` or `1` — prevents shrinking when set to `0`
+- `_alignSelf` → `"auto"` | `"flex-start"` | `"center"` | `"flex-end"` | `"stretch"` (plain string)
+- `_objectFit` → `"cover"` | `"contain"` | `"fill"` (images and video)
+- `_objectPosition` → `"50% 50%"` | `"top"` | `"center"` etc. (plain string)
+- `_cssTransition` → `"all 0.3s ease"` or `"opacity 0.2s, transform 0.3s"` (plain string)
 - `_typography` → see Typography section below
-- `_cssCustom` → raw CSS injected for this element only (use for overflow, box-shadow, white-space, etc.)
+- `_cssCustom` → raw CSS injected for this element only (use for `clip-path`, `white-space`, `filter`, etc.)
 - `_cssGlobalClasses` → array of global class IDs from `bricks_get_global_classes`
+
+---
+
+## CRITICAL: Responsive Breakpoints
+
+Bricks uses desktop-first responsive design. Every settings key can have a breakpoint-specific override using the suffix `:breakpoint`:
+
+```
+{settingsKey}:{breakpointName}
+```
+
+**Breakpoint names (default pixel widths):**
+
+| Suffix | Screen | Default width |
+|--------|--------|--------------|
+| *(none)* | Desktop (base) | all sizes |
+| `:tablet` | Tablet landscape | ≤ 1024px |
+| `:tablet_portrait` | Tablet portrait | ≤ 768px |
+| `:mobile_landscape` | Mobile landscape | ≤ 480px |
+| `:mobile` | Mobile portrait | ≤ 375px |
+
+**Examples:**
+
+```json
+{
+  "name": "container",
+  "settings": {
+    "_display": "flex",
+    "_direction": "row",
+    "_direction:tablet": "column",
+    "_width": {"size": 50, "unit": "%"},
+    "_width:tablet_portrait": {"size": 100, "unit": "%"},
+    "_padding": {"top": "80px", "right": "40px", "bottom": "80px", "left": "40px"},
+    "_padding:tablet": {"top": "60px", "right": "24px", "bottom": "60px", "left": "24px"},
+    "_padding:mobile": {"top": "40px", "right": "16px", "bottom": "40px", "left": "16px"},
+    "_display:mobile": "none"
+  }
+}
+```
+
+**Common responsive patterns:**
+
+```json
+// 2-column → 1-column on mobile
+"_display": "flex",
+"_direction": "row",
+"_flexWrap": "wrap",
+"_width": {"size": 50, "unit": "%"},
+"_width:tablet_portrait": {"size": 100, "unit": "%"}
+
+// Hide on mobile
+"_display:mobile": "none"
+
+// Stack nav items vertically on tablet
+"_direction": "row",
+"_direction:tablet": "column"
+
+// Full-width button on mobile
+"_width:mobile": {"size": 100, "unit": "%"}
+```
+
+**Rules:**
+- Always use the SAME value type at all breakpoints — if desktop is `{"size":50,"unit":"%"}`, then tablet must also be `{"size":100,"unit":"%"}` (not `"100%"`).
+- Never add breakpoint suffixes to non-style keys like `text`, `link`, `tag`, `items`, etc. — only style/layout keys accept breakpoints.
+- For text sizing use `_typography:tablet`, `_typography:mobile` — works the same way.
 
 ---
 
@@ -233,9 +345,121 @@ For all text-bearing elements, use `_typography` with kebab-case keys:
     "text-align": "center",
     "text-transform": "uppercase",
     "text-decoration": "none"
+  },
+  "_typography:tablet": {
+    "font-size": "1rem"
+  },
+  "_typography:mobile": {
+    "font-size": "0.9rem",
+    "text-align": "left"
   }
 }
 ```
+
+---
+
+## Color Format
+
+Bricks color fields support three formats — choose the right one for the situation:
+
+```json
+// Solid hex color (most common)
+"_background": {"color": {"hex": "#1a1a2e"}}
+
+// CSS variable via the `raw` field — use this for design-token colors
+"_background": {"color": {"raw": "var(--color-primary)"}}
+
+// Both together — hex as a fallback, raw as the applied value
+"_background": {"color": {"hex": "#0055FF", "raw": "var(--color-primary)"}}
+
+// WRONG — CSS variables must go in the `raw` field, not `hex`
+"_background": {"color": {"hex": "var(--color-primary)"}}
+```
+
+The `raw` field applies as-is in the CSS output. Use it for any `--css-variable` or `rgba()` value that doesn't fit as a hex string. Works in `_background`, `_typography`, `_border`, `_boxShadow`, icon colors, etc.
+
+**Call `bricks_get_global_classes` and `bricks_get_color_palette` first** — the site's design system is already defined there. Build with those IDs, not hardcoded values.
+
+---
+
+## Layout Column Templates
+
+These are the standard column patterns for this site. Always use `_display:"flex"` + `_flexWrap:"wrap"` for responsive grids.
+
+**2-column (50/50):**
+```json
+// parent container
+{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":24,"unit":"px"},"_rowGap":{"size":24,"unit":"px"}}
+// each child column
+{"_width":{"size":50,"unit":"%"},"_width:tablet_portrait":{"size":100,"unit":"%"},"_cssCustom":"flex: 1 1 calc(50% - 12px);"}
+```
+
+**3-column (33/33/33):**
+```json
+// parent container
+{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":24,"unit":"px"},"_rowGap":{"size":24,"unit":"px"}}
+// each child column
+{"_width":{"size":33.333,"unit":"%"},"_width:tablet_portrait":{"size":50,"unit":"%"},"_width:mobile":{"size":100,"unit":"%"},"_cssCustom":"flex: 1 1 calc(33.333% - 16px);"}
+```
+
+**4-column (25/25/25/25):**
+```json
+// parent container
+{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":20,"unit":"px"},"_rowGap":{"size":20,"unit":"px"}}
+// each child column
+{"_width":{"size":25,"unit":"%"},"_width:tablet":{"size":50,"unit":"%"},"_width:mobile":{"size":100,"unit":"%"},"_cssCustom":"flex: 1 1 calc(25% - 15px);"}
+```
+
+**Asymmetric 2-column (60/40 or 40/60):**
+```json
+// parent container
+{"_display":"flex","_direction":"row","_flexWrap":"wrap","_columnGap":{"size":24,"unit":"px"},"_rowGap":{"size":24,"unit":"px"}}
+// 60% column
+{"_width":{"size":60,"unit":"%"},"_width:tablet_portrait":{"size":100,"unit":"%"},"_flexGrow":0}
+// 40% column
+{"_width":{"size":40,"unit":"%"},"_width:tablet_portrait":{"size":100,"unit":"%"},"_flexGrow":0}
+```
+
+---
+
+## CSS Grid Layout
+
+Use `_display:"grid"` for fixed-column grid layouts. The key settings:
+
+| Key | Type | Example |
+|-----|------|---------|
+| `_display` | string | `"grid"` |
+| `_gridTemplateColumns` | plain string | `"1fr 1fr 1fr"` or `"repeat(3, 1fr)"` or `"var(--grid-3)"` |
+| `_gridGap` | `{size, unit}` | `{"size": 24, "unit": "px"}` |
+| `_gridAutoRows` | plain string | `"200px"` or `"minmax(180px, auto)"` |
+
+```json
+// 3-column auto-responsive grid
+{
+  "name": "container",
+  "settings": {
+    "_display": "grid",
+    "_gridTemplateColumns": "repeat(3, 1fr)",
+    "_gridGap": {"size": 24, "unit": "px"},
+    "_gridAutoRows": "minmax(200px, auto)",
+    "_gridTemplateColumns:tablet_portrait": "repeat(2, 1fr)",
+    "_gridTemplateColumns:mobile_landscape": "1fr"
+  }
+}
+
+// 4-column grid with CSS variable columns
+{
+  "settings": {
+    "_display": "grid",
+    "_gridTemplateColumns": "var(--grid-4)",
+    "_gridGap": {"size": 16, "unit": "px"},
+    "_gridTemplateColumns:tablet_portrait": "var(--grid-2)",
+    "_gridTemplateColumns:mobile_landscape": "1fr"
+  }
+}
+```
+
+**Grid vs Flex:** Use grid when you need equal-height rows or a strict column count. Use flex when columns should wrap naturally or have unequal widths. Never mix both on the same container.
 
 ---
 
@@ -305,7 +529,8 @@ For all text-bearing elements, use `_typography` with kebab-case keys:
     "_direction": "row",
     "_alignItems": "center",
     "_columnGap": {"size": 4, "unit": "px"},
-    "menuAlignment": "row"
+    "menuAlignment": "row",
+    "mobileMenu": "tablet_portrait"
   }
 },
 {
@@ -330,6 +555,8 @@ For all text-bearing elements, use `_typography` with kebab-case keys:
   }
 }
 ```
+
+**`mobileMenu`** controls at which breakpoint nav items collapse into a hamburger. Values match Bricks breakpoint names: `"mobile"`, `"mobile_landscape"` (default), `"tablet_portrait"`, `"tablet"`, `"desktop"`, `"always"`, `"never"`.
 
 For **WordPress-menu-driven nav**, use `nav-menu` with `"menu": <menu_term_id>`. First call `bricks_list_nav_menus` or `bricks_create_nav_menu` to get/create the menu.
 
@@ -659,11 +886,13 @@ bricks_set_template_conditions(template_id, conditions)
 ## Build Sequence (always follow this)
 
 1. `bricks_get_site_info` — check CPTs, front page, site URL
-2. `bricks_get_color_palette` — use existing brand colors
-3. `bricks_get_global_classes` — find reusable classes
-4. `bricks_list_nav_menus` — check if nav menus exist (for `nav-menu` element)
-5. Build elements array (flat array, correct parent/children, `_display:"flex"` on containers)
-6. `bricks_create_page` / `bricks_create_template` / `bricks_set_template_conditions`
+2. `bricks_get_color_palette` — **note every color ID and hex; use these, never hardcode**
+3. `bricks_get_global_classes` — **note every class name and ID; always prefer these over inline styles**
+4. `bricks_memory_list` — load all site knowledge and patterns
+5. `bricks_list_nav_menus` — check if nav menus exist (for `nav-menu` element)
+6. Build elements array (flat array, correct parent/children, `_display:"flex"` on containers, responsive suffixes for all breakpoints)
+7. `bricks_create_page` / `bricks_create_template` / `bricks_set_template_conditions`
+8. After writing: `bricks_get_page` with `include_elements:true` to verify the round-trip is correct
 
 ---
 
@@ -682,6 +911,7 @@ bricks_set_template_conditions(template_id, conditions)
 | Media | `bricks_list_media`, `bricks_upload_media_from_url`, `bricks_get_media` |
 | WooCommerce | `bricks_list_products`, `bricks_get_product`, `bricks_list_product_categories` |
 | Memory | `bricks_memory_list`, `bricks_memory_get`, `bricks_memory_add`, `bricks_memory_update`, `bricks_memory_delete`, `bricks_memory_search` |
+| History | `bricks_snapshot_list`, `bricks_snapshot_get`, `bricks_snapshot_restore`, `bricks_snapshot_delete` |
 
 PROMPT
 			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )

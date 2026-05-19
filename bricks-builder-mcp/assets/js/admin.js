@@ -438,6 +438,34 @@ jQuery( function ( $ ) {
 		}
 	} );
 
+	// =========================================================================
+	// CAPABILITIES — per-tool toggle group actions
+	// =========================================================================
+
+	function updateGroupCount( group ) {
+		var $rows   = $( '.bmcp-cap-tool-row[data-group="' + group + '"]' );
+		var total   = $rows.length;
+		var enabled = $rows.filter( function () {
+			return $( this ).find( 'input[type="checkbox"]' ).prop( 'checked' );
+		} ).length;
+
+		$( '.bmcp-cap-group[data-group="' + group + '"] .bmcp-cap-count' ).text( enabled + ' / ' + total + ' enabled' );
+		$( '.bmcp-cap-toggle-all[data-group="' + group + '"]' ).text( enabled === total ? 'Disable All' : 'Enable All' );
+	}
+
+	$( '.bmcp-cap-toggle-all' ).on( 'click', function () {
+		var group    = $( this ).data( 'group' );
+		var $checks  = $( '.bmcp-cap-tool-row[data-group="' + group + '"] input[type="checkbox"]' );
+		var anyOff   = $checks.filter( ':not(:checked)' ).length > 0;
+		$checks.prop( 'checked', anyOff );
+		updateGroupCount( group );
+	} );
+
+	$( '.bmcp-cap-tool-row input[type="checkbox"]' ).on( 'change', function () {
+		var group = $( this ).closest( '.bmcp-cap-tool-row' ).data( 'group' );
+		updateGroupCount( group );
+	} );
+
 	// ---- Utility ----
 	function escHtml( str ) {
 		return String( str ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );

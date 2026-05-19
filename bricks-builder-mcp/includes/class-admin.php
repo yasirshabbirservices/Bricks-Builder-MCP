@@ -38,19 +38,18 @@ class Admin {
 			'default'           => '',
 		] );
 
-		register_setting( 'bmcp_settings_capabilities', BMCP_ENABLED_TOOLS_OPTION, [
-			'sanitize_callback' => [ $this, 'sanitize_enabled_tools' ],
+		register_setting( 'bmcp_settings_capabilities', BMCP_TOOL_STATES_OPTION, [
+			'sanitize_callback' => [ $this, 'sanitize_tool_states' ],
 			'default'           => [],
 		] );
 	}
 
-	public function sanitize_enabled_tools( $input ): array {
-		$groups  = [ 'pages', 'templates', 'settings', 'posts', 'media', 'woocommerce' ];
-		$result  = [];
-		foreach ( $groups as $group ) {
-			$result[ $group ] = ! empty( $input[ $group ] );
+	public function sanitize_tool_states( $input ): array {
+		$all_tools = Tools_Registry::get_all_tool_names();
+		$result    = [];
+		foreach ( $all_tools as $tool_name ) {
+			$result[ $tool_name ] = ! empty( $input[ $tool_name ] );
 		}
-		$result['site'] = true; // Site tools always enabled
 		return $result;
 	}
 

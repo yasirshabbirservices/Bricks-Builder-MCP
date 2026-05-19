@@ -23,6 +23,7 @@ define( 'BMCP_ADMIN_USER_OPTION',    'bmcp_admin_user_id' );
 define( 'BMCP_INSTRUCTIONS_OPTION',  'bmcp_custom_instructions' );
 define( 'BMCP_ENABLED_TOOLS_OPTION', 'bmcp_enabled_tools' );
 define( 'BMCP_ACTIVITY_LOG_OPTION',  'bmcp_activity_log' );
+define( 'BMCP_TOOL_STATES_OPTION',   'bmcp_tool_states' );
 define( 'BMCP_REST_NAMESPACE',       'bricks-mcp/v1' );
 define( 'BMCP_DB_VERSION_OPTION',    'bmcp_db_version' );
 
