@@ -23,13 +23,26 @@ class Admin {
 	}
 
 	public function register_menu(): void {
-		add_options_page(
-			__( 'Bricks MCP', 'bricks-builder-mcp' ),
-			__( 'Bricks MCP', 'bricks-builder-mcp' ),
-			'manage_options',
-			'bricks-mcp',
-			[ $this, 'render_settings_page' ]
-		);
+		if ( defined( 'BRICKS_VERSION' ) || get_template() === 'bricks' ) {
+			// Bricks is active — add as submenu under the Bricks menu
+			add_submenu_page(
+				'bricks',
+				__( 'Bricks MCP', 'bricks-builder-mcp' ),
+				__( 'MCP', 'bricks-builder-mcp' ),
+				'manage_options',
+				'bricks-mcp-settings',
+				[ $this, 'render_settings_page' ]
+			);
+		} else {
+			// Fallback — Bricks not active, show under Settings
+			add_options_page(
+				__( 'Bricks MCP', 'bricks-builder-mcp' ),
+				__( 'Bricks MCP', 'bricks-builder-mcp' ),
+				'manage_options',
+				'bricks-mcp',
+				[ $this, 'render_settings_page' ]
+			);
+		}
 	}
 
 	public function register_settings(): void {
@@ -67,7 +80,8 @@ class Admin {
 	}
 
 	public function enqueue_assets( string $hook ): void {
-		if ( $hook !== 'settings_page_bricks-mcp' ) {
+		// Accept both the Settings page hook and the Bricks submenu hook
+		if ( $hook !== 'settings_page_bricks-mcp' && $hook !== 'bricks_page_bricks-mcp-settings' ) {
 			return;
 		}
 

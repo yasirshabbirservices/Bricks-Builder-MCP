@@ -7,7 +7,11 @@
 body.settings_page_bricks-mcp,
 body.settings_page_bricks-mcp #wpcontent,
 body.settings_page_bricks-mcp #wpbody,
-body.settings_page_bricks-mcp #wpbody-content {
+body.settings_page_bricks-mcp #wpbody-content,
+body.bricks_page_bricks-mcp-settings,
+body.bricks_page_bricks-mcp-settings #wpcontent,
+body.bricks_page_bricks-mcp-settings #wpbody,
+body.bricks_page_bricks-mcp-settings #wpbody-content {
 	background-color: #070c0a !important;
 }
 
@@ -269,8 +273,11 @@ body.settings_page_bricks-mcp #wpbody-content {
 }
 
 .bmcp-tab-icon {
-	font-size: 0.95em;
+	display: inline-flex;
+	align-items: center;
+	line-height: 0;
 	opacity: 0.85;
+	flex-shrink: 0;
 }
 
 .bmcp-badge {
@@ -899,11 +906,11 @@ body.settings_page_bricks-mcp #wpbody-content {
 	display: flex;
 	gap: 10px;
 	margin-bottom: 16px;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+	align-items: center;
 }
 
-.bmcp-memory-toolbar select,
-.bmcp-memory-toolbar input[type="text"] {
+.bmcp-memory-toolbar select {
 	background: var(--surface-3) !important;
 	border: 1px solid var(--border) !important;
 	border-radius: var(--radius-sm) !important;
@@ -912,15 +919,12 @@ body.settings_page_bricks-mcp #wpbody-content {
 	font-size: 0.84rem !important;
 	height: auto !important;
 	box-shadow: none !important;
+	flex-shrink: 0;
+	min-width: 140px;
+	max-width: 160px;
 }
 
-.bmcp-memory-toolbar input[type="text"] {
-	flex: 1;
-	min-width: 180px;
-}
-
-.bmcp-memory-toolbar select:focus,
-.bmcp-memory-toolbar input[type="text"]:focus {
+.bmcp-memory-toolbar select:focus {
 	border-color: var(--brand) !important;
 	outline: none !important;
 	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
@@ -1154,7 +1158,7 @@ body.settings_page_bricks-mcp #wpbody-content {
 	border: 1px solid var(--border) !important;
 	border-radius: var(--radius-sm) !important;
 	color: var(--text) !important;
-	padding: 7px 12px !important;
+	padding: 7px 12px 7px 32px !important;
 	font-size: 0.84rem !important;
 	height: auto !important;
 	box-shadow: none !important;
@@ -1367,7 +1371,12 @@ body.settings_page_bricks-mcp #wpbody-content > .notice,
 body.settings_page_bricks-mcp #wpbody-content > .updated,
 body.settings_page_bricks-mcp #wpbody-content > .error,
 body.settings_page_bricks-mcp #wpbody-content > .update-nag,
-body.settings_page_bricks-mcp .settings-error {
+body.settings_page_bricks-mcp .settings-error,
+body.bricks_page_bricks-mcp-settings #wpbody-content > .notice,
+body.bricks_page_bricks-mcp-settings #wpbody-content > .updated,
+body.bricks_page_bricks-mcp-settings #wpbody-content > .error,
+body.bricks_page_bricks-mcp-settings #wpbody-content > .update-nag,
+body.bricks_page_bricks-mcp-settings .settings-error {
 	display: none !important;
 }
 
@@ -1428,9 +1437,11 @@ body.settings_page_bricks-mcp .settings-error {
 .bmcp-notice-close:hover { opacity: 1; }
 
 /* ---- ICON-ONLY BUTTONS ---- */
+#bmcp-wrap .bmcp-icon-btn,
 .bmcp-icon-btn {
 	width: 30px !important;
 	height: 30px !important;
+	min-width: 30px !important;
 	padding: 0 !important;
 	display: inline-flex !important;
 	align-items: center !important;
@@ -1505,20 +1516,20 @@ body.settings_page_bricks-mcp .settings-error {
 /* ---- SEARCH INPUT WRAPPER ---- */
 .bmcp-search-wrap {
 	position: relative;
-	flex: 1;
-	min-width: 180px;
+	flex: 1 1 0;
+	min-width: 0;
 	display: flex;
 	align-items: center;
 }
 .bmcp-search-wrap > svg {
 	position: absolute;
 	left: 10px;
+	top: 50%;
+	transform: translateY(-50%);
 	color: var(--text-dim);
 	pointer-events: none;
 	flex-shrink: 0;
-}
-.bmcp-search-wrap input[type="search"] {
-	padding-left: 32px !important;
+	z-index: 1;
 }
 
 /* ---- SPIN ANIMATION (restore loading) ---- */

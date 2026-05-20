@@ -22,6 +22,9 @@ $options = [
 	'bmcp_advanced_settings',
 	'bmcp_activity_log',
 	'bmcp_db_version',
+	'bmcp_ai_memory',       // AI Memory data
+	'bmcp_last_seen',       // Last AI connection timestamp
+	'bmcp_update_cache',    // GitHub update check cache
 ];
 foreach ( $options as $option ) {
 	delete_option( $option );
