@@ -854,65 +854,184 @@ Enable a loop on any block element:
 
 ---
 
-## BricksTemplate Design System
+## CSS Variables & Design Tokens
 
-This site uses the BricksTemplate design system. **Always prefer these CSS variables over hardcoded values** — use them in `"raw"` color fields, `_cssCustom`, padding/margin values, and dimension strings.
+**First, check what actually exists on this site.** Call `bricks_get_global_settings` to see the `customCss` and theme variables registered. Call `bricks_get_color_palette` and use the hex values directly — do not guess variable names.
 
-**Colors** — use `{"raw": "var(--color-name)"}` in any color object:
+**If the site uses a design system with CSS variables**, use `{"raw": "var(--variable-name)"}` in color objects. Common variables found in Bricks setups:
 
-| Variable | Usage |
-|----------|-------|
-| `var(--color-primary)` | Primary brand color |
-| `var(--color-primary-hover)` | Primary hover state |
-| `var(--color-secondary)` | Secondary brand color |
-| `var(--color-tertiary)` | Tertiary brand color |
-| `var(--color-heading)` | All heading text |
+| Variable | Typical usage |
+|----------|--------------|
+| `var(--color-primary)` | Brand primary |
 | `var(--color-text)` | Body text |
-| `var(--color-text-muted)` | Muted body text |
-| `var(--color-border)` | Borders and dividers |
-| `var(--color-white)` | Pure white |
-| `var(--color-black)` | Pure black |
-| `var(--color-primary-bg)` | Light primary background |
+| `var(--color-heading)` | Heading text |
+| `var(--color-border)` | Borders / dividers |
+| `var(--space-xs/s/m/l/xl)` | Fluid spacing scale |
+| `var(--radius-s/m/l)` | Border radius scale |
+| `var(--container-width)` | Max container width |
 
-**Spacing** (fluid clamp scale — use as plain strings in padding/margin/gap):
+**If no CSS variables are defined**, use the actual hex values from `bricks_get_color_palette`. Never hardcode generic values like `#0055FF` or `#333` without first checking the site's palette.
 
-`var(--space-xs)`, `var(--space-s)`, `var(--space-m)`, `var(--space-l)`, `var(--space-xl)`, `var(--space-xxl)`
+---
 
-**Border radius:**
+## CRITICAL: Visual Styling Quality
 
-`var(--radius-xs)` (0.3rem), `var(--radius-s)` (0.6rem), `var(--radius-m)` (1.2rem), `var(--radius-l)` (2.3rem), `var(--radius-50)` (50vh — pill)
+**The AI must produce visually complete, polished layouts — not structural wireframes.** Every element needs appropriate color, spacing, and typography. Apply these rules on every build:
 
-**Section padding:**
+### Typography Scale (use as starting point — adjust to match brand)
 
-`var(--section-padding-l)` — large vertical padding (fluid), `var(--section-padding-lr)` — horizontal padding
+| Context | font-size | font-weight | line-height |
+|---------|-----------|-------------|-------------|
+| Hero H1 | 5rem–7rem | 700–900 | 1.0–1.15 |
+| Section H2 | 3.5rem–5rem | 600–800 | 1.1–1.2 |
+| Card H3 | 2rem–2.8rem | 600–700 | 1.2–1.3 |
+| Body text | 1.6rem–1.8rem | 400 | 1.6–1.75 |
+| Caption / label | 1.2rem–1.4rem | 500 | 1.5 |
+| Overline / eyebrow | 1.1rem–1.3rem | 600–700 | 1.4 (+ letter-spacing: 0.12em, text-transform: uppercase) |
 
-**Widths:**
+### Section Backgrounds — Always Set Contrast Correctly
 
-`var(--container-width)` — 128rem (default max container width)
-
-**Global CSS Classes** — add to `"_cssGlobalClasses": ["id"]`:
-
-| ID | Class | Purpose |
-|----|-------|---------|
-| `icnnin` | `btn` | Base button style |
-| `jmpexw` | `btn--xl` | XL button size |
-| `ucbglo` | `btn--l` | Large button size |
-| `aswtwb` | `btn--m` | Medium button size |
-| `rhrfey` | `btn__round` | Pill/round border radius |
-| `tccljv` | `btn__white` | White background button |
-| `jgucoo` | `btn__black` | Black background button |
-| `mrlpju` | `h1` | H1 typography |
-| `rblwep` | `h2` | H2 typography |
-| `xdlghw` | `h3` | H3 typography |
-| `zcdcay` | `body-text-s` | Small body text |
-| `xnbiuz` | `body-text-m` | Medium body text |
-| `jvlvec` | `section-padding-l` | Large section padding |
-| `xqjblc` | `section-padding-m` | Medium section padding |
-
-Example — primary button with medium size and round corners:
+Dark section (dark bg → use light text):
 ```json
-"_cssGlobalClasses": ["icnnin", "aswtwb", "rhrfey"]
+"settings": {
+  "_background": {"color": {"hex": "#0a0f0c"}},
+  "_padding": {"top": "8rem", "bottom": "8rem", "left": "2rem", "right": "2rem"},
+  "_padding:tablet_portrait": {"top": "5rem", "bottom": "5rem"}
+}
 ```
+Child headings in dark section must use light color:
+```json
+"_typography": {"color": {"hex": "#ffffff"}}
+```
+
+Light section (light bg → use dark text): inverse of above. **Never leave text color unset on a dark background** — the default is often dark and will be invisible.
+
+### Buttons — Complete Styling (not just `style` preset)
+
+The `style` preset (`"primary"`, `"outline"`, etc.) applies theme defaults. To fully control a button's appearance:
+
+```json
+{
+  "text": "Get Started",
+  "style": "custom",
+  "link": {"type": "external", "url": "#"},
+  "_background":   {"color": {"hex": "#00d68f"}},
+  "_typography":   {"color": {"hex": "#001a0d"}, "font-size": "1.6rem", "font-weight": "600", "letter-spacing": "0.02em"},
+  "_padding":      {"top": "1.4rem", "right": "3rem", "bottom": "1.4rem", "left": "3rem"},
+  "_border":       {"radius": {"top": "50vh", "right": "50vh", "bottom": "50vh", "left": "50vh"}},
+  "_cssCustom":    ".brxe-{ID}:hover { background: #00f0a3 !important; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,214,143,0.35); }"
+}
+```
+
+Replace `{ID}` in `_cssCustom` with the actual 6-char element ID (e.g. `.brxe-btn001`).
+
+### Hover & Interaction States
+
+Bricks doesn't have a dedicated hover settings panel in JSON. Use `_cssCustom` on the element itself for hover effects:
+
+```json
+// Card hover — lift + shadow
+"_cssCustom": ".brxe-crd001 { transition: transform 0.2s ease, box-shadow 0.2s ease; } .brxe-crd001:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.18); }"
+
+// Button hover — background shift
+"_cssCustom": ".brxe-btn001 { transition: background 0.2s, transform 0.15s; } .brxe-btn001:hover { background: #00f0a3 !important; transform: translateY(-1px); }"
+
+// Link hover — underline reveal
+"_cssCustom": ".brxe-lnk001 { transition: color 0.15s; } .brxe-lnk001:hover { color: #00d68f !important; text-decoration: underline; }"
+
+// Image hover — zoom
+"_cssCustom": ".brxe-img001 { overflow: hidden; } .brxe-img001 img { transition: transform 0.4s ease; } .brxe-img001:hover img { transform: scale(1.04); }"
+```
+
+**Important:** `_cssCustom` uses the `.brxe-{id}` selector. Always use the element's actual 6-char id.
+
+### Background Image + Overlay Pattern
+
+```json
+// Wrapper container with background image and dark overlay
+{
+  "id": "hero01",
+  "name": "section",
+  "settings": {
+    "_background": {
+      "image": {"url": "https://example.com/hero.jpg", "external": true, "filename": "hero.jpg"},
+      "position": "center center",
+      "size": "cover",
+      "repeat": "no-repeat"
+    },
+    "_gradient": {
+      "applyTo": "overlay",
+      "colors": [
+        {"id": "g1aa", "color": {"hex": "#000000", "rgb": "rgba(0,0,0,0.2)"}},
+        {"id": "g2bb", "color": {"hex": "#000000", "rgb": "rgba(0,0,0,0.75)"}}
+      ]
+    },
+    "_padding": {"top": "12rem", "bottom": "12rem", "left": "2rem", "right": "2rem"},
+    "_padding:tablet_portrait": {"top": "7rem", "bottom": "7rem"}
+  }
+}
+```
+
+### Cards — Standard Pattern
+
+A well-designed card: white/surface background, border-radius, subtle shadow, padding, hover lift:
+
+```json
+{
+  "id": "crd001",
+  "name": "block",
+  "settings": {
+    "_background":  {"color": {"hex": "#ffffff"}},
+    "_border":      {"radius": {"top": "1.2rem", "right": "1.2rem", "bottom": "1.2rem", "left": "1.2rem"}},
+    "_boxShadow":   {"values": {"offsetX": "0", "offsetY": "4", "blur": "24", "spread": "0"}, "color": {"hex": "#000000", "rgb": "rgba(0,0,0,0.08)"}},
+    "_padding":     {"top": "2.4rem", "right": "2rem", "bottom": "2.4rem", "left": "2rem"},
+    "_display":     "flex",
+    "_direction":   "column",
+    "_rowGap":      "1.2rem",
+    "_cssCustom":   ".brxe-crd001 { transition: transform 0.2s ease, box-shadow 0.2s ease; } .brxe-crd001:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.14) !important; }"
+  }
+}
+```
+
+### Eyebrow / Overline Labels
+
+A small uppercase label above headings adds visual hierarchy:
+
+```json
+{
+  "id": "eye001",
+  "name": "text-basic",
+  "settings": {
+    "text": "Our Services",
+    "_typography": {
+      "font-size": "1.2rem",
+      "font-weight": "600",
+      "letter-spacing": "0.12em",
+      "text-transform": "uppercase",
+      "color": {"hex": "#00d68f"}
+    },
+    "_margin": {"bottom": "0.8rem"}
+  }
+}
+```
+
+### Divider / Accent Lines
+
+```json
+{"id": "div001", "name": "divider", "settings": {
+  "_width": "4rem",
+  "_background": {"color": {"hex": "#00d68f"}},
+  "_height": "0.3rem",
+  "_border": {"radius": {"top": "50vh", "right": "50vh", "bottom": "50vh", "left": "50vh"}},
+  "_margin": {"bottom": "2.4rem"}
+}}
+```
+
+### Global CSS Classes — Always Look Up First
+
+The class IDs below are **examples from a common Bricks design system**. The actual IDs on this site will be different. **Always call `bricks_get_global_classes` first** and match class names to their real IDs before setting `_cssGlobalClasses`.
+
+If you find classes like `btn`, `h1`, `h2`, `h3`, `body-text-m`, `section-padding-l` etc., prefer using those IDs over writing duplicate inline styles.
 
 ---
 

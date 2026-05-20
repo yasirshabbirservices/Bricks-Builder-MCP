@@ -183,23 +183,44 @@ body.settings_page_bricks-mcp #wpbody-content {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	background: var(--success-dim);
-	border: 1px solid rgba(0, 214, 143, 0.22);
 	border-radius: 24px;
 	padding: 7px 16px;
 	font-size: 0.82rem;
 	font-weight: 500;
-	color: var(--brand);
 	white-space: nowrap;
+}
+
+/* Active & Connected — green, pulsing */
+.bmcp-status-pill.bmcp-status-connected {
+	background: var(--success-dim);
+	border: 1px solid rgba(0, 214, 143, 0.22);
+	color: var(--brand);
+}
+.bmcp-status-pill.bmcp-status-connected .bmcp-status-dot {
+	background: var(--brand);
+	animation: bmcp-pulse 2.2s ease-in-out infinite;
+}
+
+/* Active (plugin running, no recent AI call) — muted amber */
+.bmcp-status-pill.bmcp-status-idle {
+	background: rgba(200, 150, 0, 0.08);
+	border: 1px solid rgba(200, 150, 0, 0.20);
+	color: #c89600;
+}
+.bmcp-status-pill.bmcp-status-idle .bmcp-status-dot {
+	background: #c89600;
 }
 
 .bmcp-status-dot {
 	width: 7px;
 	height: 7px;
-	background: var(--brand);
 	border-radius: 50%;
 	flex-shrink: 0;
-	animation: bmcp-pulse 2.2s ease-in-out infinite;
+}
+
+.bmcp-status-age {
+	opacity: 0.65;
+	font-size: 0.75rem;
 }
 
 @keyframes bmcp-pulse {

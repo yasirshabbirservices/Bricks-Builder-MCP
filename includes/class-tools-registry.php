@@ -246,6 +246,9 @@ class Tools_Registry {
 	// -------------------------------------------------------------------------
 
 	private function log_activity( string $tool_name, array|\WP_Error $result ): void {
+		// Always record last-seen time so the admin status pill reflects real activity
+		update_option( 'bmcp_last_seen', time(), false );
+
 		$adv = get_option( BMCP_ADVANCED_OPTION, [] );
 		if ( ! empty( $adv['disable_activity_log'] ) ) {
 			return;

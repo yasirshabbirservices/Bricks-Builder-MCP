@@ -11,6 +11,12 @@ $hist_total = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . \BricksMCP\History
 $api_key    = \BricksMCP\Auth::get_key();
 $site_name  = get_bloginfo( 'name' );
 
+// Connection status — "Connected" only if an AI called a tool in the last 30 min
+$last_seen       = (int) get_option( 'bmcp_last_seen', 0 );
+$is_connected    = $last_seen > 0 && ( time() - $last_seen ) < 1800;
+$status_label    = $is_connected ? 'Active &amp; Connected' : 'Active';
+$status_modifier = $is_connected ? ' bmcp-status-connected' : ' bmcp-status-idle';
+
 // ── Config snippets ──────────────────────────────────────────────────
 $cfg_standard = json_encode( [
 	'mcpServers' => [
@@ -111,9 +117,12 @@ $cfg_standard;
 			</div>
 		</div>
 		<div class="bmcp-header-right">
-			<div class="bmcp-status-pill" role="status">
+			<div class="bmcp-status-pill<?php echo $status_modifier; ?>" role="status">
 				<span class="bmcp-status-dot" aria-hidden="true"></span>
-				Active &amp; Connected
+				<?php echo $status_label; ?>
+				<?php if ( $is_connected ) : ?>
+					<span class="bmcp-status-age"><?php echo esc_html( human_time_diff( $last_seen ) ); ?> ago</span>
+				<?php endif; ?>
 			</div>
 		</div>
 	</div>
