@@ -18,16 +18,18 @@ jobs:
       - name: Read plugin version
         id: version
         run: |
-          VERSION=$(grep -m1 "Version:" bricks-builder-mcp/bricks-builder-mcp.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
+          VERSION=$(grep -m1 "Version:" bricks-builder-mcp.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Plugin version: $VERSION"
 
       - name: Build plugin zip
         run: |
-          mkdir -p dist
-          # Zip only the plugin directory so WP extracts to bricks-builder-mcp/
-          zip -r dist/bricks-builder-mcp.zip bricks-builder-mcp/
-          echo "Zip size: $(du -sh dist/bricks-builder-mcp.zip | cut -f1)"
+          # WP requires the zip to extract into a folder named after the plugin.
+          # Repo root IS the plugin — copy files into bricks-builder-mcp/ then zip.
+          mkdir -p dist/bricks-builder-mcp
+          cp -r admin assets includes bricks-builder-mcp.php uninstall.php dist/bricks-builder-mcp/
+          cd dist && zip -r bricks-builder-mcp.zip bricks-builder-mcp/
+          echo "Zip size: $(du -sh bricks-builder-mcp.zip | cut -f1)"
 
       - name: Publish or update GitHub release
         env:
