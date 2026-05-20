@@ -1248,12 +1248,12 @@ body.settings_page_bricks-mcp #wpbody-content {
 }
 
 .bmcp-config-collapsible.bmcp-expanded {
-	max-height: none;
-	overflow: visible;
+	max-height: 9999px !important;
+	overflow: visible !important;
 }
 
 .bmcp-config-collapsible.bmcp-expanded::after {
-	display: none;
+	display: none !important;
 }
 
 .bmcp-collapse-toggle {
@@ -1334,3 +1334,68 @@ body.settings_page_bricks-mcp #wpbody-content {
 /* ---- WP ADMIN OVERRIDES (scoped) ---- */
 #bmcp-wrap h1 { color: var(--text); }
 #bmcp-wrap p.submit { margin: 0; padding: 0; }
+
+/* ---- Suppress default WP notices on this page ---- */
+body.settings_page_bricks-mcp #wpbody-content > .notice,
+body.settings_page_bricks-mcp #wpbody-content > .updated,
+body.settings_page_bricks-mcp #wpbody-content > .error,
+body.settings_page_bricks-mcp #wpbody-content > .update-nag,
+body.settings_page_bricks-mcp .settings-error {
+	display: none !important;
+}
+
+/* ---- BRANDED NOTICES ---- */
+.bmcp-notice {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 18px;
+	border-radius: var(--radius-sm);
+	font-size: 0.875rem;
+	font-weight: 500;
+	margin: 0 0 16px 0;
+	position: relative;
+	animation: bmcp-notice-in 0.2s ease;
+}
+
+@keyframes bmcp-notice-in {
+	from { opacity: 0; transform: translateY(-6px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+.bmcp-notice-success {
+	background: rgba(0, 214, 143, 0.10);
+	border: 1px solid rgba(0, 214, 143, 0.30);
+	color: var(--brand);
+}
+
+.bmcp-notice-error {
+	background: var(--danger-dim);
+	border: 1px solid rgba(249, 95, 114, 0.30);
+	color: var(--danger);
+}
+
+.bmcp-notice-icon {
+	font-size: 1rem;
+	flex-shrink: 0;
+	line-height: 1;
+}
+
+.bmcp-notice-text {
+	flex: 1;
+}
+
+.bmcp-notice-close {
+	background: none;
+	border: none;
+	color: inherit;
+	opacity: 0.5;
+	cursor: pointer;
+	font-size: 0.85rem;
+	padding: 2px 6px;
+	border-radius: 4px;
+	transition: opacity 0.15s;
+	flex-shrink: 0;
+}
+
+.bmcp-notice-close:hover { opacity: 1; }

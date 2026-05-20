@@ -470,11 +470,26 @@ jQuery( function ( $ ) {
 	$( '#bmcp-general-toggle' ).on( 'click', function () {
 		var $wrap    = $( '#bmcp-general-collapse-wrap' );
 		var expanded = $wrap.hasClass( 'bmcp-expanded' );
-		$wrap.toggleClass( 'bmcp-expanded', ! expanded );
-		$( this )
-			.text( expanded ? 'Show full guide ↓' : 'Show less ↑' )
-			.attr( 'aria-expanded', String( ! expanded ) );
+		if ( expanded ) {
+			$wrap.removeClass( 'bmcp-expanded' );
+			$( this ).text( 'Show full guide ↓' ).attr( 'aria-expanded', 'false' );
+		} else {
+			$wrap.addClass( 'bmcp-expanded' );
+			$( this ).text( 'Show less ↑' ).attr( 'aria-expanded', 'true' );
+		}
 	} );
+
+	// ---- Branded notice dismiss ----
+	$( document ).on( 'click', '.bmcp-notice-close', function () {
+		$( this ).closest( '.bmcp-notice' ).slideUp( 200, function () {
+			$( this ).remove();
+		} );
+	} );
+	if ( $( '#bmcp-settings-notice' ).length ) {
+		setTimeout( function () {
+			$( '#bmcp-settings-notice' ).slideUp( 300, function () { $( this ).remove(); } );
+		}, 4000 );
+	}
 
 	// ---- Utility ----
 	function escHtml( str ) {

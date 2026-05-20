@@ -92,6 +92,15 @@ $cfg_standard;
 ?>
 <div class="wrap" id="bmcp-wrap">
 
+	<!-- ====================== BRANDED NOTICES ====================== -->
+	<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
+	<div class="bmcp-notice bmcp-notice-success" role="alert" id="bmcp-settings-notice">
+		<span class="bmcp-notice-icon" aria-hidden="true">✓</span>
+		<span class="bmcp-notice-text">Settings saved.</span>
+		<button type="button" class="bmcp-notice-close" aria-label="Dismiss notice">✕</button>
+	</div>
+	<?php endif; ?>
+
 	<!-- ====================== PAGE HEADER ====================== -->
 	<div class="bmcp-page-header">
 		<div class="bmcp-header-left">
