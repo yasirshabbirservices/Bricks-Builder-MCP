@@ -1233,14 +1233,13 @@ body.bricks_page_bricks-mcp-settings #wpbody-content {
 /* ---- API KEY + ENDPOINT GRID ---- */
 .bmcp-api-grid {
 	display: flex;
-	gap: 16px;
-	flex-wrap: wrap;
+	flex-direction: column;
+	gap: 14px;
 	margin: 14px 0 0;
 }
 
 .bmcp-api-grid-item {
-	flex: 1;
-	min-width: 260px;
+	width: 100%;
 }
 
 .bmcp-api-grid-label {
