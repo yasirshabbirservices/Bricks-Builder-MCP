@@ -32,6 +32,8 @@ class Tools_Registry {
 			new Tools\Tool_Cache(),
 			new Tools\Tool_Search(),
 			new Tools\Tool_SEO(),
+			new Tools\Tool_Validator(),
+			new Tools\Tool_Context(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -208,6 +210,10 @@ class Tools_Registry {
 			'bricks_duplicate_page'   => 'pages',
 			// new media tool
 			'bricks_delete_media'     => 'media',
+			// validator (always on)
+			'bricks_validate_payload' => 'site',
+			// session context (always on)
+			'bricks_get_session_context' => 'site',
 		];
 	}
 

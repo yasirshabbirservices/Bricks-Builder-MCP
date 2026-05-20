@@ -145,14 +145,62 @@ You are connected to **{$site_name}** ({$site_url}) running Bricks Builder v{$br
 
 ---
 
+## FAST START — One Call to Get All Context
+
+**Call `bricks_get_session_context` once at the start of every session.** This single tool returns:
+- Site info (URL, Bricks version, active plugins, front page, CPTs)
+- Color palette (all palette IDs and hex values)
+- Global classes (all class names and IDs)
+- CSS variables (extracted from global custom CSS)
+- Registered fonts (Google Fonts, custom fonts)
+- **Active design framework** (CoreFramework, OxyProps, YStudio, AdvancedThemer, BricksTemplate, or none)
+- **Semantic CSS variable map** — the CORRECT variable names for this specific site's framework
+- High-priority memories
+
+This replaces 5 separate calls (`bricks_get_site_info` + `bricks_get_color_palette` + `bricks_get_global_classes` + `bricks_get_css_variables` + `bricks_memory_list`). **Use the `framework.semantic_map` field from the response to get the right variable names for colors, spacing, and radii — never guess.**
+
+Then optionally call `bricks_snapshot_list` to review recent changes if continuing from a previous session.
+
+---
+
+## VALIDATE BEFORE WRITING — Prevent Broken Pages
+
+**Before every `bricks_create_page`, `bricks_update_page`, `bricks_create_template`, or `bricks_update_template` call:**
+
+```
+bricks_validate_payload({ elements: [...your array...], auto_fix: true })
+```
+
+The validator catches:
+- Duplicate IDs (breaks layout silently)
+- Orphaned parent/children references
+- Wrong color format (plain string instead of `{"hex": "..."}`)
+- CSS variable in `hex` field instead of `raw`
+- `_cssGlobalClasses` as string instead of array
+- `_borderRadius` as a separate key (must be inside `_border.radius`)
+- `_maxWidth` instead of `_widthMax`
+- Box shadow values with units (`"4px"` instead of `"4"`)
+- Content elements directly inside `section` or `container`
+
+If `valid: true` → proceed with the write.
+If `valid: false` → use `fixed_payload` from the response OR manually fix the listed errors, then re-validate.
+
+**Never skip this step.** Writing a corrupted payload requires a snapshot restore and wastes tokens on retry loops.
+
+---
+
+## MISTAKES AND UNDO
+
+If you write something wrong, call `bricks_snapshot_list` to see what was auto-saved before your writes, then call `bricks_snapshot_restore` with the correct ID. Restoring is always safe — the current state is snapshotted before the restore, so nothing is permanently lost. Confirm with the user before restoring.
+
+---
+
 ## START OF SESSION CHECKLIST (always run these first)
 
 Before building anything, run these in order:
-1. `bricks_get_site_info` — front page ID, Bricks version, active plugins, CPTs
-2. `bricks_get_color_palette` — **never hardcode a color hex; use palette values**
-3. `bricks_get_global_classes` — **always apply matching classes via `_cssGlobalClasses`**
-4. `bricks_memory_list` — load all remembered patterns, errors, and preferences
-5. `bricks_snapshot_list` — review recent changes if continuing from a previous session
+1. `bricks_get_session_context` — **one call for everything** (replaces 5 separate calls)
+2. Use `framework.semantic_map` from the response for all CSS variable names
+3. `bricks_snapshot_list` — review recent changes if continuing from a previous session
 
 ---
 
@@ -1093,13 +1141,13 @@ bricks_set_template_conditions(template_id, conditions)
 
 ## Build Sequence (always follow this)
 
-1. `bricks_get_site_info` — check CPTs, front page, site URL
-2. `bricks_get_color_palette` — **note every color ID and hex; use these, never hardcode**
-3. `bricks_get_global_classes` — **note every class name and ID; always prefer these over inline styles**
-4. `bricks_memory_list` — load all site knowledge and patterns
-5. `bricks_list_nav_menus` — check if nav menus exist (for `nav-menu` element)
-6. Build elements array (flat array, correct parent/children, `_display:"flex"` on containers, responsive suffixes for all breakpoints)
-7. `bricks_create_page` / `bricks_create_template` / `bricks_set_template_conditions`
+1. `bricks_get_session_context` — **one call** for site info + palette + classes + variables + fonts + framework + memories
+2. Note the `framework.semantic_map` — use those exact variable names everywhere (e.g. `var(--cf-color-primary)` for CoreFramework sites, `var(--op-brand)` for OxyProps, etc.)
+3. `bricks_list_nav_menus` — check if nav menus exist (for `nav-menu` element)
+4. Build elements array (flat array, correct parent/children, `_display:"flex"` on containers, responsive suffixes for all breakpoints)
+5. `bricks_validate_payload({ elements: [...], auto_fix: true })` — **always validate before writing**
+6. If `valid: true` → `bricks_create_page` / `bricks_update_page` / `bricks_create_template` / `bricks_set_template_conditions`
+7. After writing: `bricks_clear_cache` so changes are immediately live
 8. After writing: `bricks_get_page` with `include_elements:true` to verify the round-trip is correct
 
 ---
@@ -1108,6 +1156,8 @@ bricks_set_template_conditions(template_id, conditions)
 
 | Category | Tools |
 |----------|-------|
+| **Session** | `bricks_get_session_context` *(use this first — replaces 5 separate calls)* |
+| **Validation** | `bricks_validate_payload` *(run before every write)* |
 | Site | `bricks_get_site_info`, `bricks_get_system_prompt`, `bricks_get_custom_instructions`, `bricks_set_front_page` |
 | Elements | `bricks_get_elements` |
 | Pages | `bricks_list_pages`, `bricks_get_page`, `bricks_create_page`, `bricks_update_page`, `bricks_delete_page`, `bricks_duplicate_page` |
@@ -1124,7 +1174,7 @@ bricks_set_template_conditions(template_id, conditions)
 | Memory | `bricks_memory_list`, `bricks_memory_get`, `bricks_memory_add`, `bricks_memory_update`, `bricks_memory_delete`, `bricks_memory_search` |
 | History | `bricks_snapshot_list`, `bricks_snapshot_get`, `bricks_snapshot_restore`, `bricks_snapshot_delete` |
 
-**After every page/template write:** call `bricks_clear_cache` so changes are immediately live. **Before styling:** call `bricks_get_css_variables` to discover real CSS custom properties on this site, and `bricks_list_global_fonts` to get registered fonts.
+**Workflow summary:** `bricks_get_session_context` → build elements → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
 
 PROMPT
 			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )
@@ -1144,10 +1194,9 @@ PROMPT
 You have access to a persistent memory system via `bricks_memory_*` tools. Use it proactively:
 
 **On every new session (first thing you do):**
-1. Call `bricks_get_site_info` — capture active plugins, Bricks version, CPTs, front page
-2. Call `bricks_get_color_palette` + `bricks_get_global_classes` — capture design tokens
-3. Call `bricks_memory_list` (category by category if needed) — load what you already know
-4. Update stale memories with `bricks_memory_update` if site info has changed
+1. Call `bricks_get_session_context` — one call for everything (site info, palette, classes, CSS variables, fonts, framework, memories)
+2. Use `framework.semantic_map` from the response for all CSS variable names — do not guess prefixes
+3. Update stale memories with `bricks_memory_update` if site info has changed
 
 **During work:**
 - After discovering a pattern that works → `bricks_memory_add` (category: bricks/design)
