@@ -10,16 +10,21 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 |---|---|
 | **Pages** | Create, read, update, delete pages + write Bricks element layouts |
 | **Templates** | Header / footer / section templates with display conditions |
-| **Global Design** | Color palette, global CSS classes, theme styles |
+| **Global Design** | Color palette, global CSS classes, theme styles, CSS variables |
 | **Posts & CPTs** | Manage any WordPress post type |
 | **Media** | Browse and import media assets |
-| **WooCommerce** | Browse products and categories (read-only) |
 | **Nav Menus** | Create and manage WordPress navigation menus |
 | **Components** | Manage Bricks reusable components |
+| **Search & Replace** | Find and replace colors, classes, or text across all pages |
+| **SEO** | Read/write meta title, description, OG data (Yoast or Rank Math) |
+| **Cache** | Clear site cache after writes (WP Rocket, LiteSpeed, W3TC, etc.) |
+| **WooCommerce** | Browse products and categories (read-only) |
 | **AI Memory** | Persistent site knowledge injected into every AI session |
 | **History** | Auto-snapshot before every write — restore any previous state |
+| **Session Context** | Single startup call returning site info, palette, classes, and framework map |
+| **Validation** | Validate element arrays before writing — catches corrupt payloads early |
 
-**47 MCP tools** across all groups.
+**65 MCP tools** always active, plus 5 more when WooCommerce and SEO plugins are present.
 
 ---
 
@@ -36,7 +41,7 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 1. Download `bricks-builder-mcp.zip` from the [latest release](https://github.com/yasirshabbirservices/Bricks-Builder-MCP/releases/latest)
 2. In WordPress admin: **Plugins → Add New → Upload Plugin**
 3. Upload the zip and activate
-4. Go to **Settings → Bricks MCP** to get your API key and endpoint URL
+4. Go to **Settings → Bricks MCP** (or **Bricks → MCP** if Bricks is active) to get your API key and endpoint URL
 
 WordPress will notify you automatically when a new version is available.
 
@@ -100,13 +105,24 @@ The **General** tab in the Connection panel also provides a universal plain-text
 
 ## First Steps (ask your AI)
 
-Once connected, have the AI run these tools in order before building anything:
+Once connected, start with a single call that loads everything in one shot:
 
-1. `bricks_get_system_prompt` — loads the full Bricks element format guide
-2. `bricks_get_site_info` — WordPress/Bricks versions, active plugins, theme
-3. `bricks_memory_list` — loads all saved site knowledge
-4. `bricks_get_color_palette` — brand colors and design tokens
-5. `bricks_get_global_classes` — reusable CSS utility classes
+```
+bricks_get_session_context
+```
+
+This replaces five separate startup calls and returns the site info, color palette, global classes, CSS variables, active design framework, and high-priority memories in one response.
+
+Then run:
+
+1. `bricks_get_system_prompt` — full Bricks element format guide and site rules
+2. `bricks_snapshot_list` — see available restore points before making changes
+
+Before writing any elements, always validate first:
+
+```
+bricks_validate_payload  (pass your elements array)
+```
 
 ---
 
@@ -116,7 +132,7 @@ Once connected, have the AI run these tools in order before building anything:
 |---|---|
 | **Connection** | API key, endpoint URL, per-client config snippets |
 | **Instructions** | Site-specific rules appended to the AI's system prompt |
-| **Capabilities** | Per-tool enable/disable toggles (granular control over all 47 tools) |
+| **Capabilities** | Per-tool enable/disable toggles (granular control over all tools) |
 | **Memory** | View, add, and edit persistent AI memories |
 | **History** | Browse and restore auto-snapshots |
 | **Activity** | Last 20 MCP tool calls |
@@ -128,15 +144,15 @@ Once connected, have the AI run these tools in order before building anything:
 
 This repo uses a GitHub Actions workflow (`.github/workflows/release.yml`) that runs on every push to `main`. It reads the version from the plugin header, creates a properly-structured `bricks-builder-mcp.zip`, and publishes (or updates) a GitHub Release.
 
-The plugin checks for new releases every 12 hours and shows the standard WordPress "Update available" notice when a newer version is found.
+The plugin checks for new releases every 15 minutes and shows the standard WordPress "Update available" notice when a newer version is found.
 
-**To release a new version:** bump `BMCP_VERSION` in `bricks-builder-mcp/bricks-builder-mcp.php`, then commit and push to `main`.
+**To release a new version:** bump `BMCP_VERSION` in `bricks-builder-mcp.php`, then commit and push to `main`.
 
 ---
 
 ## License
 
-GPL-2.0-or-later — see [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE)
 
 ---
 

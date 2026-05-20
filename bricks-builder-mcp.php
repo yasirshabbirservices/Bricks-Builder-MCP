@@ -6,7 +6,7 @@
  * Version:     1.3.0
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
- * License:     GPL-2.0-or-later
+ * License:     MIT
  * Text Domain: bricks-builder-mcp
  */
 
