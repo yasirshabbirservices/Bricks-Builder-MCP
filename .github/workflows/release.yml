@@ -1,0 +1,50 @@
+name: Release Plugin
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read plugin version
+        id: version
+        run: |
+          VERSION=$(grep -m1 "Version:" bricks-builder-mcp/bricks-builder-mcp.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Plugin version: $VERSION"
+
+      - name: Build plugin zip
+        run: |
+          mkdir -p dist
+          # Zip only the plugin directory so WP extracts to bricks-builder-mcp/
+          zip -r dist/bricks-builder-mcp.zip bricks-builder-mcp/
+          echo "Zip size: $(du -sh dist/bricks-builder-mcp.zip | cut -f1)"
+
+      - name: Publish or update GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          NOTES="$(git log -1 --format='%s%n%n%b' HEAD | head -20)"
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            # Release for this version already exists — update the zip and notes
+            gh release upload "$TAG" dist/bricks-builder-mcp.zip --clobber
+            gh release edit   "$TAG" --notes "$NOTES" --latest
+            echo "Updated existing release $TAG"
+          else
+            gh release create "$TAG" dist/bricks-builder-mcp.zip \
+              --title "Bricks Builder MCP $TAG" \
+              --notes "$NOTES" \
+              --latest
+            echo "Created new release $TAG"
+          fi

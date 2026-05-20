@@ -156,4 +156,9 @@ function bmcp_init() {
 
 	// REST API (always needed — frontend requests use REST)
 	new \BricksMCP\Rest_API();
+
+	// GitHub update checker (admin + cron contexts only)
+	if ( is_admin() || ( defined( 'DOING_CRON' ) && DOING_CRON ) ) {
+		new \BricksMCP\Updater();
+	}
 }
