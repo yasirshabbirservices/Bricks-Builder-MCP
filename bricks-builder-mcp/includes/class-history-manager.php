@@ -292,6 +292,6 @@ class History_Manager {
 
 	private static function build_description( int $post_id, string $area, string $tool_name ): string {
 		$title = $post_id > 0 ? ( get_the_title( $post_id ) ?: "Post #{$post_id}" ) : 'Global';
-		return "Before {$tool_name} — "{$title}" ({$area})";
+		return 'Before ' . $tool_name . ' — "' . $title . '" (' . $area . ')';
 	}
 }
