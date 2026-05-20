@@ -15,7 +15,7 @@ class Updater {
 	private const GITHUB_REPO  = 'yasirshabbirservices/Bricks-Builder-MCP';
 	private const PLUGIN_SLUG  = 'bricks-builder-mcp/bricks-builder-mcp.php';
 	private const CACHE_KEY    = 'bmcp_github_release';
-	private const CACHE_TTL    = 12 * HOUR_IN_SECONDS;
+	private const CACHE_TTL    = 15 * MINUTE_IN_SECONDS;
 
 	public function __construct() {
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, 'inject_update' ] );
