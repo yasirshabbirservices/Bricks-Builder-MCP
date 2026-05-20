@@ -11,6 +11,19 @@ $hist_total = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . \BricksMCP\History
 $api_key    = \BricksMCP\Auth::get_key();
 $site_name  = get_bloginfo( 'name' );
 
+// ── Inline SVG icons (static, not user input — no escaping needed) ────
+$svg_bolt     = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+$svg_lines    = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>';
+$svg_grid     = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>';
+$svg_bookmark = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+$svg_clock    = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+$svg_pulse    = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+$svg_gear     = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+$svg_plus     = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+$svg_trash    = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+$svg_close    = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+$svg_search   = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+
 // Connection status — "Connected" only if an AI called a tool in the last 30 min
 $last_seen       = (int) get_option( 'bmcp_last_seen', 0 );
 $is_connected    = $last_seen > 0 && ( time() - $last_seen ) < 1800;
@@ -130,34 +143,34 @@ $cfg_standard;
 	<!-- ====================== TABS ====================== -->
 	<nav class="bmcp-tabs" role="tablist" aria-label="Plugin sections">
 		<a href="#" class="bmcp-tab active" role="tab" aria-selected="true"  id="nav-tab-connection"   data-tab="connection"   aria-controls="tab-connection">
-			<span class="bmcp-tab-icon" aria-hidden="true">⚡</span> Connection
+			<span class="bmcp-tab-icon"><?php echo $svg_bolt; ?></span> Connection
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-instructions" data-tab="instructions" aria-controls="tab-instructions">
-			<span class="bmcp-tab-icon" aria-hidden="true">✎</span> Instructions
+			<span class="bmcp-tab-icon"><?php echo $svg_lines; ?></span> Instructions
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-capabilities" data-tab="capabilities" aria-controls="tab-capabilities">
-			<span class="bmcp-tab-icon" aria-hidden="true">◈</span> Capabilities
+			<span class="bmcp-tab-icon"><?php echo $svg_grid; ?></span> Capabilities
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-memory"       data-tab="memory"       aria-controls="tab-memory">
-			<span class="bmcp-tab-icon" aria-hidden="true">◎</span> Memory
+			<span class="bmcp-tab-icon"><?php echo $svg_bookmark; ?></span> Memory
 			<?php if ( $mem_total > 0 ) : ?>
 				<span class="bmcp-badge" aria-label="<?php echo esc_attr( $mem_total . ' memories' ); ?>"><?php echo $mem_total; ?></span>
 			<?php endif; ?>
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-history"      data-tab="history"      aria-controls="tab-history">
-			<span class="bmcp-tab-icon" aria-hidden="true">⏎</span> History
+			<span class="bmcp-tab-icon"><?php echo $svg_clock; ?></span> History
 			<?php if ( $hist_total > 0 ) : ?>
 				<span class="bmcp-badge" aria-label="<?php echo esc_attr( $hist_total . ' snapshots' ); ?>"><?php echo $hist_total; ?></span>
 			<?php endif; ?>
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-activity"     data-tab="activity"     aria-controls="tab-activity">
-			<span class="bmcp-tab-icon" aria-hidden="true">◷</span> Activity
+			<span class="bmcp-tab-icon"><?php echo $svg_pulse; ?></span> Activity
 			<?php if ( ! empty( $log ) ) : ?>
 				<span class="bmcp-badge" aria-label="<?php echo esc_attr( count( $log ) . ' log entries' ); ?>"><?php echo count( $log ); ?></span>
 			<?php endif; ?>
 		</a>
 		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-advanced"     data-tab="advanced"     aria-controls="tab-advanced">
-			<span class="bmcp-tab-icon" aria-hidden="true">⚙</span> Advanced
+			<span class="bmcp-tab-icon"><?php echo $svg_gear; ?></span> Advanced
 		</a>
 	</nav>
 
@@ -444,7 +457,7 @@ $cfg_standard;
 		<div class="bmcp-card">
 			<div class="bmcp-card-header">
 				<h2>AI Memory <span class="description" style="font-weight:400;font-size:0.8rem;color:var(--text-dim)">up to 500 entries</span></h2>
-				<button type="button" class="button button-primary" id="bmcp-btn-add-memory" aria-haspopup="dialog">+ Add Memory</button>
+				<button type="button" class="button button-primary" id="bmcp-btn-add-memory" aria-haspopup="dialog"><?php echo $svg_plus; ?> Add Memory</button>
 			</div>
 			<p style="margin-bottom:16px">Memories are injected into every AI session automatically. Add site facts, design patterns, errors and fixes — the AI will also add and update memories on its own.</p>
 
@@ -457,7 +470,10 @@ $cfg_standard;
 					<?php endforeach; ?>
 				</select>
 				<label for="bmcp-mem-search" class="bmcp-sr-only">Search memories</label>
-				<input type="search" id="bmcp-mem-search" placeholder="Search memories…" autocomplete="off">
+				<div class="bmcp-search-wrap">
+					<?php echo $svg_search; ?>
+					<input type="search" id="bmcp-mem-search" placeholder="Search memories…" autocomplete="off">
+				</div>
 			</div>
 
 			<div id="bmcp-memory-list" aria-live="polite"><p class="bmcp-empty">Loading…</p></div>
@@ -471,7 +487,7 @@ $cfg_standard;
 		<div class="bmcp-modal-inner">
 			<div class="bmcp-modal-header">
 				<h3 id="bmcp-modal-title">Add Memory</h3>
-				<button type="button" class="bmcp-modal-close" aria-label="Close dialog">✕</button>
+				<button type="button" class="bmcp-modal-close" aria-label="Close dialog"><?php echo $svg_close; ?></button>
 			</div>
 			<div class="bmcp-modal-body">
 				<input type="hidden" id="bmcp-mem-id">
@@ -522,7 +538,7 @@ $cfg_standard;
 		<div class="bmcp-card">
 			<div class="bmcp-card-header">
 				<h2>Content History <span class="description" style="font-weight:400;font-size:0.8rem;color:var(--text-dim)">up to 200 snapshots</span></h2>
-				<button type="button" class="button" id="bmcp-btn-clear-history" aria-label="Clear all snapshots">✕ Clear All</button>
+				<button type="button" class="button bmcp-btn-danger" id="bmcp-btn-clear-history" aria-label="Clear all snapshots"><?php echo $svg_trash; ?> Clear All</button>
 			</div>
 			<p style="margin-bottom:16px">A snapshot is automatically saved before every AI write operation. Use these restore points to undo any unwanted change. Restoring is also undoable — the current state is always snapshotted first.</p>
 
@@ -551,7 +567,7 @@ $cfg_standard;
 		<div class="bmcp-card">
 			<div class="bmcp-card-header">
 				<h2>Activity Log <span class="description" style="font-weight:400;font-size:0.8rem;color:var(--text-dim)">last 20 requests</span></h2>
-				<button type="button" class="button" id="bmcp-btn-clear-log" aria-label="Clear activity log">✕ Clear Log</button>
+				<button type="button" class="button bmcp-btn-danger" id="bmcp-btn-clear-log" aria-label="Clear activity log"><?php echo $svg_trash; ?> Clear Log</button>
 			</div>
 
 			<?php if ( empty( $log ) ) : ?>

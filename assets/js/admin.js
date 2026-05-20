@@ -4,6 +4,12 @@ jQuery( function ( $ ) {
 
 	var cfg = window.bmcpAdmin || {};
 
+	// ---- SVG icon constants ----
+	var ICON_EDIT    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>';
+	var ICON_TRASH   = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+	var ICON_RESTORE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
+	var ICON_SPIN    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="bmcp-spin" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+
 	// ---- Tab switching ----
 	$( '.bmcp-tab' ).on( 'click', function ( e ) {
 		e.preventDefault();
@@ -156,8 +162,8 @@ jQuery( function ( $ ) {
 				'<td style="color:var(--text-muted);font-size:0.78rem">' + dateStr + '</td>' +
 				'<td>' +
 					'<div class="bmcp-mem-actions">' +
-						'<button class="button bmcp-btn-edit-mem" data-id="' + escHtml( m.id ) + '" data-mem=\'' + JSON.stringify( m ).replace( /'/g, '&#39;' ) + '\'>Edit</button>' +
-						'<button class="button bmcp-btn-del-mem" data-id="' + escHtml( m.id ) + '">Del</button>' +
+						'<button class="button bmcp-icon-btn bmcp-btn-edit-mem" data-id="' + escHtml( m.id ) + '" data-mem=\'' + JSON.stringify( m ).replace( /'/g, '&#39;' ) + '\' data-tooltip="Edit memory" aria-label="Edit memory">' + ICON_EDIT + '</button>' +
+						'<button class="button bmcp-icon-btn bmcp-btn-del-mem" data-id="' + escHtml( m.id ) + '" data-tooltip="Delete memory" aria-label="Delete memory">' + ICON_TRASH + '</button>' +
 					'</div>' +
 				'</td>' +
 			'</tr>';
@@ -346,8 +352,8 @@ jQuery( function ( $ ) {
 				'<td style="color:var(--text-dim);font-size:0.78rem"><code>' + escHtml( s.tool_name || '—' ) + '</code></td>' +
 				'<td>' +
 					'<div class="bmcp-mem-actions">' +
-						'<button class="button button-primary bmcp-btn-restore-snap" data-id="' + s.id + '" title="Restore this snapshot">↺ Restore</button>' +
-						'<button class="button bmcp-btn-del-snap" data-id="' + s.id + '" title="Delete snapshot">Del</button>' +
+						'<button class="button bmcp-btn-restore-snap" data-id="' + s.id + '" data-tooltip="Restore snapshot" aria-label="Restore snapshot">' + ICON_RESTORE + ' Restore</button>' +
+						'<button class="button bmcp-icon-btn bmcp-btn-del-snap" data-id="' + s.id + '" data-tooltip="Delete snapshot" aria-label="Delete snapshot">' + ICON_TRASH + '</button>' +
 					'</div>' +
 				'</td>' +
 			'</tr>';
@@ -393,16 +399,16 @@ jQuery( function ( $ ) {
 			var $btn = $( this );
 			if ( ! confirm( 'Restore snapshot #' + id + '? The current state will be auto-saved first so you can undo.' ) ) return;
 
-			$btn.prop( 'disabled', true ).text( 'Restoring…' );
+			$btn.prop( 'disabled', true ).html( ICON_SPIN + ' Restoring…' );
 			$.post( cfg.ajaxUrl, { action: 'bmcp_history_restore', nonce: cfg.nonce, id: id }, function ( res ) {
 				if ( res.success ) {
 					loadHistory();
 				} else {
 					alert( res.data || 'Restore failed.' );
-					$btn.prop( 'disabled', false ).text( '↺ Restore' );
+					$btn.prop( 'disabled', false ).html( ICON_RESTORE + ' Restore' );
 				}
 			} ).fail( function () {
-				$btn.prop( 'disabled', false ).text( '↺ Restore' );
+				$btn.prop( 'disabled', false ).html( ICON_RESTORE + ' Restore' );
 			} );
 		} );
 

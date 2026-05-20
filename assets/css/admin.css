@@ -951,10 +951,15 @@ body.settings_page_bricks-mcp #wpbody-content {
 .bmcp-memory-table td {
 	padding: 12px 14px;
 	border-bottom: 1px solid var(--border);
-	vertical-align: top;
+	vertical-align: middle;
 	background: var(--surface);
 	color: var(--text);
 	font-size: 0.84rem;
+}
+
+/* First column (title+preview) stays top-aligned */
+.bmcp-memory-table td:first-child {
+	vertical-align: top;
 }
 
 .bmcp-memory-table tr:last-child td { border-bottom: none; }
@@ -978,11 +983,21 @@ body.settings_page_bricks-mcp #wpbody-content {
 .bmcp-mem-badge.medium{ background: rgba(255,255,255,0.05); color: var(--text-muted); }
 .bmcp-mem-badge.low   { background: transparent; color: var(--text-dim); }
 
-.bmcp-mem-actions { display: flex; gap: 6px; white-space: nowrap; }
-.bmcp-mem-actions .button { padding: 4px 10px !important; font-size: 0.78rem !important; }
-.bmcp-btn-edit-mem { color: var(--brand) !important; border-color: rgba(0,214,143,0.3) !important; }
-.bmcp-btn-del-mem  { color: var(--danger) !important; border-color: rgba(249,95,114,0.3) !important; }
-.bmcp-btn-del-mem:hover { background: var(--danger-dim) !important; }
+.bmcp-mem-actions {
+	display: flex;
+	gap: 5px;
+	white-space: nowrap;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+.bmcp-memory-table tr:hover .bmcp-mem-actions { opacity: 1; }
+/* Keep actions visible when a button inside is focused */
+.bmcp-mem-actions:focus-within { opacity: 1; }
+
+.bmcp-btn-edit-mem { color: var(--brand) !important; border-color: rgba(0,214,143,0.25) !important; }
+.bmcp-btn-edit-mem:hover { background: var(--brand-dim) !important; border-color: rgba(0,214,143,0.5) !important; }
+.bmcp-btn-del-mem  { color: var(--danger) !important; border-color: rgba(249,95,114,0.25) !important; }
+.bmcp-btn-del-mem:hover { background: var(--danger-dim) !important; border-color: rgba(249,95,114,0.5) !important; }
 
 /* ---- MEMORY PAGINATION ---- */
 #bmcp-memory-pagination {
@@ -1125,16 +1140,7 @@ body.settings_page_bricks-mcp #wpbody-content {
 	flex-wrap: wrap;
 }
 
-/* ---- HISTORY RESTORE BUTTON ---- */
-.bmcp-btn-restore-snap {
-	color: var(--brand) !important;
-	border-color: rgba(0,214,143,0.35) !important;
-	background: var(--brand-dim) !important;
-}
-.bmcp-btn-restore-snap:hover {
-	background: rgba(0,214,143,0.18) !important;
-	border-color: rgba(0,214,143,0.55) !important;
-}
+/* ---- HISTORY DELETE BUTTON ---- */
 .bmcp-btn-del-snap { color: var(--danger) !important; border-color: rgba(249,95,114,0.3) !important; }
 .bmcp-btn-del-snap:hover { background: var(--danger-dim) !important; }
 
@@ -1420,3 +1426,114 @@ body.settings_page_bricks-mcp .settings-error {
 }
 
 .bmcp-notice-close:hover { opacity: 1; }
+
+/* ---- ICON-ONLY BUTTONS ---- */
+.bmcp-icon-btn {
+	width: 30px !important;
+	height: 30px !important;
+	padding: 0 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	border-radius: var(--radius-sm) !important;
+	flex-shrink: 0;
+	position: relative;
+}
+
+/* CSS tooltip */
+.bmcp-icon-btn[data-tooltip]::before {
+	content: attr(data-tooltip);
+	position: absolute;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	background: #0e1a15;
+	border: 1px solid var(--border-2);
+	color: var(--text);
+	font-size: 0.72rem;
+	font-weight: 500;
+	white-space: nowrap;
+	padding: 5px 9px;
+	border-radius: 5px;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.12s ease;
+	z-index: 200;
+	box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+}
+.bmcp-icon-btn[data-tooltip]::after {
+	content: '';
+	position: absolute;
+	bottom: calc(100% + 4px);
+	left: 50%;
+	transform: translateX(-50%);
+	border: 4px solid transparent;
+	border-top-color: var(--border-2);
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.12s ease;
+	z-index: 200;
+}
+.bmcp-icon-btn[data-tooltip]:hover::before,
+.bmcp-icon-btn[data-tooltip]:hover::after {
+	opacity: 1;
+}
+
+/* Danger-tinted header buttons (Clear All, Clear Log) */
+.bmcp-btn-danger {
+	color: var(--danger) !important;
+	border-color: rgba(249,95,114,0.28) !important;
+}
+.bmcp-btn-danger:hover {
+	background: var(--danger-dim) !important;
+	border-color: rgba(249,95,114,0.5) !important;
+}
+
+/* ---- RESTORE BUTTON — icon + text ---- */
+.bmcp-btn-restore-snap {
+	color: var(--brand) !important;
+	border-color: rgba(0,214,143,0.35) !important;
+	background: var(--brand-dim) !important;
+	gap: 5px !important;
+	padding: 5px 12px !important;
+}
+.bmcp-btn-restore-snap:hover {
+	background: rgba(0,214,143,0.18) !important;
+	border-color: rgba(0,214,143,0.55) !important;
+}
+
+/* ---- SEARCH INPUT WRAPPER ---- */
+.bmcp-search-wrap {
+	position: relative;
+	flex: 1;
+	min-width: 180px;
+	display: flex;
+	align-items: center;
+}
+.bmcp-search-wrap > svg {
+	position: absolute;
+	left: 10px;
+	color: var(--text-dim);
+	pointer-events: none;
+	flex-shrink: 0;
+}
+.bmcp-search-wrap input[type="search"] {
+	padding-left: 32px !important;
+}
+
+/* ---- SPIN ANIMATION (restore loading) ---- */
+@keyframes bmcp-rotate {
+	from { transform: rotate(0deg); }
+	to   { transform: rotate(360deg); }
+}
+.bmcp-spin {
+	animation: bmcp-rotate 0.9s linear infinite;
+}
+
+/* ---- TAB ICON — SVG inherits color ---- */
+.bmcp-tab-icon svg {
+	display: block;
+	width: 15px;
+	height: 15px;
+	flex-shrink: 0;
+}
