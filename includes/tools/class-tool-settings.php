@@ -99,6 +99,27 @@ class Tool_Settings extends Tool_Base {
 				],
 			],
 			[
+				'name'        => 'bricks_delete_global_class',
+				'description' => 'Permanently delete a Bricks global CSS class by its ID. Any elements using this class will lose the reference.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'id' => [ 'type' => 'string', 'description' => 'Global class ID to delete (6-char alphanumeric from bricks_get_global_classes)' ],
+					],
+					'required' => [ 'id' ],
+				],
+			],
+			[
+				'name'        => 'bricks_get_css_variables',
+				'description' => 'Extract all CSS custom properties (--variable-name: value) defined in Bricks global settings customCss. Use this to discover available design tokens before styling elements — never guess variable names.',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
+				'name'        => 'bricks_list_global_fonts',
+				'description' => 'List all fonts registered in Bricks global settings — Google Fonts, custom uploaded fonts, and the default theme font. Use this to pick consistent typefaces rather than guessing.',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
 				'name'        => 'bricks_get_theme_styles',
 				'description' => 'Get all Bricks theme styles. Theme styles are reusable style presets that can be applied to elements.',
 				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
@@ -137,6 +158,12 @@ class Tool_Settings extends Tool_Base {
 				return $this->create_global_class( $args );
 			case 'bricks_update_global_class':
 				return $this->update_global_class( $args );
+			case 'bricks_delete_global_class':
+				return $this->delete_global_class( $args );
+			case 'bricks_get_css_variables':
+				return $this->get_css_variables();
+			case 'bricks_list_global_fonts':
+				return $this->list_global_fonts();
 			case 'bricks_get_theme_styles':
 				return $this->get_theme_styles();
 			case 'bricks_update_theme_styles':
@@ -235,6 +262,89 @@ class Tool_Settings extends Tool_Base {
 		$result   = Bricks_Data::update_theme_style( $style_id, $settings );
 
 		return [ 'success' => true, 'style' => $result, 'message' => 'Theme style updated.' ];
+	}
+
+	private function delete_global_class( array $args ): array|\WP_Error {
+		$err = $this->require_cap( 'manage_options' );
+		if ( $err ) return $err;
+
+		$id = $this->str_arg( $args, 'id' );
+		if ( ! $id ) return $this->err( '"id" is required.' );
+
+		$classes = Bricks_Data::get_global_classes();
+		$found   = false;
+
+		$filtered = array_values( array_filter( $classes, function ( $c ) use ( $id, &$found ) {
+			if ( ( $c['id'] ?? '' ) === $id ) {
+				$found = true;
+				return false;
+			}
+			return true;
+		} ) );
+
+		if ( ! $found ) {
+			return $this->err( "Global class '{$id}' not found." );
+		}
+
+		update_option( 'bricks_global_classes', $filtered );
+
+		return [ 'success' => true, 'message' => "Global class '{$id}' deleted." ];
+	}
+
+	private function get_css_variables(): array {
+		$settings   = Bricks_Data::get_global_settings();
+		$custom_css = $settings['customCss'] ?? '';
+		$variables  = [];
+
+		if ( $custom_css ) {
+			preg_match_all( '/(-{2}[\w-]+)\s*:\s*([^;}\n]+)/', $custom_css, $matches, PREG_SET_ORDER );
+			foreach ( $matches as $m ) {
+				$variables[ trim( $m[1] ) ] = trim( $m[2] );
+			}
+		}
+
+		return [
+			'variables' => $variables,
+			'count'     => count( $variables ),
+			'tip'       => empty( $variables )
+				? 'No CSS variables found in customCss. Use actual hex values from bricks_get_color_palette instead.'
+				: 'Use these in color objects as {"raw": "var(--variable-name)"} or in plain string settings.',
+		];
+	}
+
+	private function list_global_fonts(): array {
+		$settings     = Bricks_Data::get_global_settings();
+		$google_fonts = $settings['googleFonts'] ?? [];
+		$custom_fonts = $settings['customFonts'] ?? [];
+		$theme_font   = $settings['themeFont']   ?? null;
+
+		$fonts = [];
+
+		foreach ( $google_fonts as $font ) {
+			$fonts[] = [
+				'type'    => 'google',
+				'family'  => $font['font_family'] ?? ( $font['family'] ?? $font ),
+				'weights' => $font['font_weight'] ?? ( $font['weights'] ?? [] ),
+			];
+		}
+
+		foreach ( $custom_fonts as $font ) {
+			$fonts[] = [
+				'type'   => 'custom',
+				'family' => $font['font_family'] ?? ( $font['family'] ?? $font ),
+				'url'    => $font['url'] ?? null,
+			];
+		}
+
+		if ( $theme_font ) {
+			array_unshift( $fonts, [ 'type' => 'theme', 'family' => $theme_font ] );
+		}
+
+		return [
+			'fonts' => $fonts,
+			'count' => count( $fonts ),
+			'tip'   => 'Use font-family values from this list in _typography settings to ensure consistency.',
+		];
 	}
 
 	// -------------------------------------------------------------------------

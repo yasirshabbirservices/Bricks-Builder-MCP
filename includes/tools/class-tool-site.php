@@ -1110,16 +1110,21 @@ bricks_set_template_conditions(template_id, conditions)
 |----------|-------|
 | Site | `bricks_get_site_info`, `bricks_get_system_prompt`, `bricks_get_custom_instructions`, `bricks_set_front_page` |
 | Elements | `bricks_get_elements` |
-| Pages | `bricks_list_pages`, `bricks_get_page`, `bricks_create_page`, `bricks_update_page`, `bricks_delete_page` |
+| Pages | `bricks_list_pages`, `bricks_get_page`, `bricks_create_page`, `bricks_update_page`, `bricks_delete_page`, `bricks_duplicate_page` |
 | Templates | `bricks_list_templates`, `bricks_get_template`, `bricks_create_template`, `bricks_update_template`, `bricks_delete_template`, `bricks_set_template_conditions` |
-| Global Design | `bricks_get_global_settings`, `bricks_update_global_settings`, `bricks_get_color_palette`, `bricks_update_color_palette`, `bricks_get_global_classes`, `bricks_create_global_class`, `bricks_update_global_class`, `bricks_get_theme_styles`, `bricks_update_theme_styles` |
+| Global Design | `bricks_get_global_settings`, `bricks_update_global_settings`, `bricks_get_color_palette`, `bricks_update_color_palette`, `bricks_get_global_classes`, `bricks_create_global_class`, `bricks_update_global_class`, `bricks_delete_global_class`, `bricks_get_theme_styles`, `bricks_update_theme_styles`, `bricks_get_css_variables`, `bricks_list_global_fonts` |
 | Nav Menus | `bricks_list_nav_menus`, `bricks_create_nav_menu`, `bricks_get_nav_menu`, `bricks_update_nav_menu` |
 | Components | `bricks_list_components`, `bricks_get_component`, `bricks_create_component`, `bricks_update_component`, `bricks_delete_component` |
 | Posts/CPTs | `bricks_list_post_types`, `bricks_list_posts`, `bricks_get_post`, `bricks_create_post`, `bricks_update_post`, `bricks_delete_post` |
-| Media | `bricks_list_media`, `bricks_upload_media_from_url`, `bricks_get_media` |
+| Media | `bricks_list_media`, `bricks_upload_media_from_url`, `bricks_get_media`, `bricks_delete_media` |
 | WooCommerce | `bricks_list_products`, `bricks_get_product`, `bricks_list_product_categories` |
+| SEO | `bricks_get_page_seo`, `bricks_update_page_seo` *(requires Yoast SEO, Rank Math, or The SEO Framework)* |
+| Search | `bricks_search_content`, `bricks_replace_content` |
+| Cache | `bricks_clear_cache` |
 | Memory | `bricks_memory_list`, `bricks_memory_get`, `bricks_memory_add`, `bricks_memory_update`, `bricks_memory_delete`, `bricks_memory_search` |
 | History | `bricks_snapshot_list`, `bricks_snapshot_get`, `bricks_snapshot_restore`, `bricks_snapshot_delete` |
+
+**After every page/template write:** call `bricks_clear_cache` so changes are immediately live. **Before styling:** call `bricks_get_css_variables` to discover real CSS custom properties on this site, and `bricks_list_global_fonts` to get registered fonts.
 
 PROMPT
 			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )

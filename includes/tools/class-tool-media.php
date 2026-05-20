@@ -46,6 +46,17 @@ class Tool_Media extends Tool_Base {
 					'required' => [ 'media_id' ],
 				],
 			],
+		[
+				'name'        => 'bricks_delete_media',
+				'description' => 'Permanently delete a media attachment and its generated thumbnails from the WordPress media library.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'media_id' => [ 'type' => 'integer', 'description' => 'Attachment post ID to delete' ],
+					],
+					'required' => [ 'media_id' ],
+				],
+			],
 		];
 	}
 
@@ -57,6 +68,8 @@ class Tool_Media extends Tool_Base {
 				return $this->upload_from_url( $args );
 			case 'bricks_get_media':
 				return $this->get_media( $args );
+			case 'bricks_delete_media':
+				return $this->delete_media( $args );
 		}
 		return $this->err( 'Unknown tool: ' . $name );
 	}
@@ -167,6 +180,32 @@ class Tool_Media extends Tool_Base {
 			'width'        => $meta['width'] ?? null,
 			'height'       => $meta['height'] ?? null,
 			'message'      => 'Media uploaded successfully.',
+		];
+	}
+
+	private function delete_media( array $args ): array|\WP_Error {
+		$media_id = $this->int_arg( $args, 'media_id' );
+		if ( ! $media_id ) return $this->err( '"media_id" is required.' );
+
+		$err = $this->require_cap( 'delete_posts' );
+		if ( $err ) return $err;
+
+		$post = get_post( $media_id );
+		if ( ! $post || $post->post_type !== 'attachment' ) {
+			return $this->err( "Media {$media_id} not found." );
+		}
+
+		$title  = $post->post_title;
+		$result = wp_delete_attachment( $media_id, true );
+
+		if ( ! $result ) {
+			return $this->err( "Failed to delete media {$media_id}." );
+		}
+
+		return [
+			'success'  => true,
+			'media_id' => $media_id,
+			'message'  => "Media '{$title}' (#{$media_id}) permanently deleted.",
 		];
 	}
 

@@ -29,11 +29,17 @@ class Tools_Registry {
 			new Tools\Tool_Site(),
 			new Tools\Tool_Memory(),
 			new Tools\Tool_History(),
+			new Tools\Tool_Cache(),
+			new Tools\Tool_Search(),
+			new Tools\Tool_SEO(),
 		];
 
 		foreach ( $groups as $handler ) {
 			$this->register( $handler );
 		}
+
+		// Allow third-party plugins to register their own MCP tools
+		do_action( 'bmcp_register_tools', $this );
 	}
 
 	public function register( Tool_Base $handler ): void {
@@ -186,6 +192,22 @@ class Tools_Registry {
 			'bricks_snapshot_get'     => 'site',
 			'bricks_snapshot_restore' => 'site',
 			'bricks_snapshot_delete'  => 'site',
+			// cache (always on)
+			'bricks_clear_cache'      => 'site',
+			// search & replace (always on)
+			'bricks_search_content'   => 'site',
+			'bricks_replace_content'  => 'site',
+			// seo (always on — tools self-disable when no SEO plugin active)
+			'bricks_get_page_seo'     => 'site',
+			'bricks_update_page_seo'  => 'site',
+			// new settings tools
+			'bricks_delete_global_class' => 'settings',
+			'bricks_get_css_variables'   => 'settings',
+			'bricks_list_global_fonts'   => 'settings',
+			// new pages tool
+			'bricks_duplicate_page'   => 'pages',
+			// new media tool
+			'bricks_delete_media'     => 'media',
 		];
 	}
 

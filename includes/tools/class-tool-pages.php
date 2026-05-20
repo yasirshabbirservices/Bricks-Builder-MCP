@@ -70,6 +70,19 @@ class Tool_Pages extends Tool_Base {
 				],
 			],
 			[
+				'name'        => 'bricks_duplicate_page',
+				'description' => 'Duplicate an existing page — copies the title, Bricks element layout, and page settings into a new draft page.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'post_id' => [ 'type' => 'integer', 'description' => 'Source page ID to duplicate' ],
+						'title'   => [ 'type' => 'string', 'description' => 'Title for the new page (defaults to "Copy of {original title}")' ],
+						'status'  => [ 'type' => 'string', 'description' => 'Status for new page: draft | publish (default: draft)', 'default' => 'draft' ],
+					],
+					'required' => [ 'post_id' ],
+				],
+			],
+			[
 				'name'        => 'bricks_delete_page',
 				'description' => 'Delete or trash a page. By default moves to trash; set force=true to permanently delete.',
 				'inputSchema' => [
@@ -94,6 +107,8 @@ class Tool_Pages extends Tool_Base {
 				return $this->create_page( $args );
 			case 'bricks_update_page':
 				return $this->update_page( $args );
+			case 'bricks_duplicate_page':
+				return $this->duplicate_page( $args );
 			case 'bricks_delete_page':
 				return $this->delete_page( $args );
 		}
@@ -257,6 +272,53 @@ class Tool_Pages extends Tool_Base {
 			'success' => true,
 			'post_id' => $post_id,
 			'message' => 'Page updated successfully.',
+		];
+	}
+
+	private function duplicate_page( array $args ): array|\WP_Error {
+		$source_id = $this->int_arg( $args, 'post_id' );
+		if ( ! $source_id ) return $this->err( 'post_id is required.' );
+
+		$err = $this->require_cap( 'edit_pages' );
+		if ( $err ) return $err;
+
+		$source = get_post( $source_id );
+		if ( ! $source || $source->post_type !== 'page' ) {
+			return $this->err( "Page {$source_id} not found." );
+		}
+
+		$new_title = $this->str_arg( $args, 'title' ) ?: 'Copy of ' . $source->post_title;
+
+		$new_id = wp_insert_post( [
+			'post_type'   => 'page',
+			'post_title'  => sanitize_text_field( $new_title ),
+			'post_status' => $this->str_arg( $args, 'status', 'draft' ),
+			'post_parent' => $source->post_parent,
+		], true );
+
+		if ( is_wp_error( $new_id ) ) return $new_id;
+
+		// Copy Bricks element areas
+		foreach ( [ BMCP_DB_PAGE_CONTENT, BMCP_DB_PAGE_HEADER, BMCP_DB_PAGE_FOOTER ] as $meta_key ) {
+			$elements = get_post_meta( $source_id, $meta_key, true );
+			if ( $elements ) {
+				update_post_meta( $new_id, $meta_key, $elements );
+			}
+		}
+
+		// Copy Bricks page settings
+		$page_settings = Bricks_Data::get_page_settings( $source_id );
+		if ( $page_settings ) {
+			Bricks_Data::set_page_settings( $new_id, $page_settings );
+		}
+
+		return [
+			'id'      => $new_id,
+			'title'   => $new_title,
+			'url'     => get_permalink( $new_id ) ?: '',
+			'edit_url'=> $this->edit_url( $new_id ),
+			'status'  => $this->str_arg( $args, 'status', 'draft' ),
+			'message' => "Page duplicated from #{$source_id}.",
 		];
 	}
 
