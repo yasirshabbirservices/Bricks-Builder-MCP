@@ -998,10 +998,7 @@ body.bricks_page_bricks-mcp-settings #wpbody-content {
 /* Keep actions visible when a button inside is focused */
 .bmcp-mem-actions:focus-within { opacity: 1; }
 
-.bmcp-btn-edit-mem { color: var(--brand) !important; border-color: rgba(0,214,143,0.25) !important; }
-.bmcp-btn-edit-mem:hover { background: var(--brand-dim) !important; border-color: rgba(0,214,143,0.5) !important; }
-.bmcp-btn-del-mem  { color: var(--danger) !important; border-color: rgba(249,95,114,0.25) !important; }
-.bmcp-btn-del-mem:hover { background: var(--danger-dim) !important; border-color: rgba(249,95,114,0.5) !important; }
+/* (rules moved above with #bmcp-wrap scope for correct specificity) */
 
 /* ---- MEMORY PAGINATION ---- */
 #bmcp-memory-pagination {
@@ -1144,9 +1141,7 @@ body.bricks_page_bricks-mcp-settings #wpbody-content {
 	flex-wrap: wrap;
 }
 
-/* ---- HISTORY DELETE BUTTON ---- */
-.bmcp-btn-del-snap { color: var(--danger) !important; border-color: rgba(249,95,114,0.3) !important; }
-.bmcp-btn-del-snap:hover { background: var(--danger-dim) !important; }
+/* (history delete button rules moved above with #bmcp-wrap scope) */
 
 /* ---- MEMORY TOOLBAR — search input type ---- */
 .bmcp-memory-toolbar input[type="search"] {
@@ -1489,6 +1484,25 @@ body.bricks_page_bricks-mcp-settings .settings-error {
 .bmcp-icon-btn[data-tooltip]:hover::after {
 	opacity: 1;
 }
+
+/* SVG icons inside icon buttons — force stroke rendering, override WP admin fill:currentColor */
+#bmcp-wrap .bmcp-icon-btn svg,
+#bmcp-wrap .bmcp-btn-restore-snap svg,
+#bmcp-wrap .bmcp-btn-danger svg {
+	display: block !important;
+	fill: none !important;
+	stroke: currentColor !important;
+	flex-shrink: 0;
+	overflow: visible;
+}
+
+/* Per-button stroke colours */
+#bmcp-wrap .bmcp-btn-edit-mem  { color: var(--brand)  !important; border-color: rgba(0,214,143,0.25)  !important; }
+#bmcp-wrap .bmcp-btn-del-mem   { color: var(--danger) !important; border-color: rgba(249,95,114,0.25) !important; }
+#bmcp-wrap .bmcp-btn-del-snap  { color: var(--danger) !important; border-color: rgba(249,95,114,0.30) !important; }
+#bmcp-wrap .bmcp-btn-edit-mem:hover { background: var(--brand-dim)  !important; border-color: rgba(0,214,143,0.5)  !important; }
+#bmcp-wrap .bmcp-btn-del-mem:hover  { background: var(--danger-dim) !important; border-color: rgba(249,95,114,0.5) !important; }
+#bmcp-wrap .bmcp-btn-del-snap:hover { background: var(--danger-dim) !important; }
 
 /* Danger-tinted header buttons (Clear All, Clear Log) */
 .bmcp-btn-danger {
