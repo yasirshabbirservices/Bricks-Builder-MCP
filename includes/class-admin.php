@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Admin {
 
 	public function __construct() {
-		add_action( 'admin_menu',            [ $this, 'register_menu' ] );
+		add_action( 'admin_menu',            [ $this, 'register_menu' ], 99 );
 		add_action( 'admin_init',            [ $this, 'register_settings' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 		add_action( 'wp_ajax_bmcp_regenerate_key',  [ $this, 'ajax_regenerate_key' ] );
