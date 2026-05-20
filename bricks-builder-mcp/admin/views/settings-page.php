@@ -138,21 +138,36 @@ $cfg_standard;
 				<span class="bmcp-badge" aria-label="<?php echo esc_attr( count( $log ) . ' log entries' ); ?>"><?php echo count( $log ); ?></span>
 			<?php endif; ?>
 		</a>
+		<a href="#" class="bmcp-tab"        role="tab" aria-selected="false" id="nav-tab-advanced"     data-tab="advanced"     aria-controls="tab-advanced">
+			<span class="bmcp-tab-icon" aria-hidden="true">⚙</span> Advanced
+		</a>
 	</nav>
 
 	<!-- ====================== CONNECTION TAB ====================== -->
 	<div class="bmcp-panel" id="tab-connection" role="tabpanel" aria-labelledby="nav-tab-connection">
 
 		<div class="bmcp-card">
-			<h2>API Key</h2>
-			<p>Use this key to authenticate any MCP client. Never share it publicly.</p>
+			<h2>API Key &amp; Endpoint</h2>
+			<p>Authenticate MCP clients with the key below. Never share it publicly.</p>
 
-			<div class="bmcp-key-row">
-				<code class="bmcp-key-display" id="bmcp-key-masked"><?php echo esc_html( \BricksMCP\Auth::masked_key() ); ?></code>
-				<button type="button" class="button" id="bmcp-btn-copy" aria-label="Copy API key to clipboard">⎘ Copy</button>
-				<button type="button" class="button" id="bmcp-btn-regen" aria-label="Regenerate API key">↺ Regenerate</button>
+			<div class="bmcp-api-grid">
+				<div class="bmcp-api-grid-item">
+					<div class="bmcp-api-grid-label">API Key</div>
+					<div class="bmcp-key-row">
+						<code class="bmcp-key-display" id="bmcp-key-masked"><?php echo esc_html( \BricksMCP\Auth::masked_key() ); ?></code>
+						<button type="button" class="button" id="bmcp-btn-copy" aria-label="Copy API key to clipboard">⎘ Copy</button>
+						<button type="button" class="button" id="bmcp-btn-regen" aria-label="Regenerate API key">↺ Regen</button>
+					</div>
+				</div>
+				<div class="bmcp-api-grid-item">
+					<div class="bmcp-api-grid-label">MCP Endpoint</div>
+					<div class="bmcp-key-row">
+						<code class="bmcp-key-display" id="bmcp-endpoint"><?php echo esc_html( $endpoint ); ?></code>
+						<button type="button" class="button bmcp-copy-config" data-target="bmcp-endpoint" aria-label="Copy endpoint URL">⎘ Copy</button>
+					</div>
+				</div>
 			</div>
-			<p class="description">Regenerating invalidates the old key immediately. Update your MCP config after regenerating.</p>
+			<p class="description" style="margin-top:10px">Regenerating the key invalidates your current config — update all MCP clients after regenerating.</p>
 		</div>
 
 		<div class="bmcp-card">
@@ -187,10 +202,11 @@ $cfg_standard;
 
 			<div class="bmcp-client-panel active" id="bmcp-panel-general" role="tabpanel" aria-labelledby="client-tab-general">
 				<p class="bmcp-client-hint">Universal setup block — copy and share with any AI to connect and get started immediately.</p>
-				<div class="bmcp-config-block">
+				<div class="bmcp-config-block bmcp-config-collapsible" id="bmcp-general-collapse-wrap">
 					<pre id="bmcp-config-general"><?php echo esc_html( $cfg_general ); ?></pre>
 					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-general" aria-label="Copy general setup">⎘ Copy</button>
 				</div>
+				<button type="button" class="bmcp-collapse-toggle" id="bmcp-general-toggle" aria-expanded="false" aria-controls="bmcp-general-collapse-wrap">Show full guide ↓</button>
 			</div>
 
 			<div class="bmcp-client-panel" id="bmcp-panel-claude" role="tabpanel" aria-labelledby="client-tab-claude" style="display:none">
@@ -242,15 +258,6 @@ $cfg_standard;
 			</div>
 
 		</div><!-- /AI Client Setup card -->
-
-		<div class="bmcp-card">
-			<h2>Endpoint URL</h2>
-			<p>Direct MCP endpoint for manual HTTP clients or testing:</p>
-			<div class="bmcp-key-row">
-				<code class="bmcp-key-display" id="bmcp-endpoint"><?php echo esc_html( $endpoint ); ?></code>
-				<button type="button" class="button bmcp-copy-config" data-target="bmcp-endpoint" aria-label="Copy endpoint URL">⎘ Copy URL</button>
-			</div>
-		</div>
 
 	</div><!-- /tab-connection -->
 
@@ -566,25 +573,83 @@ $cfg_standard;
 		</div>
 	</div><!-- /tab-activity -->
 
+	<!-- ====================== ADVANCED TAB ====================== -->
+	<div class="bmcp-panel" id="tab-advanced" role="tabpanel" aria-labelledby="nav-tab-advanced" style="display:none">
+		<form method="post" action="options.php">
+			<?php
+			settings_fields( 'bmcp_settings_advanced' );
+			$adv          = get_option( BMCP_ADVANCED_OPTION, [] );
+			$erase        = ! empty( $adv['erase_on_uninstall'] );
+			$no_log       = ! empty( $adv['disable_activity_log'] );
+			$debug        = ! empty( $adv['debug_mode'] );
+			?>
+
+			<div class="bmcp-card">
+				<h2>Data &amp; Privacy</h2>
+				<table class="bmcp-adv-table">
+					<tbody>
+						<tr>
+							<td class="bmcp-adv-td-label">
+								<strong>Erase all plugin data on uninstall</strong>
+								<div class="description" style="margin-top:4px">Permanently deletes all API keys, memories, history snapshots, settings, and the history database table when the plugin is deleted. Default: off.</div>
+							</td>
+							<td class="bmcp-adv-td-toggle">
+								<label class="bmcp-toggle">
+									<input type="checkbox" name="<?php echo esc_attr( BMCP_ADVANCED_OPTION ); ?>[erase_on_uninstall]" value="1" <?php checked( $erase ); ?> />
+									<span class="bmcp-toggle-slider" aria-hidden="true"></span>
+								</label>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="bmcp-card">
+				<h2>Logging &amp; Debugging</h2>
+				<table class="bmcp-adv-table">
+					<tbody>
+						<tr>
+							<td class="bmcp-adv-td-label">
+								<strong>Disable activity logging</strong>
+								<div class="description" style="margin-top:4px">Stop recording tool calls in the Activity Log. Reduces DB writes on high-traffic sites. Default: off (logging enabled).</div>
+							</td>
+							<td class="bmcp-adv-td-toggle">
+								<label class="bmcp-toggle">
+									<input type="checkbox" name="<?php echo esc_attr( BMCP_ADVANCED_OPTION ); ?>[disable_activity_log]" value="1" <?php checked( $no_log ); ?> />
+									<span class="bmcp-toggle-slider" aria-hidden="true"></span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<td class="bmcp-adv-td-label">
+								<strong>Debug mode</strong>
+								<div class="description" style="margin-top:4px">Include detailed error messages and PHP traces in MCP error responses. Keep off in production. Default: off.</div>
+							</td>
+							<td class="bmcp-adv-td-toggle">
+								<label class="bmcp-toggle">
+									<input type="checkbox" name="<?php echo esc_attr( BMCP_ADVANCED_OPTION ); ?>[debug_mode]" value="1" <?php checked( $debug ); ?> />
+									<span class="bmcp-toggle-slider" aria-hidden="true"></span>
+								</label>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="bmcp-submit-row">
+				<?php submit_button( 'Save Advanced Settings', 'primary', 'submit', false ); ?>
+			</div>
+		</form>
+	</div><!-- /tab-advanced -->
+
 	<!-- ====================== FOOTER ====================== -->
 	<footer class="bmcp-footer" role="contentinfo">
 		<div class="bmcp-footer-bar" aria-hidden="true"></div>
 		<div class="bmcp-footer-inner">
-			<div class="bmcp-footer-brand">
-				<div class="bmcp-footer-logo" aria-hidden="true">⚡</div>
-				<div>
-					<div class="bmcp-footer-name">
-						Bricks Builder MCP
-						<span class="bmcp-footer-ver">v<?php echo esc_html( BMCP_VERSION ); ?></span>
-					</div>
-					<div class="bmcp-footer-tagline">AI-powered Bricks control via Model Context Protocol</div>
-				</div>
-			</div>
-			<div class="bmcp-footer-meta">
-				<span>Open source</span>
-				<span class="bmcp-footer-dot" aria-hidden="true">·</span>
-				<span>GPL-2.0-or-later</span>
-			</div>
+			<span class="bmcp-footer-dev">
+				Developed by <a href="https://yasirshabbir.com" target="_blank" rel="noopener noreferrer" class="bmcp-footer-link">Yasir Shabbir</a>
+			</span>
+			<span class="bmcp-footer-dev bmcp-footer-ver-inline">v<?php echo esc_html( BMCP_VERSION ); ?></span>
 		</div>
 	</footer>
 

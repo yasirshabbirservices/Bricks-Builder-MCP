@@ -466,6 +466,16 @@ jQuery( function ( $ ) {
 		updateGroupCount( group );
 	} );
 
+	// ---- Collapsible General setup block ----
+	$( '#bmcp-general-toggle' ).on( 'click', function () {
+		var $wrap    = $( '#bmcp-general-collapse-wrap' );
+		var expanded = $wrap.hasClass( 'bmcp-expanded' );
+		$wrap.toggleClass( 'bmcp-expanded', ! expanded );
+		$( this )
+			.text( expanded ? 'Show full guide ↓' : 'Show less ↑' )
+			.attr( 'aria-expanded', String( ! expanded ) );
+	} );
+
 	// ---- Utility ----
 	function escHtml( str ) {
 		return String( str ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );

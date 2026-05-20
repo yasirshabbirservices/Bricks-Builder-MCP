@@ -1204,6 +1204,133 @@ body.settings_page_bricks-mcp #wpbody-content {
 	opacity: 1;
 }
 
+/* ---- API KEY + ENDPOINT GRID ---- */
+.bmcp-api-grid {
+	display: flex;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin: 14px 0 0;
+}
+
+.bmcp-api-grid-item {
+	flex: 1;
+	min-width: 260px;
+}
+
+.bmcp-api-grid-label {
+	font-size: 0.73rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-muted);
+	margin-bottom: 6px;
+}
+
+/* ---- COLLAPSIBLE CONFIG BLOCK ---- */
+.bmcp-config-collapsible {
+	max-height: 170px;
+	overflow: hidden;
+	position: relative;
+	margin-bottom: 0 !important;
+	border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+}
+
+.bmcp-config-collapsible::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 56px;
+	background: linear-gradient(to bottom, transparent, #080d0b);
+	pointer-events: none;
+	z-index: 2;
+}
+
+.bmcp-config-collapsible.bmcp-expanded {
+	max-height: none;
+	overflow: visible;
+}
+
+.bmcp-config-collapsible.bmcp-expanded::after {
+	display: none;
+}
+
+.bmcp-collapse-toggle {
+	display: block;
+	width: 100%;
+	background: var(--surface-3) !important;
+	border: 1px solid var(--border) !important;
+	border-top: none !important;
+	border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+	color: var(--text-dim) !important;
+	font-size: 0.79rem !important;
+	padding: 7px 16px !important;
+	cursor: pointer !important;
+	text-align: center !important;
+	transition: all 0.15s !important;
+	margin-top: 0 !important;
+	height: auto !important;
+	box-shadow: none !important;
+}
+
+.bmcp-collapse-toggle:hover {
+	background: var(--surface-2) !important;
+	color: var(--brand) !important;
+}
+
+/* ---- ADVANCED TAB TABLE ---- */
+.bmcp-adv-table {
+	width: 100%;
+	border-collapse: collapse;
+	border-radius: var(--radius-sm);
+	overflow: hidden;
+	border: 1px solid var(--border);
+}
+
+.bmcp-adv-table tbody tr {
+	border-bottom: 1px solid var(--border);
+	background: var(--surface);
+}
+
+.bmcp-adv-table tbody tr:last-child {
+	border-bottom: none;
+}
+
+.bmcp-adv-table tbody tr:hover {
+	background: rgba(0, 214, 143, 0.03);
+}
+
+.bmcp-adv-td-label {
+	padding: 16px 20px;
+	color: var(--text);
+	font-size: 0.875rem;
+	line-height: 1.5;
+	vertical-align: middle;
+}
+
+.bmcp-adv-td-toggle {
+	width: 80px;
+	text-align: center;
+	vertical-align: middle;
+	padding: 16px 20px;
+}
+
+/* ---- FOOTER (simplified) ---- */
+.bmcp-footer-dev {
+	font-size: 0.82rem;
+	color: var(--text-muted);
+}
+
+.bmcp-footer-ver-inline {
+	font-size: 0.73rem;
+	color: var(--text-dim);
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	padding: 1px 7px;
+	border-radius: 4px;
+}
+
 /* ---- WP ADMIN OVERRIDES (scoped) ---- */
 #bmcp-wrap h1 { color: var(--text); }
 #bmcp-wrap p.submit { margin: 0; padding: 0; }

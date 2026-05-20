@@ -42,6 +42,19 @@ class Admin {
 			'sanitize_callback' => [ $this, 'sanitize_tool_states' ],
 			'default'           => [],
 		] );
+
+		register_setting( 'bmcp_settings_advanced', BMCP_ADVANCED_OPTION, [
+			'sanitize_callback' => [ $this, 'sanitize_advanced_settings' ],
+			'default'           => [],
+		] );
+	}
+
+	public function sanitize_advanced_settings( $input ): array {
+		return [
+			'erase_on_uninstall'   => ! empty( $input['erase_on_uninstall'] ),
+			'disable_activity_log' => ! empty( $input['disable_activity_log'] ),
+			'debug_mode'           => ! empty( $input['debug_mode'] ),
+		];
 	}
 
 	public function sanitize_tool_states( $input ): array {

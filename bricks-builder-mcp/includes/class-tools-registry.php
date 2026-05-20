@@ -246,6 +246,11 @@ class Tools_Registry {
 	// -------------------------------------------------------------------------
 
 	private function log_activity( string $tool_name, array|\WP_Error $result ): void {
+		$adv = get_option( BMCP_ADVANCED_OPTION, [] );
+		if ( ! empty( $adv['disable_activity_log'] ) ) {
+			return;
+		}
+
 		$log = get_option( BMCP_ACTIVITY_LOG_OPTION, [] );
 		if ( ! is_array( $log ) ) {
 			$log = [];
