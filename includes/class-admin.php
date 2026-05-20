@@ -23,24 +23,24 @@ class Admin {
 	}
 
 	public function register_menu(): void {
+		// Always register the actual page under Settings — reliable, no URL rewriting issues
+		add_options_page(
+			__( 'Bricks MCP', 'bricks-builder-mcp' ),
+			__( 'Bricks MCP', 'bricks-builder-mcp' ),
+			'manage_options',
+			'bricks-mcp',
+			[ $this, 'render_settings_page' ]
+		);
+
+		// If Bricks is active, also show an "MCP" entry under the Bricks menu.
+		// Using the Settings page URL as the slug bypasses Bricks' admin URL rewriting.
 		if ( defined( 'BRICKS_VERSION' ) || get_template() === 'bricks' ) {
-			// Bricks is active — add as submenu under the Bricks menu
 			add_submenu_page(
 				'bricks',
 				__( 'Bricks MCP', 'bricks-builder-mcp' ),
 				__( 'MCP', 'bricks-builder-mcp' ),
 				'manage_options',
-				'bricks-mcp-settings',
-				[ $this, 'render_settings_page' ]
-			);
-		} else {
-			// Fallback — Bricks not active, show under Settings
-			add_options_page(
-				__( 'Bricks MCP', 'bricks-builder-mcp' ),
-				__( 'Bricks MCP', 'bricks-builder-mcp' ),
-				'manage_options',
-				'bricks-mcp',
-				[ $this, 'render_settings_page' ]
+				'options-general.php?page=bricks-mcp'
 			);
 		}
 	}
