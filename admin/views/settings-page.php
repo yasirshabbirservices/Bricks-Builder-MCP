@@ -63,41 +63,50 @@ $cfg_gemini = json_encode( [
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 
 $cfg_general =
-"# Bricks Builder MCP — Universal Connection & Setup\n" .
-"# ─────────────────────────────────────────────────────────────\n" .
-"# Share this block with any AI client to connect and get started.\n\n" .
+"# Bricks Builder MCP\n" .
+"# Site: {$site_name}\n\n" .
 "ENDPOINT  ▶  {$endpoint}\n" .
 "AUTH      ▶  Authorization: Bearer {$api_key}\n" .
-"PROTOCOL  ▶  MCP 2024-11-05  ·  JSON-RPC 2.0  ·  Streamable HTTP\n\n" .
+"PROTOCOL  ▶  MCP 2024-11-05 · JSON-RPC 2.0 · Streamable HTTP\n\n" .
 "══════════════════════════════════════════════════════════\n" .
-"  WHAT THIS MCP DOES\n" .
+"  CAPABILITIES\n" .
 "══════════════════════════════════════════════════════════\n\n" .
-"You are connected to Bricks Builder MCP on \"{$site_name}\".\n" .
-"This plugin gives you full programmatic control over a Bricks\n" .
-"Builder WordPress website — no visual editor required.\n\n" .
-"  Pages         create, read, update, delete pages + Bricks layouts\n" .
-"  Templates     header / footer / section templates + conditions\n" .
-"  Global Design color palette, global CSS classes, theme styles\n" .
-"  Posts & CPTs  manage any WordPress post type\n" .
-"  Media         list and upload media assets\n" .
-"  WooCommerce   browse products & categories (read-only)\n" .
-"  AI Memory     persistent site knowledge across all AI sessions\n\n" .
+"You have full programmatic control over this Bricks Builder\n" .
+"WordPress site. Available tool groups:\n\n" .
+"  Pages          create, read, update, delete + Bricks layouts\n" .
+"  Templates      header / footer / section templates + conditions\n" .
+"  Global Design  color palette, CSS classes, theme styles, CSS vars\n" .
+"  Posts & CPTs   any WordPress post type\n" .
+"  Media          browse and import assets\n" .
+"  Nav Menus      create and manage navigation menus\n" .
+"  Components     Bricks reusable components\n" .
+"  Search         find and replace across all pages and templates\n" .
+"  SEO            meta title, description, OG data (Yoast / Rank Math)\n" .
+"  Cache          clear site cache after writes\n" .
+"  WooCommerce    browse products and categories (read-only)\n" .
+"  AI Memory      persistent site knowledge across sessions\n" .
+"  History        auto-snapshot before every write — restore anytime\n\n" .
 "══════════════════════════════════════════════════════════\n" .
-"  FIRST STEPS — RUN THESE BEFORE BUILDING ANYTHING\n" .
+"  START OF SESSION\n" .
 "══════════════════════════════════════════════════════════\n\n" .
-"  1  bricks_get_system_prompt    Bricks element format guide + site rules\n" .
-"  2  bricks_get_site_info        WP/Bricks versions, active plugins, theme\n" .
-"  3  bricks_memory_list            load all saved knowledge about this site\n" .
-"  4  bricks_get_color_palette    brand colors and design tokens\n" .
-"  5  bricks_get_global_classes   reusable CSS utility classes\n\n" .
+"Run this single call first — it loads site info, color palette,\n" .
+"global classes, CSS variables, design framework, and memories\n" .
+"in one request:\n\n" .
+"  bricks_get_session_context\n\n" .
+"Then load the full element format guide and site rules:\n\n" .
+"  bricks_get_system_prompt\n\n" .
+"Before writing any elements, always validate first:\n\n" .
+"  bricks_validate_payload  { \"elements\": [...] }\n\n" .
 "══════════════════════════════════════════════════════════\n" .
 "  RULES\n" .
 "══════════════════════════════════════════════════════════\n\n" .
-"  • Always call bricks_get_system_prompt before building layouts\n" .
+"  • Use bricks_get_session_context at the start of every session\n" .
+"  • Always validate element arrays before writing\n" .
+"  • Use framework.semantic_map for CSS variable names — never guess\n" .
 "  • Reuse existing colors and global classes — never hardcode values\n" .
-"  • Save patterns, fixes, and preferences via bricks_memory_add\n" .
+"  • Save useful patterns and preferences via bricks_memory_add\n" .
 "  • Never access payment gateway settings or API credentials\n" .
-"  • Follow the site-specific custom instructions in the system prompt\n";
+"  • Follow the site-specific rules returned by bricks_get_system_prompt\n";
 
 $cfg_perplexity =
 "# Bricks Builder MCP — Perplexity / Comet Setup\n\n" .
@@ -232,7 +241,7 @@ $cfg_standard;
 			</nav>
 
 			<div class="bmcp-client-panel active" id="bmcp-panel-general" role="tabpanel" aria-labelledby="client-tab-general">
-				<p class="bmcp-client-hint">Universal setup block — copy and share with any AI to connect and get started immediately.</p>
+				<p class="bmcp-client-hint">Connection details and session instructions — paste this into any AI client to get started.</p>
 				<div class="bmcp-config-block bmcp-config-collapsible" id="bmcp-general-collapse-wrap">
 					<pre id="bmcp-config-general"><?php echo esc_html( $cfg_general ); ?></pre>
 					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-general" aria-label="Copy general setup">⎘ Copy</button>
