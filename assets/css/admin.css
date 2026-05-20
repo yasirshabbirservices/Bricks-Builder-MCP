@@ -426,7 +426,7 @@ body.settings_page_bricks-mcp #wpbody-content {
 	white-space: pre !important;
 }
 
-.bmcp-copy-config {
+.bmcp-config-block .bmcp-copy-config {
 	position: absolute !important;
 	top: 10px !important;
 	right: 10px !important;
@@ -1228,8 +1228,8 @@ body.settings_page_bricks-mcp #wpbody-content {
 
 /* ---- COLLAPSIBLE CONFIG BLOCK ---- */
 .bmcp-config-collapsible {
-	max-height: 170px;
-	overflow: hidden;
+	max-height: 170px !important;
+	overflow: hidden !important;
 	position: relative;
 	margin-bottom: 0 !important;
 	border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
