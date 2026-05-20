@@ -21,6 +21,7 @@ class Updater {
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, 'inject_update' ] );
 		add_filter( 'plugins_api',                           [ $this, 'plugin_info' ], 20, 3 );
 		add_action( 'upgrader_process_complete',             [ $this, 'purge_cache' ], 10, 2 );
+		add_action( 'admin_init',                            [ $this, 'maybe_force_update_check' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -86,6 +87,16 @@ class Updater {
 	public function purge_cache( $upgrader, $options ): void {
 		if ( ( $options['action'] ?? '' ) === 'update' && ( $options['type'] ?? '' ) === 'plugin' ) {
 			delete_transient( self::CACHE_KEY );
+		}
+	}
+
+	/**
+	 * When our GitHub release cache expires, force WordPress to re-check for plugin
+	 * updates on the next admin page load instead of waiting up to 12 hours.
+	 */
+	public function maybe_force_update_check(): void {
+		if ( get_transient( self::CACHE_KEY ) === false ) {
+			delete_site_transient( 'update_plugins' );
 		}
 	}
 
