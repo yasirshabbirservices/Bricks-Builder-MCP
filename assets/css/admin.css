@@ -1545,6 +1545,20 @@ body.bricks_page_bricks-mcp-settings .settings-error {
 	z-index: 1;
 }
 
+/* ---- ICON BUTTON INTERACTIVE STATES ---- */
+#bmcp-wrap .bmcp-icon-btn {
+	transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease !important;
+}
+#bmcp-wrap .bmcp-icon-btn--success {
+	color: var(--accent) !important;
+	border-color: rgba(0, 214, 143, 0.45) !important;
+	background: rgba(0, 214, 143, 0.10) !important;
+	cursor: default !important;
+}
+#bmcp-wrap .bmcp-icon-btn--success svg {
+	stroke: var(--accent) !important;
+}
+
 /* ---- SPIN ANIMATION (restore loading) ---- */
 @keyframes bmcp-rotate {
 	from { transform: rotate(0deg); }

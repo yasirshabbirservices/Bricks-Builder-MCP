@@ -244,7 +244,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">Connection details and session instructions — paste this into any AI client to get started.</p>
 				<div class="bmcp-config-block bmcp-config-collapsible" id="bmcp-general-collapse-wrap">
 					<pre id="bmcp-config-general"><?php echo esc_html( $cfg_general ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-general" aria-label="Copy general setup">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-general" aria-label="Copy general setup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 				<button type="button" class="bmcp-collapse-toggle" id="bmcp-general-toggle" aria-expanded="false" aria-controls="bmcp-general-collapse-wrap">Show full guide ↓</button>
 			</div>
@@ -253,7 +253,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">Add to <code>~/.claude/settings.json</code> (global) or <code>.claude/settings.json</code> (per project). Run <code>claude mcp list</code> to verify.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-claude"><?php echo esc_html( $cfg_standard ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-claude" aria-label="Copy Claude Code config">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-claude" aria-label="Copy Claude Code config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
@@ -261,7 +261,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">Create <code>.vscode/mcp.json</code> in your project root. Requires GitHub Copilot (Agent mode) or the Continue extension.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-vscode"><?php echo esc_html( $cfg_vscode ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-vscode" aria-label="Copy VS Code config">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-vscode" aria-label="Copy VS Code config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
@@ -269,7 +269,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> in the project root. Verify under <strong>Cursor → Settings → MCP</strong>.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-cursor"><?php echo esc_html( $cfg_standard ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-cursor" aria-label="Copy Cursor config">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-cursor" aria-label="Copy Cursor config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
@@ -277,7 +277,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">Open <strong>Trae AI → Settings → MCP Servers → Add Server</strong> and enter the URL and Bearer token, or paste the JSON below into <code>~/.trae/mcp.json</code>.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-trae"><?php echo esc_html( $cfg_standard ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-trae" aria-label="Copy Trae AI config">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-trae" aria-label="Copy Trae AI config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
@@ -285,7 +285,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">For <strong>Gemini CLI</strong>: add to <code>~/.gemini/settings.json</code>. For <strong>Gemini Code Assist</strong> (VS Code/JetBrains): use your editor's standard MCP HTTP config.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-gemini"><?php echo esc_html( $cfg_gemini ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-gemini" aria-label="Copy Gemini config">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-gemini" aria-label="Copy Gemini config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
@@ -293,7 +293,7 @@ $cfg_standard;
 				<p class="bmcp-client-hint">In <strong>Comet browser</strong>: <strong>Settings → AI → MCP Servers → Add Server</strong> and fill in the details below.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-perplexity"><?php echo esc_html( $cfg_perplexity ); ?></pre>
-					<button type="button" class="button bmcp-copy-config" data-target="bmcp-config-perplexity" aria-label="Copy Perplexity config">⎘ Copy</button>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-perplexity" aria-label="Copy Perplexity config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
