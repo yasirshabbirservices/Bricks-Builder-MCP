@@ -225,13 +225,13 @@ class Tools_Registry {
 			// Page writes
 			case 'bricks_update_page':
 			case 'bricks_delete_page':
-				return [ (int) ( $args['id'] ?? 0 ), $args['area'] ?? 'content' ];
+				return [ (int) ( $args['post_id'] ?? 0 ), $args['area'] ?? 'content' ];
 
 			// Template writes
 			case 'bricks_update_template':
 			case 'bricks_delete_template':
 			case 'bricks_set_template_conditions':
-				return [ (int) ( $args['id'] ?? 0 ), 'content' ];
+				return [ (int) ( $args['template_id'] ?? 0 ), 'content' ];
 
 			// Global settings writes (post_id = 0 → global option)
 			case 'bricks_update_global_settings':
@@ -258,7 +258,7 @@ class Tools_Registry {
 			// Post writes
 			case 'bricks_update_post':
 			case 'bricks_delete_post':
-				return [ (int) ( $args['id'] ?? 0 ), 'content' ];
+				return [ (int) ( $args['post_id'] ?? 0 ), 'content' ];
 
 			// Component writes
 			case 'bricks_create_component':

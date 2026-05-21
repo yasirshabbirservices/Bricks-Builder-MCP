@@ -1013,6 +1013,81 @@ Enable a loop on any block element:
 
 ---
 
+## Fonts & Typography Setup
+
+### Registering Google Fonts
+
+`bricks_update_global_settings` uses `array_merge` at the top level — passing `googleFonts` replaces the entire array. Always read first, then write the full updated list.
+
+**Step-by-step:**
+1. Call `bricks_list_global_fonts` — get currently registered fonts
+2. Append new entries to the existing `googleFonts` array
+3. Call `bricks_update_global_settings` with the complete array
+
+**Format:**
+```json
+{
+  "googleFonts": [
+    {"font_family": "Inter",            "font_weight": ["300","400","500","600","700"]},
+    {"font_family": "Playfair Display", "font_weight": ["400","600","700"]}
+  ]
+}
+```
+
+**Usage in elements** once registered:
+```json
+"_typography": {"font-family": "Inter", "font-size": "1.6rem", "font-weight": "400"}
+```
+If a CSS variable like `--font-body` is defined, prefer `{"raw": "var(--font-body)"}` over hardcoding the family name.
+
+---
+
+### Registering Custom Fonts from a URL
+
+If the user provides a URL to a font file (`.woff2`, `.woff`, `.ttf`, `.otf`) — whether from their own server, a CDN, or a file host — register it in two steps:
+
+**Step 1 — Import to media library:**
+```
+bricks_upload_media_from_url
+  url:   "https://cdn.example.com/fonts/brand-regular.woff2"
+  title: "Brand Font Regular"
+→ returns { id: 123, url: "https://yoursite.com/wp-content/uploads/.../brand-regular.woff2" }
+```
+
+**Step 2 — Register in Bricks global settings** (read `customFonts` first, append, then write):
+```json
+{
+  "customFonts": [
+    {"font_family": "BrandFont", "url": "https://yoursite.com/wp-content/uploads/.../brand-regular.woff2"}
+  ]
+}
+```
+
+Pass this to `bricks_update_global_settings`. If multiple weights exist, register each as a separate entry with the same `font_family` and the URL to that weight's file.
+
+---
+
+### What is NOT possible via MCP
+
+- Uploading a font file from your local machine — `bricks_upload_media_from_url` requires an accessible URL
+- Adobe Fonts / Typekit — requires a project code pasted manually in Bricks settings
+- System fonts (Arial, Georgia, system-ui, etc.) need no registration — use them directly in `_typography`
+
+---
+
+### Save Fonts to Memory
+
+After registering fonts, always save to memory so every future session knows the site's typefaces without re-checking:
+```
+bricks_memory_add
+  category:   "design"
+  title:      "Site Typography"
+  importance: "high"
+  content:    "Heading: Playfair Display (Google, 400/600/700). Body: Inter (Google, 300/400/500/600). Registered in Bricks global settings."
+```
+
+---
+
 ## CRITICAL: Visual Styling Quality
 
 **The AI must produce visually complete, polished layouts — not structural wireframes.** Every element needs appropriate color, spacing, and typography. Apply these rules on every build:
