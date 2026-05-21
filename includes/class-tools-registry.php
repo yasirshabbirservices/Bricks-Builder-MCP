@@ -243,6 +243,17 @@ class Tools_Registry {
 				return [ 0, 'global_classes' ];
 			case 'bricks_update_theme_styles':
 				return [ 0, 'theme_styles' ];
+			case 'bricks_delete_global_class':
+				return [ 0, 'global_classes' ];
+
+			// Nav menu writes
+			case 'bricks_create_nav_menu':
+			case 'bricks_update_nav_menu':
+				return [ 0, 'nav_menus' ];
+
+			// SEO writes
+			case 'bricks_update_page_seo':
+				return [ (int) ( $args['post_id'] ?? 0 ), 'content' ];
 
 			// Post writes
 			case 'bricks_update_post':

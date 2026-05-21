@@ -204,12 +204,6 @@ Before building anything, run these in order:
 
 ---
 
-## MISTAKES AND UNDO
-
-If you write something wrong, call `bricks_snapshot_list` to see what was auto-saved before your writes, then call `bricks_snapshot_restore` with the correct ID. Restoring is always safe — the current state is snapshotted before the restore, so nothing is permanently lost. Confirm with the user before restoring.
-
----
-
 ## Element JSON Structure
 
 Every Bricks element MUST have this exact structure:
@@ -251,10 +245,11 @@ Content elements (heading, text-basic, button, image, icon, text-link) must alwa
 
 ## CRITICAL: Global Classes — Use First, Inline Last
 
-**Always prefer global classes over inline settings.** Call `bricks_get_global_classes` at the start of every session and map class names to their IDs.
+**RULE: Always use global classes over inline settings. This is not optional.**
+If a global class exists for what you need, use `_cssGlobalClasses`. Writing inline styles when a matching global class exists is an error — it breaks design consistency and wastes the user's time.
 
 ```json
-// CORRECT — apply the class ID from bricks_get_global_classes
+// CORRECT — apply the class ID from bricks_get_session_context global_classes
 {"_cssGlobalClasses": ["icnnin", "aswtwb"]}
 
 // WRONG — duplicating styles that already exist as global classes
@@ -262,12 +257,45 @@ Content elements (heading, text-basic, button, image, icon, text-link) must alwa
 ```
 
 **Workflow:**
-1. Call `bricks_get_global_classes` → note all class names and their IDs.
+1. `bricks_get_session_context` returns `global_classes` — review all class names and IDs.
 2. When building an element, check: does a class like `btn`, `h1`, `h2`, `body-text-s`, `section-padding-l` etc. already exist?
 3. If yes → set `_cssGlobalClasses: ["<classId>"]` and omit redundant inline settings.
 4. If no → write inline settings, then consider creating a reusable class with `bricks_create_global_class`.
 
 Multiple classes: `"_cssGlobalClasses": ["id1", "id2"]` — order matters, later wins on conflicts.
+
+---
+
+## GLOBAL STYLES — MANDATORY RULES
+
+### Before writing any element styles:
+1. Check `color_palette` from `bricks_get_session_context` — use palette color IDs, never hardcode hex values
+2. Check `global_classes` from `bricks_get_session_context` — if a matching class exists, apply it via `_cssGlobalClasses`
+3. Use `framework.semantic_map` for CSS variable names — never guess prefixes like `--cf-` or `--op-`
+4. Only write inline settings if no global class and no CSS variable covers that style
+
+### Before modifying anything that affects the whole site, you MUST ask the user first:
+
+The following are **destructive global operations** — they change the entire site, not just one page.
+Always state what you are about to do and wait for confirmation before calling:
+
+| Tool | What it changes |
+|------|----------------|
+| `bricks_update_color_palette` | ALL colors site-wide |
+| `bricks_update_global_settings` | Site-wide Bricks configuration |
+| `bricks_update_theme_styles` | Typography and spacing site-wide |
+| `bricks_create_global_class` | Adds a new reusable class |
+| `bricks_update_global_class` | Modifies a class used across many pages |
+| `bricks_delete_global_class` | Permanently removes a class — may break pages |
+| `bricks_set_template_conditions` | Changes which pages a template applies to |
+| `bricks_replace_content` | Bulk-modifies every matching page/template |
+
+**Confirmation format:**
+> "I'm about to [action]. This will affect [scope]. Shall I proceed?"
+
+Wait for an explicit "yes", "go ahead", or "confirmed" before calling the tool.
+
+**Exception:** If the user's message already contains a direct instruction to make the change (e.g. "update the primary color to blue" or "remove the old-btn class"), that counts as confirmation — no need to ask again.
 
 ---
 
@@ -1153,26 +1181,6 @@ bricks_set_template_conditions(template_id, conditions)
 ---
 
 ## Available Tools
-
-| Category | Tools |
-|----------|-------|
-| **Session** | `bricks_get_session_context` *(use this first — replaces 5 separate calls)* |
-| **Validation** | `bricks_validate_payload` *(run before every write)* |
-| Site | `bricks_get_site_info`, `bricks_get_system_prompt`, `bricks_get_custom_instructions`, `bricks_set_front_page` |
-| Elements | `bricks_get_elements` |
-| Pages | `bricks_list_pages`, `bricks_get_page`, `bricks_create_page`, `bricks_update_page`, `bricks_delete_page`, `bricks_duplicate_page` |
-| Templates | `bricks_list_templates`, `bricks_get_template`, `bricks_create_template`, `bricks_update_template`, `bricks_delete_template`, `bricks_set_template_conditions` |
-| Global Design | `bricks_get_global_settings`, `bricks_update_global_settings`, `bricks_get_color_palette`, `bricks_update_color_palette`, `bricks_get_global_classes`, `bricks_create_global_class`, `bricks_update_global_class`, `bricks_delete_global_class`, `bricks_get_theme_styles`, `bricks_update_theme_styles`, `bricks_get_css_variables`, `bricks_list_global_fonts` |
-| Nav Menus | `bricks_list_nav_menus`, `bricks_create_nav_menu`, `bricks_get_nav_menu`, `bricks_update_nav_menu` |
-| Components | `bricks_list_components`, `bricks_get_component`, `bricks_create_component`, `bricks_update_component`, `bricks_delete_component` |
-| Posts/CPTs | `bricks_list_post_types`, `bricks_list_posts`, `bricks_get_post`, `bricks_create_post`, `bricks_update_post`, `bricks_delete_post` |
-| Media | `bricks_list_media`, `bricks_upload_media_from_url`, `bricks_get_media`, `bricks_delete_media` |
-| WooCommerce | `bricks_list_products`, `bricks_get_product`, `bricks_list_product_categories` |
-| SEO | `bricks_get_page_seo`, `bricks_update_page_seo` *(requires Yoast SEO, Rank Math, or The SEO Framework)* |
-| Search | `bricks_search_content`, `bricks_replace_content` |
-| Cache | `bricks_clear_cache` |
-| Memory | `bricks_memory_list`, `bricks_memory_get`, `bricks_memory_add`, `bricks_memory_update`, `bricks_memory_delete`, `bricks_memory_search` |
-| History | `bricks_snapshot_list`, `bricks_snapshot_get`, `bricks_snapshot_restore`, `bricks_snapshot_delete` |
 
 **Workflow summary:** `bricks_get_session_context` → build elements → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
 

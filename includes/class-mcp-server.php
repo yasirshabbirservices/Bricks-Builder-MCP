@@ -125,7 +125,7 @@ class MCP_Server {
 			];
 		}
 
-		$text = is_string( $raw ) ? $raw : wp_json_encode( $raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+		$text = is_string( $raw ) ? $raw : wp_json_encode( $raw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		return [
 			'content' => [ [ 'type' => 'text', 'text' => $text ] ],
@@ -213,7 +213,7 @@ class MCP_Server {
 		}
 
 		$raw  = $this->registry->dispatch( $tool_map[ $uri ], [] );
-		$text = is_wp_error( $raw ) ? $raw->get_error_message() : wp_json_encode( $raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
+		$text = is_wp_error( $raw ) ? $raw->get_error_message() : wp_json_encode( $raw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		return [
 			'contents' => [
@@ -250,6 +250,10 @@ class MCP_Server {
 	}
 
 	private function get_brief_instructions(): string {
-		return 'You are connected to Bricks Builder MCP. Start with bricks_get_site_info to understand the site, then bricks_get_elements to see available elements. Use bricks_get_system_prompt for the full guide. Build pages by constructing an elements array and calling bricks_create_page or bricks_update_page.';
+		return 'Connected to Bricks Builder MCP on ' . get_bloginfo( 'name' ) . '. '
+			. 'Start every session with bricks_get_session_context (returns site info, palette, classes, CSS variables, framework map, and memories in one call). '
+			. 'Then call bricks_get_system_prompt for the full guide. '
+			. 'Always run bricks_validate_payload before writing any elements. '
+			. 'Never hardcode hex colors or write inline styles when global classes exist.';
 	}
 }

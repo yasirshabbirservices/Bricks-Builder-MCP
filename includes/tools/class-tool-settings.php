@@ -174,7 +174,19 @@ class Tool_Settings extends Tool_Base {
 
 	private function get_global_settings(): array {
 		$settings = Bricks_Data::get_global_settings();
-		return $this->filter_sensitive( $settings );
+		$filtered = $this->filter_sensitive( $settings );
+
+		// Replace raw customCss (can be 15–50 KB on design-system sites) with a size hint.
+		// Use bricks_get_css_variables to get the extracted variables instead.
+		if ( isset( $filtered['customCss'] ) ) {
+			$filtered['customCss_note'] = sprintf(
+				'%d chars — call bricks_get_css_variables to get extracted CSS variables.',
+				strlen( $settings['customCss'] ?? '' )
+			);
+			unset( $filtered['customCss'] );
+		}
+
+		return $filtered;
 	}
 
 	private function update_global_settings( array $args ): array|\WP_Error {

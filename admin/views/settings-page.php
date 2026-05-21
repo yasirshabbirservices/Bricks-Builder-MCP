@@ -195,15 +195,15 @@ $cfg_standard;
 					<div class="bmcp-api-grid-label">API Key</div>
 					<div class="bmcp-key-row">
 						<code class="bmcp-key-display" id="bmcp-key-masked"><?php echo esc_html( \BricksMCP\Auth::masked_key() ); ?></code>
-						<button type="button" class="button" id="bmcp-btn-copy" aria-label="Copy API key to clipboard">⎘ Copy</button>
-						<button type="button" class="button" id="bmcp-btn-regen" aria-label="Regenerate API key">↺ Regen</button>
+						<button type="button" class="button bmcp-icon-btn" id="bmcp-btn-copy" title="<?php esc_attr_e( 'Copy API key', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Copy API key', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+						<button type="button" class="button bmcp-icon-btn" id="bmcp-btn-regen" title="<?php esc_attr_e( 'Regenerate API key', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Regenerate API key', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
 					</div>
 				</div>
 				<div class="bmcp-api-grid-item">
 					<div class="bmcp-api-grid-label">MCP Endpoint</div>
 					<div class="bmcp-key-row">
 						<code class="bmcp-key-display" id="bmcp-endpoint"><?php echo esc_html( $endpoint ); ?></code>
-						<button type="button" class="button bmcp-copy-config" data-target="bmcp-endpoint" aria-label="Copy endpoint URL">⎘ Copy</button>
+						<button type="button" class="button bmcp-icon-btn bmcp-copy-config" data-target="bmcp-endpoint" title="<?php esc_attr_e( 'Copy endpoint URL', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Copy endpoint URL', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 					</div>
 				</div>
 			</div>
