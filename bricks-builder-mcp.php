@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://yasirshabbir.com
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.4.0
+ * Version:     1.5.0
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     MIT
@@ -14,18 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',              '1.4.0' );
-define( 'BMCP_PLUGIN_FILE',          __FILE__ );
-define( 'BMCP_PLUGIN_DIR',           plugin_dir_path( __FILE__ ) );
-define( 'BMCP_PLUGIN_URL',           plugin_dir_url( __FILE__ ) );
-define( 'BMCP_API_KEY_OPTION',       'bmcp_api_key' );
-define( 'BMCP_ADMIN_USER_OPTION',    'bmcp_admin_user_id' );
-define( 'BMCP_INSTRUCTIONS_OPTION',  'bmcp_custom_instructions' );
-define( 'BMCP_ENABLED_TOOLS_OPTION', 'bmcp_enabled_tools' );
-define( 'BMCP_ACTIVITY_LOG_OPTION',  'bmcp_activity_log' );
-define( 'BMCP_TOOL_STATES_OPTION',   'bmcp_tool_states' );
-define( 'BMCP_ADVANCED_OPTION',     'bmcp_advanced_settings' );
-define( 'BMCP_REST_NAMESPACE',       'bricks-mcp/v1' );
+define( 'BMCP_VERSION',                  '1.5.0' );
+define( 'BMCP_PLUGIN_FILE',              __FILE__ );
+define( 'BMCP_PLUGIN_DIR',               plugin_dir_path( __FILE__ ) );
+define( 'BMCP_PLUGIN_URL',               plugin_dir_url( __FILE__ ) );
+define( 'BMCP_API_KEY_OPTION',           'bmcp_api_key' );
+define( 'BMCP_ADMIN_USER_OPTION',        'bmcp_admin_user_id' );
+define( 'BMCP_INSTRUCTIONS_OPTION',      'bmcp_custom_instructions' );
+define( 'BMCP_ENABLED_TOOLS_OPTION',     'bmcp_enabled_tools' );
+define( 'BMCP_ACTIVITY_LOG_OPTION',      'bmcp_activity_log' );
+define( 'BMCP_TOOL_STATES_OPTION',       'bmcp_tool_states' );
+define( 'BMCP_ADVANCED_OPTION',          'bmcp_advanced_settings' );
+define( 'BMCP_BUSINESS_PROFILE_OPTION',  'bmcp_business_profile' );
+define( 'BMCP_REST_NAMESPACE',           'bricks-mcp/v1' );
 define( 'BMCP_DB_VERSION_OPTION',    'bmcp_db_version' );
 
 // Bricks DB key fallbacks (used when Bricks constants not yet defined)

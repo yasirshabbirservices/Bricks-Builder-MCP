@@ -54,6 +54,27 @@ class Tool_Context extends Tool_Base {
 			$result['high_priority_memories'] = $this->get_high_priority_memories();
 		}
 
+		// Business profile — include if configured so AI can replace placeholder content in templates
+		$business_profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
+		if ( ! empty( $business_profile ) && is_array( $business_profile ) ) {
+			$result['business_profile']      = $business_profile;
+			$result['business_profile_note'] = 'Use this to replace ALL placeholder content in templates: logo_url → logoipsum/placeholder images, email → dummy emails, phone → +111 numbers, about_text → Lorem ipsum, services → placeholder service names, nav_items → placeholder navigation links.';
+		}
+
+		// Template categories — let AI know the library exists without loading the CSV on every session
+		$result['template_categories'] = [
+			'note'       => 'Call bricks_search_templates to get full JSON for any category. Call bricks_get_template_library with the exact name to fetch elements.',
+			'categories' => [
+				'Back To Top', 'Banner', 'Bio Links', 'Brands', 'Button',
+				'Call To Action', 'Cart', 'Coming Soon', 'Contact US', 'Counter',
+				'Email Opt-In', 'Error Page', 'FAQs', 'Features', 'Footer',
+				'Header', 'Hero', 'Pagination', 'Popup', 'Post Grid',
+				'Post Loop', 'Post Section', 'Pricing', 'Product Categories',
+				'Product Tabs', 'Products', 'Pros and Cons', 'Single Post',
+				'Single Product', 'Slider', 'Table of Contents', 'Team', 'Testimonials',
+			],
+		];
+
 		// Design system detection — embed mandatory onboarding directive in the response
 		// so the AI treats it as a hard requirement (tool data), not a soft guideline (system prompt).
 		$has_design_system = count( $global_classes ) >= 2
@@ -180,10 +201,36 @@ class Tool_Context extends Tool_Base {
 		if ( ! is_array( $raw ) ) {
 			return [];
 		}
-		return array_values( array_map( fn( $c ) => [
-			'id'   => $c['id']   ?? '',
-			'name' => $c['name'] ?? '',
-		], $raw ) );
+		return array_values( array_map( function( $c ) {
+			$name = $c['name'] ?? '';
+			return [
+				'id'   => $c['id'] ?? '',
+				'name' => $name,
+				'hint' => $this->get_class_hint( $name ),
+			];
+		}, $raw ) );
+	}
+
+	private function get_class_hint( string $name ): string {
+		$lower = strtolower( $name );
+
+		if ( preg_match( '/btn|button/', $lower ) ) {
+			return 'Button element';
+		}
+		if ( preg_match( '/heading|^h[1-6]$|heading-[1-6]/', $lower ) ) {
+			return 'Heading typography';
+		}
+		if ( preg_match( '/body.?text|paragraph|body.?copy/', $lower ) ) {
+			return 'Body text';
+		}
+		if ( preg_match( '/section.?padding|padding|spacing/', $lower ) ) {
+			return 'Section spacing';
+		}
+		if ( preg_match( '/container|wrapper|wrap$/', $lower ) ) {
+			return 'Content width wrapper';
+		}
+
+		return '';
 	}
 
 	// -------------------------------------------------------------------------

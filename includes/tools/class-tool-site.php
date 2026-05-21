@@ -1323,9 +1323,139 @@ bricks_set_template_conditions(template_id, conditions)
 
 ---
 
+## TEMPLATE-FIRST WORKFLOW — Always Check Before Building From Scratch
+
+**MANDATORY: Before writing any section from scratch, always check the template library first.**
+
+### Step 1 — Search the library
+```
+bricks_search_templates({ "category": "Hero" })   // or whatever section type you need
+```
+Available categories: Back To Top, Banner, Bio Links, Brands, Button, Call To Action, Cart, Coming Soon, Contact US, Counter, Email Opt-In, Error Page, FAQs, Features, Footer, Header, Hero, Pagination, Popup, Post Grid, Post Loop, Post Section, Pricing, Product Categories, Product Tabs, Products, Pros and Cons, Single Post, Single Product, Slider, Table of Contents, Team, Testimonials.
+
+### Step 2 — Fetch the template
+```
+bricks_get_template_library({ "template_name": "Hero" })
+```
+Returns `content[]` (Bricks elements), `globalClasses[]`, and `placeholder_map[]` — a list of all dummy values that need replacing.
+
+### Step 3 — Replace all placeholders with real business data
+```
+bricks_get_business_profile()
+```
+Apply this substitution map — replace every entry in `placeholder_map` with the matching real value:
+
+| Placeholder type | Replace with field from business profile |
+|---|---|
+| `logo_or_placeholder_image` | `assets.logo_url` (light bg) or `assets.logo_dark_url` (dark bg) |
+| `email` | `contact.email` |
+| `phone_number` | `contact.phone` |
+| `lorem_ipsum_text` | `brand.about_text` for body copy; `brand.tagline` for short headlines |
+| `placeholder_link` (value `"#"`) | Real URL from `bricks_list_pages`, or `navigation.cta_url` for CTA buttons |
+
+Also replace nav placeholder items with `navigation.nav_items` (comma-separated list) and service placeholders with entries from `services[]`.
+
+### Step 4 — Validate and write
+```
+bricks_validate_payload({ "elements": [...modified elements...], "auto_fix": true })
+```
+Then write to the target page or template as normal.
+
+**Only build from scratch when no template exists for the section type.** Templates are pre-validated, structurally correct, and visually complete — always faster and safer than generating JSON from scratch.
+
+---
+
+## SEO — Build Every Page Search-Ready
+
+Apply these rules on every page and template creation or update. SEO is a build requirement, not an afterthought.
+
+### Heading hierarchy — strictly one h1 per page
+- Every page has exactly ONE `h1` element — the primary page title (e.g. "Web Design Services")
+- Section titles use `h2` (e.g. "Our Process", "What We Offer")
+- Sub-section items use `h3` (e.g. individual service names, FAQ questions)
+- Never skip heading levels — jumping from `h1` to `h3` without an `h2` is invalid
+- Never use a heading element for visual size alone — if you need large decorative text, apply font size via a global class or `_typography` setting on a regular text element
+
+### Meta data — set it on every page
+After creating or updating any page:
+```
+bricks_update_page_seo({
+  "post_id": <id>,
+  "title": "<Primary Keyword | Brand Name>",
+  "meta_description": "<150–160 character sentence including the focus keyword>",
+  "focus_keyword": "<single main keyword>"
+})
+```
+
+### Images — always set alt text
+- Every `image` element MUST have `_alt` set in its `settings`
+- Describe the image content factually: `"Team of designers collaborating at a whiteboard"`
+- For purely decorative images (dividers, abstract shapes): use `""` (empty string) — this tells screen readers to skip it
+- Never leave `_alt` missing or undefined
+
+### Page slugs — keyword-first
+- When creating a page, set `slug` to an SEO-friendly value: `"web-design-services"` not `"page-2"` or `"new-page"`
+- Lowercase, hyphen-separated, keyword at the start
+
+### Semantic element choices
+- Outermost section wrapper → `section` element
+- Site navigation → `nav-nested` element (renders semantic `<nav>`)
+- Site-wide footer → `footer` template type with template conditions, not a plain section
+- Links: always use real destination URLs — call `bricks_list_pages` to find page URLs; never leave `"#"` as a link value in final output
+
+---
+
+## ACCESSIBILITY — WCAG AA Compliance on Every Build
+
+Apply WCAG 2.1 AA standards on every page and template. Accessibility is a build requirement, not a post-launch audit.
+
+### Alt text — required on every image
+- Every `image` element MUST have `_alt` set in `settings` — WCAG 1.1.1
+- Describe content: `"Barista pouring latte art"` — not `"image"` or `"photo"`
+- Decorative images: use `""` (empty string) so screen readers skip them
+- Never omit `_alt` entirely
+
+### Icon-only buttons — must have aria_label
+- If a button contains only an icon with no visible text, set `aria_label` in its settings
+- Examples: search button → `"Search"`, close button → `"Close menu"`, hamburger → `"Open navigation"`
+
+### Color contrast — minimum ratios (WCAG 1.4.3)
+- Normal text (below 24px / below 18px bold): 4.5:1 contrast ratio against its background
+- Large text (24px+ or 18px+ bold): minimum 3:1 ratio
+- Light gray text on white background (e.g. `#999` on `#fff`) fails — do not use
+
+### Focus visibility — never hide outlines
+- Do not set `outline: none` or `outline: 0` in `_cssCustom` without providing a visible replacement focus indicator
+- Keyboard users depend on visible focus rings
+
+### Forms — label every field
+- Every form input must have a `label` element with `for` / `id` association
+- Use the native Bricks `form` element — do not build custom HTML inputs without accessible labels
+- Placeholder text is NOT a substitute for a label (it disappears on input)
+
+### Skip link — required on full-page builds
+- When building a complete page layout (not a partial section template), include a "Skip to content" link as the absolute first element
+- The link should point to `#main-content` and contain the text "Skip to content"
+- Add `_id: "main-content"` to the first main content block element
+
+### Heading order — always sequential
+- Use heading elements (`h1`–`h6`) for document structure only — never for visual sizing
+- Resize headings via CSS (global class, `_typography`) — not by picking a higher or lower heading level
+
+### Link text — always descriptive
+- Never use `"Click here"`, `"Read more"`, or `"Learn more"` as the sole link text
+- Use descriptive text: `"Read our SEO Services guide"`, `"Download the pricing PDF"`
+- When an entire card is linked, the card heading should serve as the link text
+
+### Landmark regions — one main per page
+- Every complete page must have exactly one main block element (the primary content area)
+- Use `header` and `footer` template types for site-wide landmarks — do not duplicate with generic `div` or `section` elements
+
+---
+
 ## Available Tools
 
-**Workflow summary:** `bricks_get_session_context` → build elements → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
+**Workflow summary:** `bricks_get_session_context` → `bricks_search_templates` (check library first) → `bricks_get_business_profile` (replace placeholders) → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
 
 PROMPT
 			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )

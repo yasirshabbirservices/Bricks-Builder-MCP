@@ -60,6 +60,44 @@ class Admin {
 			'sanitize_callback' => [ $this, 'sanitize_advanced_settings' ],
 			'default'           => [],
 		] );
+
+		register_setting( 'bmcp_settings_business_profile', BMCP_BUSINESS_PROFILE_OPTION, [
+			'sanitize_callback' => [ $this, 'sanitize_business_profile' ],
+			'default'           => [],
+		] );
+	}
+
+	public function sanitize_business_profile( $input ): array {
+		if ( ! is_array( $input ) ) {
+			return [];
+		}
+
+		$text_fields = [
+			'business_name', 'tagline', 'business_type', 'target_audience', 'tone_of_voice',
+			'phone', 'address', 'city_country', 'nav_items', 'cta_text', 'copyright_text',
+		];
+
+		$url_fields = [
+			'facebook_url', 'instagram_url', 'linkedin_url', 'twitter_url', 'youtube_url',
+			'logo_url', 'logo_dark_url', 'cta_url',
+		];
+
+		$output = [];
+
+		foreach ( $text_fields as $field ) {
+			$output[ $field ] = sanitize_text_field( $input[ $field ] ?? '' );
+		}
+
+		$output['email'] = sanitize_email( $input['email'] ?? '' );
+
+		foreach ( $url_fields as $field ) {
+			$output[ $field ] = sanitize_url( $input[ $field ] ?? '' );
+		}
+
+		$output['about_text'] = sanitize_textarea_field( $input['about_text'] ?? '' );
+		$output['services']   = sanitize_textarea_field( $input['services']   ?? '' );
+
+		return $output;
 	}
 
 	public function sanitize_advanced_settings( $input ): array {

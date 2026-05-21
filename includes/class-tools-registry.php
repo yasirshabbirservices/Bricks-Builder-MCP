@@ -34,6 +34,8 @@ class Tools_Registry {
 			new Tools\Tool_SEO(),
 			new Tools\Tool_Validator(),
 			new Tools\Tool_Context(),
+			new Tools\Tool_Template_Library(),
+			new Tools\Tool_Business_Profile(),
 		];
 
 		foreach ( $groups as $handler ) {
