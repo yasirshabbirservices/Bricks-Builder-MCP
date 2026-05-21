@@ -37,17 +37,43 @@ class Tool_Context extends Tool_Base {
 
 		$include_memories = $this->bool_arg( $args, 'include_memories', true );
 
+		$color_palette  = $this->get_color_palette();
+		$global_classes = $this->get_global_classes();
+		$css_variables  = $this->get_css_variables();
+
 		$result = [
-			'site_info'       => $this->get_site_info(),
-			'color_palette'   => $this->get_color_palette(),
-			'global_classes'  => $this->get_global_classes(),
-			'css_variables'   => $this->get_css_variables(),
-			'global_fonts'    => $this->get_global_fonts(),
-			'framework'       => $this->detect_framework(),
+			'site_info'      => $this->get_site_info(),
+			'color_palette'  => $color_palette,
+			'global_classes' => $global_classes,
+			'css_variables'  => $css_variables,
+			'global_fonts'   => $this->get_global_fonts(),
+			'framework'      => $this->detect_framework(),
 		];
 
 		if ( $include_memories ) {
 			$result['high_priority_memories'] = $this->get_high_priority_memories();
+		}
+
+		// Design system detection — embed mandatory onboarding directive in the response
+		// so the AI treats it as a hard requirement (tool data), not a soft guideline (system prompt).
+		$has_design_system = count( $global_classes ) >= 2
+			|| count( $css_variables ) >= 5
+			|| count( $color_palette ) >= 3;
+
+		if ( $has_design_system ) {
+			$result['design_system_status'] = 'configured';
+			$result['design_system_note']   = 'Site has a design system. Follow the global styles hierarchy: global classes → CSS variables → theme styles → palette colors → inline settings. Use _cssCustom only for pseudo-elements or complex selectors.';
+		} else {
+			$result['design_system_status'] = 'not_configured';
+			$result['action_required']      = 'STOP. Do not proceed with any build or design task. You MUST ask the user this question first (copy it exactly):' . "\n\n"
+				. '"I can see this site doesn\'t have global theme styles set up yet. How would you like to proceed?' . "\n\n"
+				. '1. Already done — styles exist somewhere I didn\'t detect' . "\n"
+				. '2. Set it up for me — share your brand details and I\'ll create your color palette, global classes, and typography' . "\n"
+				. '3. I\'ll handle it later — just use neutral placeholders for now and proceed"' . "\n\n"
+				. 'Wait for the user\'s answer before doing anything else.' . "\n\n"
+				. 'If user picks 1: call bricks_get_global_classes, bricks_get_css_variables, bricks_get_theme_styles to re-check. Report what you find. Proceed with whatever exists.' . "\n"
+				. 'If user picks 2: ask for primary color, accent color, text color (default #1a1a1a), background color (default #ffffff), heading font, body font, style mood (minimal/modern/bold/elegant). Then call bricks_update_color_palette, create global classes (heading-1, heading-2, body-text, btn-primary, section-padding, container) via bricks_create_global_class, call bricks_update_global_settings to register fonts. Confirm setup complete, then proceed.' . "\n"
+				. 'If user picks 3: proceed using neutral fallbacks only — #1a1a1a text, #ffffff background, #0066cc primary. Do NOT use semantic_map variable names (they are placeholders not defined on this site). Tell the user styles will look generic until the design system is set up.';
 		}
 
 		return $result;
