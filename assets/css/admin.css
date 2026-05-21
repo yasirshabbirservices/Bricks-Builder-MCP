@@ -1549,13 +1549,14 @@ body.bricks_page_bricks-mcp-settings .settings-error {
 #bmcp-wrap .bmcp-icon-btn {
 	transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease !important;
 }
-#bmcp-wrap .bmcp-icon-btn--success {
+#bmcp-wrap .bmcp-icon-btn.bmcp-icon-btn--success {
 	color: var(--accent) !important;
 	border-color: rgba(0, 214, 143, 0.45) !important;
 	background: rgba(0, 214, 143, 0.10) !important;
-	cursor: default !important;
+	opacity: 1 !important;
 }
-#bmcp-wrap .bmcp-icon-btn--success svg {
+#bmcp-wrap .bmcp-icon-btn.bmcp-icon-btn--success svg {
+	fill: none !important;
 	stroke: var(--accent) !important;
 }
 

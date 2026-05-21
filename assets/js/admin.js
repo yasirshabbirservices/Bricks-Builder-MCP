@@ -33,13 +33,35 @@ jQuery( function ( $ ) {
 	} );
 
 	// ---- Copy helpers ----
+	function showCopySuccess( $btn ) {
+		$btn.html( ICON_CHECK ).addClass( 'bmcp-icon-btn--success' );
+		setTimeout( function () {
+			$btn.html( ICON_COPY ).removeClass( 'bmcp-icon-btn--success' );
+		}, 2000 );
+	}
+
+	function fallbackCopy( text ) {
+		var ta = document.createElement( 'textarea' );
+		ta.value = text;
+		ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+		document.body.appendChild( ta );
+		ta.select();
+		var ok = false;
+		try { ok = document.execCommand( 'copy' ); } catch ( e ) {}
+		document.body.removeChild( ta );
+		return ok;
+	}
+
 	function copyText( text, $btn ) {
-		navigator.clipboard.writeText( text ).then( function () {
-			$btn.html( ICON_CHECK ).addClass( 'bmcp-icon-btn--success' ).prop( 'disabled', true );
-			setTimeout( function () {
-				$btn.html( ICON_COPY ).removeClass( 'bmcp-icon-btn--success' ).prop( 'disabled', false );
-			}, 2000 );
-		} );
+		if ( navigator.clipboard && window.isSecureContext ) {
+			navigator.clipboard.writeText( text )
+				.then( function () { showCopySuccess( $btn ); } )
+				.catch( function () {
+					if ( fallbackCopy( text ) ) { showCopySuccess( $btn ); }
+				} );
+		} else {
+			if ( fallbackCopy( text ) ) { showCopySuccess( $btn ); }
+		}
 	}
 
 	$( '#bmcp-btn-copy' ).on( 'click', function () {
