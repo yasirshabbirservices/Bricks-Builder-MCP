@@ -33,21 +33,47 @@ class Updater {
 			return $transient;
 		}
 
-		$release = $this->get_latest_release();
+		$plugin_file = plugin_basename( BMCP_PLUGIN_FILE );
+		$release     = $this->get_latest_release();
+
 		if ( ! $release ) {
 			return $transient;
 		}
 
 		$remote_version = ltrim( $release->tag_name, 'v' );
+
 		if ( version_compare( BMCP_VERSION, $remote_version, '<' ) ) {
 			$download = $this->get_download_url( $release );
 			if ( $download ) {
-				$transient->response[ self::PLUGIN_SLUG ] = (object) [
+				// Clear any stale "no update" entry so WordPress shows the Update button.
+				unset( $transient->no_update[ $plugin_file ] );
+
+				$transient->response[ $plugin_file ] = (object) [
+					'id'           => $plugin_file,
 					'slug'         => 'bricks-builder-mcp',
-					'plugin'       => self::PLUGIN_SLUG,
+					'plugin'       => $plugin_file,
 					'new_version'  => $remote_version,
 					'url'          => $release->html_url,
 					'package'      => $download,
+					'requires'     => '6.0',
+					'requires_php' => '8.0',
+					'tested'       => get_bloginfo( 'version' ),
+					'icons'        => [],
+					'banners'      => [],
+					'banners_rtl'  => [],
+				];
+			}
+		} else {
+			// Tell WordPress this plugin is current so it stops re-checking it.
+			if ( ! isset( $transient->no_update[ $plugin_file ] ) ) {
+				$transient->no_update[ $plugin_file ] = (object) [
+					'id'           => $plugin_file,
+					'slug'         => 'bricks-builder-mcp',
+					'plugin'       => $plugin_file,
+					'new_version'  => BMCP_VERSION,
+					'url'          => 'https://github.com/' . self::GITHUB_REPO,
+					'package'      => '',
+					'requires'     => '6.0',
 					'requires_php' => '8.0',
 					'tested'       => get_bloginfo( 'version' ),
 				];
