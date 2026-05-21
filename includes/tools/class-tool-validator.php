@@ -312,6 +312,39 @@ class Tool_Validator extends Tool_Base {
 					}
 				}
 			}
+
+			// _width/_height must be plain CSS strings, not {size, unit} objects (old Bricks v1 format)
+			$size_keys = [ '_width', '_height', '_widthMin', '_widthMax', '_heightMin', '_heightMax' ];
+			if ( in_array( $key, $size_keys, true ) && is_array( $value ) && isset( $value['size'] ) ) {
+				$fixed_val = ( $value['size'] ?? '0' ) . ( $value['unit'] ?? 'px' );
+				$errors[] = "{$ctx}: '{$key}' must be a plain CSS string like \"100%\" or \"35rem\", not a {size, unit} object — use \"{$fixed_val}\".";
+				if ( $auto_fix ) {
+					$mutable[ $key ] = $fixed_val;
+				}
+			}
+
+			// _padding/_margin must be an object {top, right, bottom, left} with CSS string values
+			$box_model_keys = [ '_padding', '_margin' ];
+			if ( in_array( $key, $box_model_keys, true ) ) {
+				if ( is_string( $value ) && $value !== '' ) {
+					$errors[] = "{$ctx}: '{$key}' must be an object {top, right, bottom, left} with CSS string values, not a flat string \"{$value}\".";
+					if ( $auto_fix ) {
+						$mutable[ $key ] = [ 'top' => $value, 'right' => $value, 'bottom' => $value, 'left' => $value ];
+					}
+				} elseif ( is_array( $value ) ) {
+					foreach ( [ 'top', 'right', 'bottom', 'left' ] as $side ) {
+						if ( isset( $value[ $side ] ) && is_numeric( $value[ $side ] ) && $value[ $side ] !== 0 ) {
+							$warnings[] = "{$ctx}: '{$key}.{$side}' is a bare number — should be a CSS string like \"2rem\" or \"20px\".";
+						}
+					}
+				}
+			}
+
+			// _cssCustom breakpoint suffix must use colon, not underscore
+			// e.g. _cssCustom:mobile_landscape NOT _cssCustom_mobile_landscape
+			if ( preg_match( '/^(_\w+?)_(mobile|tablet)/', (string) $key, $m ) ) {
+				$warnings[] = "{$ctx}: setting key '{$key}' uses underscore before breakpoint — use colon: '{$m[1]}:{$m[2]}' (e.g. '_cssCustom:mobile_landscape').";
+			}
 		}
 	}
 

@@ -121,9 +121,13 @@ class Tool_Site extends Tool_Base {
 
 	private function get_custom_instructions(): array {
 		$instructions = get_option( BMCP_INSTRUCTIONS_OPTION, '' );
+		$is_empty     = empty( trim( (string) $instructions ) );
 		return [
 			'instructions' => (string) $instructions,
-			'is_empty'     => empty( trim( (string) $instructions ) ),
+			'is_empty'     => $is_empty,
+			'note'         => $is_empty
+				? 'No custom instructions configured. Proceed using the system prompt from bricks_get_system_prompt.'
+				: 'Apply these instructions for all tasks on this site.',
 		];
 	}
 
@@ -1164,7 +1168,7 @@ A small uppercase label above headings adds visual hierarchy:
 
 ### Global CSS Classes — Always Look Up First
 
-The class IDs below are **examples from a common Bricks design system**. The actual IDs on this site will be different. **Always call `bricks_get_global_classes` first** and match class names to their real IDs before setting `_cssGlobalClasses`.
+**Global class IDs are opaque 6-character random strings** like `"icnnin"`, `"tlhxfv"`, `"hflnbm"`. They have NO predictable relationship to the class name. **Never invent or guess a class ID.** Always get them from `bricks_get_session_context` → `global_classes`. If the class you need doesn't appear in the response, write inline settings instead — do not guess at an ID.
 
 If you find classes like `btn`, `h1`, `h2`, `h3`, `body-text-m`, `section-padding-l` etc., prefer using those IDs over writing duplicate inline styles.
 
@@ -1183,6 +1187,11 @@ If you find classes like `btn`, `h1`, `h2`, `h3`, `body-text-m`, `section-paddin
 9. **Wrong icon library name** — Use `"fontawesomeSolid"`, `"fontawesomeRegular"`, `"fontawesomeBrands"`, `"themify"` — NOT `"fontawesome"`.
 10. **`social-icons` items key** — Use `"icons"` array, not `"items"`.
 11. **`_borderRadius` as a separate key** — Border radius goes INSIDE `"_border": {"radius": {...}}`, not as a separate `_borderRadius` key.
+12. **Unitless font-size** — `font-size` must be a CSS string with units: `"1.6rem"` or `"18px"`. Never a bare number (`16`) or unitless string (`"16"`). Prefer `rem` over `px` for typography.
+13. **`_width`/`_height` as object** — Must be a plain CSS string: `"100%"` or `"35rem"`. Never the old `{"size": 100, "unit": "%"}` format.
+14. **`_padding`/`_margin` as flat string** — Must be an object: `{"top": "2rem", "bottom": "2rem"}`. A flat string `"2rem"` is invalid.
+15. **Guessed global class IDs** — Class IDs are opaque random strings (`"icnnin"`). Never invent one. Always get them from `bricks_get_session_context`.
+16. **Breakpoint key with underscore** — Breakpoint suffixes use a colon: `_cssCustom:mobile_landscape`, NOT `_cssCustom_mobile_landscape`.
 
 ---
 
