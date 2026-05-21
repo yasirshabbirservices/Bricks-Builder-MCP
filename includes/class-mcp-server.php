@@ -251,9 +251,9 @@ class MCP_Server {
 
 	private function get_brief_instructions(): string {
 		return 'Connected to Bricks Builder MCP on ' . get_bloginfo( 'name' ) . '. '
-			. 'Start every session with bricks_get_session_context (returns site info, palette, classes, CSS variables, framework map, and memories in one call). '
-			. 'Then call bricks_get_system_prompt for the full guide. '
-			. 'Always run bricks_validate_payload before writing any elements. '
-			. 'Never hardcode hex colors or write inline styles when global classes exist.';
+			. 'Start every session with bricks_get_session_context, then bricks_get_system_prompt for the full guide. '
+			. 'After bricks_get_session_context: if global_classes and css_variables are both empty, ask the user whether to set up the design system now, confirm styles already exist, or proceed with neutral placeholders. '
+			. 'Always validate with bricks_validate_payload before writing. '
+			. 'Use global classes, CSS variables, and theme styles before any inline settings. Never use _cssCustom for values expressible via Bricks settings.';
 	}
 }

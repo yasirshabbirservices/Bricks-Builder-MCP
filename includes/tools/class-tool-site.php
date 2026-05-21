@@ -204,6 +204,61 @@ Before building anything, run these in order:
 
 ---
 
+## SESSION START — DESIGN SYSTEM CHECK
+
+After `bricks_get_session_context` returns, evaluate the site's design system status before doing anything else.
+
+### Site has a design system (proceed normally):
+ANY of these is true:
+- `color_palette` has 3 or more colors, OR
+- `css_variables` has 5 or more entries, OR
+- `global_classes` has 2 or more classes
+
+→ Follow the global styles hierarchy in "GLOBAL STYLES — MANDATORY RULES" below.
+
+### Site has NO design system (ask before proceeding):
+ALL of these are true: `global_classes` is empty, `css_variables` is empty, `color_palette` has 2 or fewer entries.
+
+Ask the user this question before doing anything else:
+
+> "I can see this site doesn't have global theme styles set up yet. How would you like to proceed?
+>
+> 1. **Already done** — the styles exist somewhere I didn't detect
+> 2. **Set it up for me** — share your brand details and I'll create your color palette, global classes, and typography
+> 3. **I'll handle it later** — just use neutral placeholders for now and proceed"
+
+**If user picks 1 (Already done):**
+Call `bricks_get_global_classes`, `bricks_get_css_variables`, and `bricks_get_theme_styles` individually to re-check. Report what you find and proceed with whatever exists.
+
+**If user picks 2 (Set it up for me):**
+Ask for:
+- Primary brand color (hex, RGB, or a description like "deep navy blue")
+- Secondary / accent color
+- Text color (default: `#1a1a1a`)
+- Background color (default: `#ffffff`)
+- Heading font (Google Font name or "system default")
+- Body font (Google Font name or "system default")
+- Style mood: minimal / modern / bold / elegant (optional — influences spacing and radius defaults)
+
+Then execute in order:
+1. `bricks_update_color_palette` — create the brand palette
+2. `bricks_create_global_class` — create: heading-1, heading-2, body-text, btn-primary, section-padding, container
+3. `bricks_update_global_settings` — register Google Fonts if provided
+4. Confirm setup is complete, then proceed with the original request.
+
+**If user picks 3 (I'll handle it later):**
+Proceed using:
+- Any existing palette colors as-is (even 1–2 defaults)
+- Neutral fallbacks only: `#1a1a1a` for text, `#ffffff` for background, `#0066cc` for primary actions
+- Standard spacing: `16px` padding, `8px` gap
+- Do NOT use `semantic_map` variable names — they are placeholders that don't exist on an unconfigured site (`framework === 'none'`)
+- Inform the user that styles will look generic until the design system is set up
+
+### semantic_map warning:
+If `framework === 'none'` AND `css_variables` is empty, the `semantic_map` values (`var(--color-primary)`, `var(--space-m)`, etc.) are **generic placeholders not defined on this site**. Do not use them. Use palette hex values or the neutral fallbacks above instead.
+
+---
+
 ## Element JSON Structure
 
 Every Bricks element MUST have this exact structure:
@@ -268,11 +323,14 @@ Multiple classes: `"_cssGlobalClasses": ["id1", "id2"]` — order matters, later
 
 ## GLOBAL STYLES — MANDATORY RULES
 
-### Before writing any element styles:
-1. Check `color_palette` from `bricks_get_session_context` — use palette color IDs, never hardcode hex values
-2. Check `global_classes` from `bricks_get_session_context` — if a matching class exists, apply it via `_cssGlobalClasses`
-3. Use `framework.semantic_map` for CSS variable names — never guess prefixes like `--cf-` or `--op-`
-4. Only write inline settings if no global class and no CSS variable covers that style
+### Before writing any element styles — mandatory checklist:
+
+1. **Global classes first** — check `global_classes` from `bricks_get_session_context`. If a matching class exists for what you need, apply it via `_cssGlobalClasses: ["id"]`. Do not re-create styles that already exist as classes.
+2. **CSS variables second** — `css_variables` from `bricks_get_session_context` lists every `--variable` defined on this site. If one matches the color, spacing, or size value you need, use `{"raw": "var(--name)"}`. Use `framework.semantic_map` for the exact prefix. If `framework === 'none'` and `css_variables` is empty, skip this step — the map values are placeholders only.
+3. **Theme styles third** — call `bricks_get_theme_styles` if not already checked. If a preset exists for the element type (heading, button, body text), apply it. Theme styles are reusable and site-wide.
+4. **Color palette fourth** — for colors not covered by a variable, use the hex from `color_palette` in session context. Never hardcode generic values like `#333` or `#0055ff`.
+5. **Inline element settings** — write `_typography`, `_color`, `_padding`, etc. only for properties not covered by any of the above.
+6. **`_cssCustom` is last resort only** — do NOT use element-level custom CSS for colors, spacing, or fonts that can be expressed via Bricks settings, global classes, CSS variables, or theme styles. Reserve `_cssCustom` strictly for: pseudo-elements (`:hover`, `::before`, `::after`), complex selectors (`:has()`, `:nth-child()`), or browser-specific overrides that Bricks UI cannot express.
 
 ### Before modifying anything that affects the whole site, you MUST ask the user first:
 
@@ -932,21 +990,22 @@ Enable a loop on any block element:
 
 ## CSS Variables & Design Tokens
 
-**First, check what actually exists on this site.** Call `bricks_get_global_settings` to see the `customCss` and theme variables registered. Call `bricks_get_color_palette` and use the hex values directly — do not guess variable names.
+`bricks_get_session_context` returns `css_variables` — every `--custom-property` defined on this site. **If variables exist, they must be used** in preference to hardcoded values.
 
-**If the site uses a design system with CSS variables**, use `{"raw": "var(--variable-name)"}` in color objects. Common variables found in Bricks setups:
+**Usage:** In any setting that accepts a color, size, or spacing value, pass `{"raw": "var(--variable-name)"}` when a matching variable exists.
 
-| Variable | Typical usage |
-|----------|--------------|
-| `var(--color-primary)` | Brand primary |
-| `var(--color-text)` | Body text |
-| `var(--color-heading)` | Heading text |
-| `var(--color-border)` | Borders / dividers |
-| `var(--space-xs/s/m/l/xl)` | Fluid spacing scale |
-| `var(--radius-s/m/l)` | Border radius scale |
-| `var(--container-width)` | Max container width |
+**Framework prefix:** `framework.semantic_map` maps semantic names to this site's actual prefix (`--cf-` for CoreFramework, `--op-` for OxyProps, etc.). Always consult it — never guess a prefix.
 
-**If no CSS variables are defined**, use the actual hex values from `bricks_get_color_palette`. Never hardcode generic values like `#0055FF` or `#333` without first checking the site's palette.
+| If the site defines… | Apply in settings as… |
+|---------------------|----------------------|
+| `--color-primary`, `--color-accent` | `{"raw": "var(--color-primary)"}` in color fields |
+| `--space-xs / s / m / l / xl` | `{"raw": "var(--space-m)"}` in padding/margin/gap |
+| `--radius-s / m / l` | `{"raw": "var(--radius-m)"}` in border-radius |
+| `--font-heading`, `--font-body` | `{"raw": "var(--font-heading)"}` in font-family |
+
+**When `css_variables` is empty:** use hex values from `bricks_get_color_palette`. Never hardcode guesses like `#0055FF` or `#333`. If the palette is also empty, follow the onboarding flow in "SESSION START — DESIGN SYSTEM CHECK" above.
+
+**Custom CSS is not a shortcut.** Do not write `_cssCustom` for values expressible via Bricks settings, a variable, or a palette color. See step 6 in the global styles checklist above.
 
 ---
 
