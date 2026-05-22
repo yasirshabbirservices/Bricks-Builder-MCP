@@ -1323,9 +1323,202 @@ bricks_set_template_conditions(template_id, conditions)
 
 ---
 
+## TEMPLATE-FIRST WORKFLOW — Always Check Before Building From Scratch
+
+**MANDATORY: Before writing any section from scratch, always check the template library first.**
+
+### Step 1 — Search the library
+```
+bricks_search_templates({ "category": "Hero" })   // or whatever section type you need
+```
+Available categories: Back To Top, Banner, Bio Links, Brands, Button, Call To Action, Cart, Coming Soon, Contact US, Counter, Email Opt-In, Error Page, FAQs, Features, Footer, Header, Hero, Pagination, Popup, Post Grid, Post Loop, Post Section, Pricing, Product Categories, Product Tabs, Products, Pros and Cons, Single Post, Single Product, Slider, Table of Contents, Team, Testimonials.
+
+### Step 2 — Fetch the template
+```
+bricks_get_template_library({ "template_name": "Hero" })
+```
+Returns `content[]` (Bricks elements), `globalClasses[]`, and `placeholder_map[]` — a list of all dummy values that need replacing.
+
+### Step 3 — Replace all placeholders with real business data
+```
+bricks_get_business_profile()
+```
+Apply this substitution map — replace every entry in `placeholder_map` with the matching real value:
+
+| Placeholder type | Replace with field from business profile |
+|---|---|
+| `logo_or_placeholder_image` | `assets.logo_url` (light bg) or `assets.logo_dark_url` (dark bg) |
+| `email` | `contact.email` |
+| `phone_number` | `contact.phone` |
+| `lorem_ipsum_text` | `brand.about_text` for body copy; `brand.tagline` for short headlines |
+| `placeholder_link` (value `"#"`) | Real URL from `bricks_list_pages`, or `navigation.cta_url` for CTA buttons |
+
+Also replace nav placeholder items with `navigation.nav_items` (comma-separated list) and service placeholders with entries from `services[]`.
+
+### Step 4 — Validate and write
+```
+bricks_validate_payload({ "elements": [...modified elements...], "auto_fix": true })
+```
+Then write to the target page or template as normal.
+
+**Only build from scratch when no template exists for the section type.** Templates are pre-validated, structurally correct, and visually complete — always faster and safer than generating JSON from scratch.
+
+---
+
+## SEO — Build Every Page Search-Ready
+
+Apply these rules on every page and template creation or update. SEO is a build requirement, not an afterthought.
+
+### Heading hierarchy — strictly one h1 per page
+- Every page has exactly ONE `h1` element — the primary page title (e.g. "Web Design Services")
+- Section titles use `h2` (e.g. "Our Process", "What We Offer")
+- Sub-section items use `h3` (e.g. individual service names, FAQ questions)
+- Never skip heading levels — jumping from `h1` to `h3` without an `h2` is invalid
+- Never use a heading element for visual size alone — if you need large decorative text, apply font size via a global class or `_typography` setting on a regular text element
+
+### Meta data — set it on every page
+After creating or updating any page:
+```
+bricks_update_page_seo({
+  "post_id": <id>,
+  "title": "<Primary Keyword | Brand Name>",
+  "meta_description": "<150–160 character sentence including the focus keyword>",
+  "focus_keyword": "<single main keyword>"
+})
+```
+
+### Images — always set alt text
+- Every `image` element MUST have `_alt` set in its `settings`
+- Describe the image content factually: `"Team of designers collaborating at a whiteboard"`
+- For purely decorative images (dividers, abstract shapes): use `""` (empty string) — this tells screen readers to skip it
+- Never leave `_alt` missing or undefined
+
+### Page slugs — keyword-first
+- When creating a page, set `slug` to an SEO-friendly value: `"web-design-services"` not `"page-2"` or `"new-page"`
+- Lowercase, hyphen-separated, keyword at the start
+
+### Semantic element choices
+- Outermost section wrapper → `section` element
+- Site navigation → `nav-nested` element (renders semantic `<nav>`)
+- Site-wide footer → `footer` template type with template conditions, not a plain section
+- Links: always use real destination URLs — call `bricks_list_pages` to find page URLs; never leave `"#"` as a link value in final output
+
+---
+
+## ACCESSIBILITY — WCAG AA Compliance on Every Build
+
+Apply WCAG 2.1 AA standards on every page and template. Accessibility is a build requirement, not a post-launch audit.
+
+### Alt text — required on every image
+- Every `image` element MUST have `_alt` set in `settings` — WCAG 1.1.1
+- Describe content: `"Barista pouring latte art"` — not `"image"` or `"photo"`
+- Decorative images: use `""` (empty string) so screen readers skip them
+- Never omit `_alt` entirely
+
+### Icon-only buttons — must have aria_label
+- If a button contains only an icon with no visible text, set `aria_label` in its settings
+- Examples: search button → `"Search"`, close button → `"Close menu"`, hamburger → `"Open navigation"`
+
+### Color contrast — minimum ratios (WCAG 1.4.3)
+- Normal text (below 24px / below 18px bold): 4.5:1 contrast ratio against its background
+- Large text (24px+ or 18px+ bold): minimum 3:1 ratio
+- Light gray text on white background (e.g. `#999` on `#fff`) fails — do not use
+
+### Focus visibility — never hide outlines
+- Do not set `outline: none` or `outline: 0` in `_cssCustom` without providing a visible replacement focus indicator
+- Keyboard users depend on visible focus rings
+
+### Forms — label every field
+- Every form input must have a `label` element with `for` / `id` association
+- Use the native Bricks `form` element — do not build custom HTML inputs without accessible labels
+- Placeholder text is NOT a substitute for a label (it disappears on input)
+
+### Skip link — required on full-page builds
+- When building a complete page layout (not a partial section template), include a "Skip to content" link as the absolute first element
+- The link should point to `#main-content` and contain the text "Skip to content"
+- Add `_id: "main-content"` to the first main content block element
+
+### Heading order — always sequential
+- Use heading elements (`h1`–`h6`) for document structure only — never for visual sizing
+- Resize headings via CSS (global class, `_typography`) — not by picking a higher or lower heading level
+
+### Link text — always descriptive
+- Never use `"Click here"`, `"Read more"`, or `"Learn more"` as the sole link text
+- Use descriptive text: `"Read our SEO Services guide"`, `"Download the pricing PDF"`
+- When an entire card is linked, the card heading should serve as the link text
+
+### Landmark regions — one main per page
+- Every complete page must have exactly one main block element (the primary content area)
+- Use `header` and `footer` template types for site-wide landmarks — do not duplicate with generic `div` or `section` elements
+
+---
+
+## BRICKSTEMPLATE DESIGN SYSTEM — Global Classes, Variables & Preset Apply
+
+This site may use the **BricksTemplate Library** design system. When `framework.name === "BricksTemplate"` in `bricks_get_session_context`, the session context includes a `class_reference` block with every global class ID. Use those IDs — never guess.
+
+### Detecting the design system
+After `bricks_get_session_context`:
+- If `framework.framework === "BricksTemplate"` → the BricksTemplate design system is active
+- `framework.class_reference` contains every class grouped by role (typography, buttons, icons, spacing)
+- `framework.semantic_map` contains every CSS variable name for use in `{"raw": "var(--name)"}` values
+
+### Applying classes to elements
+```json
+{ "_cssGlobalClasses": ["icnnin"] }          // btn (primary button)
+{ "_cssGlobalClasses": ["mrlpju"] }          // h1 heading
+{ "_cssGlobalClasses": ["jvlvec"] }          // section-padding-l
+{ "_cssGlobalClasses": ["icnnin", "ucbglo"] } // btn + btn--l (large primary button)
+```
+
+### Quick class ID lookup (BricksTemplate)
+
+| Role | Class name | ID |
+|------|-----------|-----|
+| Primary button | `btn` | `icnnin` |
+| Secondary button | `btn-secondary` | `vnwkta` |
+| Outlined button | `btn--outline` | `gmbdcm` |
+| White button | `btn__white` | `tccljv` |
+| H1 | `h1` | `mrlpju` |
+| H2 | `h2` | `rblwep` |
+| H3 | `h3` | `xdlghw` |
+| H4–H6 | `h4/h5/h6` | `ewinig/jvxxkf/vunewz` |
+| Body text S/M/L | `body-text-s/m/l` | `zcdcay/xnbiuz/xsebeu` |
+| Section pad L/M/S/XS | `section-padding-*` | `jvlvec/xqjblc/kmknar/pkvazj` |
+| Icon | `icon` | `liafdz` |
+| Font 400/500/600/700 | `font-400/500/600/700` | `efjjje/vzhlkp/helzar/znqixu` |
+
+Call `bricks_get_design_system` for the full reference (all 50 classes + all variable names).
+
+### CSS variables (BricksTemplate — always unprefixed)
+```
+Colors:   --color-primary  --color-secondary  --color-text  --color-heading  --color-bg  --color-border
+Spacing:  --space-xs  --space-s  --space-m  --space-l  --space-xl
+Sections: --section-padding-l  --section-padding-m  --section-padding-s  --section-padding-lr
+Layout:   --container-width  --grid-2  --grid-3  --grid-4
+Radius:   --radius-s  --radius-m  --radius-l  --radius-full
+Type:     --body-text-s  --body-text-m  --body-text-l  --font-base  --font-heading
+```
+
+Use in settings as `{"raw": "var(--color-primary)"}` for colors, or plain string `"var(--space-m)"` for padding/gap.
+
+### Applying the preset to a fresh site
+Call `bricks_apply_design_system({ "preset": "brickstemplate" })` to import all 50 global classes, the 43-color palette, 100+ CSS variables, and theme style in one operation. This requires the JSON export files to be present in `assets/design-systems/` inside the plugin directory. If any component is skipped, the response will list which files are missing.
+
+### Template + design system combined workflow
+1. `bricks_get_session_context` → confirm `framework.framework === "BricksTemplate"` and read class IDs from `class_reference`
+2. `bricks_search_templates({ "category": "Hero" })` → find a matching template
+3. `bricks_get_template_library({ "template_name": "Hero" })` → fetch template elements + placeholder_map
+4. `bricks_get_business_profile()` → get real content to replace placeholder values
+5. Replace all placeholder_map entries with real content; verify every `_cssGlobalClasses` array uses IDs from `class_reference`
+6. `bricks_validate_payload` → fix any issues
+7. Write to page → `bricks_clear_cache`
+
+---
+
 ## Available Tools
 
-**Workflow summary:** `bricks_get_session_context` → build elements → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
+**Workflow summary:** `bricks_get_session_context` → `bricks_search_templates` (check library first) → `bricks_get_business_profile` (replace placeholders) → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
 
 PROMPT
 			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )

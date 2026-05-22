@@ -54,6 +54,27 @@ class Tool_Context extends Tool_Base {
 			$result['high_priority_memories'] = $this->get_high_priority_memories();
 		}
 
+		// Business profile — include if configured so AI can replace placeholder content in templates
+		$business_profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
+		if ( ! empty( $business_profile ) && is_array( $business_profile ) ) {
+			$result['business_profile']      = $business_profile;
+			$result['business_profile_note'] = 'Use this to replace ALL placeholder content in templates: logo_url → logoipsum/placeholder images, email → dummy emails, phone → +111 numbers, about_text → Lorem ipsum, services → placeholder service names, nav_items → placeholder navigation links.';
+		}
+
+		// Template categories — let AI know the library exists without loading the CSV on every session
+		$result['template_categories'] = [
+			'note'       => 'Call bricks_search_templates to get full JSON for any category. Call bricks_get_template_library with the exact name to fetch elements.',
+			'categories' => [
+				'Back To Top', 'Banner', 'Bio Links', 'Brands', 'Button',
+				'Call To Action', 'Cart', 'Coming Soon', 'Contact US', 'Counter',
+				'Email Opt-In', 'Error Page', 'FAQs', 'Features', 'Footer',
+				'Header', 'Hero', 'Pagination', 'Popup', 'Post Grid',
+				'Post Loop', 'Post Section', 'Pricing', 'Product Categories',
+				'Product Tabs', 'Products', 'Pros and Cons', 'Single Post',
+				'Single Product', 'Slider', 'Table of Contents', 'Team', 'Testimonials',
+			],
+		];
+
 		// Design system detection — embed mandatory onboarding directive in the response
 		// so the AI treats it as a hard requirement (tool data), not a soft guideline (system prompt).
 		$has_design_system = count( $global_classes ) >= 2
@@ -180,10 +201,36 @@ class Tool_Context extends Tool_Base {
 		if ( ! is_array( $raw ) ) {
 			return [];
 		}
-		return array_values( array_map( fn( $c ) => [
-			'id'   => $c['id']   ?? '',
-			'name' => $c['name'] ?? '',
-		], $raw ) );
+		return array_values( array_map( function( $c ) {
+			$name = $c['name'] ?? '';
+			return [
+				'id'   => $c['id'] ?? '',
+				'name' => $name,
+				'hint' => $this->get_class_hint( $name ),
+			];
+		}, $raw ) );
+	}
+
+	private function get_class_hint( string $name ): string {
+		$lower = strtolower( $name );
+
+		if ( preg_match( '/btn|button/', $lower ) ) {
+			return 'Button element';
+		}
+		if ( preg_match( '/heading|^h[1-6]$|heading-[1-6]/', $lower ) ) {
+			return 'Heading typography';
+		}
+		if ( preg_match( '/body.?text|paragraph|body.?copy/', $lower ) ) {
+			return 'Body text';
+		}
+		if ( preg_match( '/section.?padding|padding|spacing/', $lower ) ) {
+			return 'Section spacing';
+		}
+		if ( preg_match( '/container|wrapper|wrap$/', $lower ) ) {
+			return 'Content width wrapper';
+		}
+
+		return '';
 	}
 
 	// -------------------------------------------------------------------------
@@ -243,7 +290,7 @@ class Tool_Context extends Tool_Base {
 
 		if ( in_array( 'bricks-core-framework', $slugs, true ) || in_array( 'core-framework', $slugs, true ) ) {
 			$framework = 'CoreFramework';
-			$prefix    = '--cf-';
+			$prefix    = '';
 		} elseif ( in_array( 'oxyprops', $slugs, true ) ) {
 			$framework = 'OxyProps';
 			$prefix    = '--op-';
@@ -255,25 +302,67 @@ class Tool_Context extends Tool_Base {
 			$prefix    = '--at-';
 		} elseif ( in_array( 'bricks-template', $slugs, true ) || in_array( 'brickstemplate', $slugs, true ) ) {
 			$framework = 'BricksTemplate';
-			$prefix    = '--bt-';
+			$prefix    = '';
 		}
 
 		// Fallback: sniff CSS variable prefixes from customCss
 		if ( $framework === 'none' ) {
 			$css_vars = $this->get_css_variables();
+			// CoreFramework (legacy --cf- prefix)
 			foreach ( array_keys( $css_vars ) as $var ) {
 				if ( str_starts_with( $var, '--cf-' ) ) { $framework = 'CoreFramework'; $prefix = '--cf-'; break; }
 				if ( str_starts_with( $var, '--op-' ) ) { $framework = 'OxyProps';       $prefix = '--op-'; break; }
 				if ( str_starts_with( $var, '--ys-' ) ) { $framework = 'YStudio';        $prefix = '--ys-'; break; }
 				if ( str_starts_with( $var, '--at-' ) ) { $framework = 'AdvancedThemer'; $prefix = '--at-'; break; }
 			}
+			// CoreFramework modern (unprefixed: --primary, --bg-body, --space-m, --text-body, --radius-m all present)
+			if ( $framework === 'none' && isset( $css_vars['--primary'], $css_vars['--bg-body'], $css_vars['--space-m'], $css_vars['--text-body'] ) ) {
+				$framework = 'CoreFramework';
+				$prefix    = '';
+			}
+			// BricksTemplate (unprefixed: --color-primary + --section-padding-l + --container-width)
+			if ( $framework === 'none' && isset( $css_vars['--color-primary'], $css_vars['--section-padding-l'] ) ) {
+				$framework = 'BricksTemplate';
+				$prefix    = '';
+			}
 		}
 
-		return [
+		$result = [
 			'framework'    => $framework,
 			'prefix'       => $prefix,
 			'semantic_map' => $this->build_semantic_map( $framework, $prefix ),
 		];
+
+		if ( $framework === 'BricksTemplate' ) {
+			$result['class_reference'] = $this->get_brickstemplate_class_reference();
+		}
+
+		if ( $framework === 'CoreFramework' ) {
+			$result['utility_classes'] = [
+				'note'    => 'Apply via _cssClasses (space-separated string) or _cssGlobalClasses (array of IDs).',
+				'classes' => [
+					'.btn'        => 'Primary button — flex, padding var(--space-xs) var(--space-s), bg var(--primary), white text, border-radius var(--radius-m), shadow var(--shadow-m). Variants: .btn.small .btn.large .btn.secondary .btn.ghost .btn.outline .btn.no-bg',
+					'.card'       => 'Card container — grid, gap var(--space-xs), padding var(--space-m), bg var(--bg-surface), border-radius var(--radius-m), shadow var(--shadow-m). Variants: .card.primary .card.secondary',
+					'.badge'      => 'Inline badge — padding var(--space-2xs) var(--space-s), bg var(--dark-10), color var(--primary), font-size var(--text-s), border-radius var(--radius-full)',
+					'.link'       => 'Styled link — color var(--primary), font-weight 600, box-shadow 0 2px 0 var(--primary-20)',
+					'.icon'       => 'Icon wrapper — color var(--primary), width/font-size var(--space-2xl). Variants: .icon.large .icon.small .icon.secondary .icon.outline .icon.filled',
+					'.avatar'     => 'Round image — width/height var(--space-2xl), border-radius 100%, object-fit cover, shadow var(--shadow-m)',
+					'.divider'    => 'Horizontal rule — height 1px, bg var(--border-primary), margin var(--space-m) 0. Variant: .divider.vertical',
+					'.bg-{color}' => 'Background utility — e.g. .bg-primary .bg-primary-10 .bg-surface .bg-dark-10 .bg-body',
+					'.text-{color}' => 'Text color utility — e.g. .text-primary .text-body .text-title .text-secondary',
+					'.shadow-{size}' => 'Box shadow — e.g. .shadow-xs .shadow-s .shadow-m .shadow-l .shadow-xl',
+					'.radius-{size}' => 'Border radius — e.g. .radius-s .radius-m .radius-l .radius-full',
+					'.padding-{size}' => 'Padding utility — e.g. .padding-m .padding-top-l .padding-inline-s',
+					'.gap-{size}' => 'Gap utility — e.g. .gap-s .gap-m .gap-l',
+					'.theme-dark' => 'Force dark mode on this element and descendants',
+					'.theme-light' => 'Force light mode on this element and descendants',
+					'.theme-always-dark' => 'Always dark regardless of site mode (for hero sections on light sites)',
+					'.anim-fade-in-up' => 'Scroll-triggered animation. Variants: anim-fade-in-down anim-fade-in-left anim-fade-in-right anim-fade-in anim-zoom-in',
+				],
+			];
+		}
+
+		return $result;
 	}
 
 	private function build_semantic_map( string $framework, string $prefix ): array {
@@ -318,27 +407,61 @@ class Tool_Context extends Tool_Base {
 		}
 
 		// Framework-specific maps
+		// CoreFramework modern (unprefixed) — build map first so it can be used below
+		$cf_modern = [
+			'color_primary'   => 'var(--primary)',
+			'color_secondary' => 'var(--secondary)',
+			'color_tertiary'  => 'var(--tertiary)',
+			'color_text'      => 'var(--text-body)',
+			'color_heading'   => 'var(--text-title)',
+			'color_bg'        => 'var(--bg-body)',
+			'color_surface'   => 'var(--bg-surface)',
+			'color_border'    => 'var(--border-primary)',
+			'color_shadow'    => 'var(--shadow-primary)',
+			'color_white'     => 'var(--light)',
+			'space_xs'        => 'var(--space-xs)',
+			'space_s'         => 'var(--space-s)',
+			'space_m'         => 'var(--space-m)',
+			'space_l'         => 'var(--space-l)',
+			'space_xl'        => 'var(--space-xl)',
+			'space_2xl'       => 'var(--space-2xl)',
+			'space_3xl'       => 'var(--space-3xl)',
+			'radius_s'        => 'var(--radius-s)',
+			'radius_m'        => 'var(--radius-m)',
+			'radius_l'        => 'var(--radius-l)',
+			'radius_full'     => 'var(--radius-full)',
+			'container_width' => 'var(--max-screen-width)',
+			'text_xs'         => 'var(--text-xs)',
+			'text_s'          => 'var(--text-s)',
+			'text_m'          => 'var(--text-m)',
+			'text_l'          => 'var(--text-l)',
+			'text_xl'         => 'var(--text-xl)',
+			'text_2xl'        => 'var(--text-2xl)',
+			'text_3xl'        => 'var(--text-3xl)',
+			'text_4xl'        => 'var(--text-4xl)',
+		];
+		// CoreFramework legacy uses --cf- prefix with different token names
+		$cf_legacy = [
+			'color_primary'   => "var({$prefix}color-primary)",
+			'color_secondary' => "var({$prefix}color-secondary)",
+			'color_text'      => "var({$prefix}color-text)",
+			'color_heading'   => "var({$prefix}color-heading)",
+			'color_bg'        => "var({$prefix}color-bg)",
+			'color_border'    => "var({$prefix}color-border)",
+			'color_white'     => "var({$prefix}color-white)",
+			'space_xs'        => "var({$prefix}space-xs)",
+			'space_s'         => "var({$prefix}space-s)",
+			'space_m'         => "var({$prefix}space-m)",
+			'space_l'         => "var({$prefix}space-l)",
+			'space_xl'        => "var({$prefix}space-xl)",
+			'radius_s'        => "var({$prefix}radius-s)",
+			'radius_m'        => "var({$prefix}radius-m)",
+			'radius_l'        => "var({$prefix}radius-l)",
+			'container_width' => "var({$prefix}container-width)",
+		];
+
 		$maps = [
-			'CoreFramework' => [
-				'color_primary'   => "var({$prefix}color-primary)",
-				'color_secondary' => "var({$prefix}color-secondary)",
-				'color_text'      => "var({$prefix}color-text)",
-				'color_heading'   => "var({$prefix}color-heading)",
-				'color_bg'        => "var({$prefix}color-bg)",
-				'color_border'    => "var({$prefix}color-border)",
-				'color_white'     => "var({$prefix}color-white)",
-				'space_xs'        => "var({$prefix}space-xs)",
-				'space_s'         => "var({$prefix}space-s)",
-				'space_m'         => "var({$prefix}space-m)",
-				'space_l'         => "var({$prefix}space-l)",
-				'space_xl'        => "var({$prefix}space-xl)",
-				'radius_s'        => "var({$prefix}radius-s)",
-				'radius_m'        => "var({$prefix}radius-m)",
-				'radius_l'        => "var({$prefix}radius-l)",
-				'container_width' => "var({$prefix}container-width)",
-				'font_base'       => "var({$prefix}font-family-base)",
-				'font_heading'    => "var({$prefix}font-family-heading)",
-			],
+			'CoreFramework' => $prefix === '--cf-' ? $cf_legacy : $cf_modern,
 			'OxyProps' => [
 				'color_primary'   => "var({$prefix}brand)",
 				'color_secondary' => "var({$prefix}brand-2)",
@@ -400,28 +523,97 @@ class Tool_Context extends Tool_Base {
 				'font_heading'    => "var({$prefix}font-family-headings)",
 			],
 			'BricksTemplate' => [
-				'color_primary'   => "var({$prefix}primary)",
-				'color_secondary' => "var({$prefix}secondary)",
-				'color_text'      => "var({$prefix}text)",
-				'color_heading'   => "var({$prefix}heading)",
-				'color_bg'        => "var({$prefix}background)",
-				'color_border'    => "var({$prefix}border)",
-				'color_white'     => "var({$prefix}white)",
-				'space_xs'        => "var({$prefix}space-xs)",
-				'space_s'         => "var({$prefix}space-s)",
-				'space_m'         => "var({$prefix}space-m)",
-				'space_l'         => "var({$prefix}space-l)",
-				'space_xl'        => "var({$prefix}space-xl)",
-				'radius_s'        => "var({$prefix}radius-s)",
-				'radius_m'        => "var({$prefix}radius-m)",
-				'radius_l'        => "var({$prefix}radius-l)",
-				'container_width' => "var({$prefix}container)",
-				'font_base'       => "var({$prefix}font-base)",
-				'font_heading'    => "var({$prefix}font-heading)",
+				'color_primary'      => 'var(--color-primary)',
+				'color_secondary'    => 'var(--color-secondary)',
+				'color_text'         => 'var(--color-text)',
+				'color_heading'      => 'var(--color-heading)',
+				'color_bg'           => 'var(--color-bg)',
+				'color_border'       => 'var(--color-border)',
+				'color_white'        => 'var(--color-white)',
+				'space_xs'           => 'var(--space-xs)',
+				'space_s'            => 'var(--space-s)',
+				'space_m'            => 'var(--space-m)',
+				'space_l'            => 'var(--space-l)',
+				'space_xl'           => 'var(--space-xl)',
+				'radius_s'           => 'var(--radius-s)',
+				'radius_m'           => 'var(--radius-m)',
+				'radius_l'           => 'var(--radius-l)',
+				'radius_full'        => 'var(--radius-full)',
+				'section_padding_l'  => 'var(--section-padding-l)',
+				'section_padding_m'  => 'var(--section-padding-m)',
+				'section_padding_s'  => 'var(--section-padding-s)',
+				'section_padding_xs' => 'var(--section-padding-xs)',
+				'container_width'    => 'var(--container-width)',
+				'font_base'          => 'var(--font-base)',
+				'font_heading'       => 'var(--font-heading)',
+				'body_text_s'        => 'var(--body-text-s)',
+				'body_text_m'        => 'var(--body-text-m)',
+				'body_text_l'        => 'var(--body-text-l)',
 			],
 		];
 
 		return $maps[ $framework ] ?? $generic;
+	}
+
+	// -------------------------------------------------------------------------
+	// BricksTemplate class ID reference
+	// -------------------------------------------------------------------------
+
+	private function get_brickstemplate_class_reference(): array {
+		return [
+			'note'         => 'BricksTemplate design system class IDs. Apply via _cssGlobalClasses: ["id"]. IDs are opaque — always use these exact values, never guess.',
+			'typography'   => [
+				'h1'           => 'mrlpju',
+				'h2'           => 'rblwep',
+				'h3'           => 'xdlghw',
+				'h4'           => 'ewinig',
+				'h5'           => 'jvxxkf',
+				'h6'           => 'vunewz',
+				'body-text-s'  => 'zcdcay',
+				'body-text-m'  => 'xnbiuz',
+				'body-text-l'  => 'xsebeu',
+				'text-xxl'     => 'qgkzrm',
+				'text-xl'      => 'ksgwrx',
+				'text-l'       => 'qyzhvi',
+				'text-m'       => 'vkhjpn',
+				'text-s'       => 'pizkge',
+				'text-xs'      => 'urbdzt',
+			],
+			'font_weights' => [
+				'font-200' => 'zpzdlr',
+				'font-300' => 'zqoeza',
+				'font-400' => 'efjjje',
+				'font-500' => 'vzhlkp',
+				'font-600' => 'helzar',
+				'font-700' => 'znqixu',
+				'font-800' => 'dkyvht',
+				'font-900' => 'toishz',
+			],
+			'buttons'      => [
+				'btn'           => 'icnnin',
+				'btn-secondary' => 'vnwkta',
+				'btn--outline'  => 'gmbdcm',
+				'btn--round'    => 'rhizcr',
+				'btn__white'    => 'tccljv',
+				'btn__black'    => 'jgucoo',
+				'btn--xs'       => 'thpbrm',
+				'btn--s'        => 'hyqjzl',
+				'btn--m'        => 'aswtwb',
+				'btn--l'        => 'ucbglo',
+				'btn--xl'       => 'jmpexw',
+			],
+			'icons'        => [
+				'icon'          => 'liafdz',
+				'icon--outline' => 'ptlosy',
+				'icon--filled'  => 'iptope',
+			],
+			'spacing'      => [
+				'section-padding-l'  => 'jvlvec',
+				'section-padding-m'  => 'xqjblc',
+				'section-padding-s'  => 'kmknar',
+				'section-padding-xs' => 'pkvazj',
+			],
+		];
 	}
 
 	// -------------------------------------------------------------------------

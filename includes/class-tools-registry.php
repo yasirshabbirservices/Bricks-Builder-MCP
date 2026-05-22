@@ -34,6 +34,9 @@ class Tools_Registry {
 			new Tools\Tool_SEO(),
 			new Tools\Tool_Validator(),
 			new Tools\Tool_Context(),
+			new Tools\Tool_Template_Library(),
+			new Tools\Tool_Business_Profile(),
+			new Tools\Tool_Design_System(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -214,6 +217,14 @@ class Tools_Registry {
 			'bricks_validate_payload' => 'site',
 			// session context (always on)
 			'bricks_get_session_context' => 'site',
+			// template library (always on)
+			'bricks_search_templates'     => 'site',
+			'bricks_get_template_library' => 'site',
+			// business profile (always on)
+			'bricks_get_business_profile' => 'site',
+			// design system (always on)
+			'bricks_get_design_system'   => 'site',
+			'bricks_apply_design_system' => 'site',
 		];
 	}
 
