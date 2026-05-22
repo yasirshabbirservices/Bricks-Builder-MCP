@@ -363,7 +363,7 @@ $cfg_standard;
 						<input type="text" id="bmcp-bp-tone" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[tone_of_voice]" value="<?php echo esc_attr( $bp['tone_of_voice'] ?? '' ); ?>" placeholder="e.g. Professional, Friendly, Bold, Minimal" />
 					</div>
 					<div class="bmcp-field bmcp-field--full">
-						<label for="bmcp-bp-about">About / Description <span class="description">1–3 sentences — replaces Lorem ipsum in templates</span></label>
+						<label for="bmcp-bp-about">About / Description <span class="description">1–3 sentences describing what you do</span></label>
 						<textarea id="bmcp-bp-about" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[about_text]" rows="3"><?php echo esc_textarea( $bp['about_text'] ?? '' ); ?></textarea>
 					</div>
 				</div>
@@ -442,7 +442,7 @@ $cfg_standard;
 				<h2>Brand Assets</h2>
 				<div class="bmcp-bp-grid">
 					<div class="bmcp-field">
-						<label for="bmcp-bp-logo">Logo URL <span class="description">replaces logoipsum images in templates</span></label>
+						<label for="bmcp-bp-logo">Logo URL <span class="description">used in headers, footers, and anywhere a logo is needed</span></label>
 						<input type="url" id="bmcp-bp-logo" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[logo_url]" value="<?php echo esc_attr( $bp['logo_url'] ?? '' ); ?>" placeholder="https://" />
 					</div>
 					<div class="bmcp-field">
@@ -456,7 +456,7 @@ $cfg_standard;
 			<div class="bmcp-card">
 				<h2>Services / Offerings</h2>
 				<div class="bmcp-field">
-					<label for="bmcp-bp-services">One service per line <span class="description">populates service sections and icon-box grids in templates</span></label>
+					<label for="bmcp-bp-services">One service per line <span class="description">the AI references this when writing service sections or listing offerings</span></label>
 					<textarea id="bmcp-bp-services" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[services]" rows="6" placeholder="Web Design&#10;SEO Consulting&#10;Brand Strategy"><?php echo esc_textarea( $bp['services'] ?? '' ); ?></textarea>
 				</div>
 			</div>
