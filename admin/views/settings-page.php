@@ -86,13 +86,16 @@ $cfg_general =
 "  Cache          clear site cache after writes\n" .
 "  WooCommerce    browse products and categories (read-only)\n" .
 "  AI Memory      persistent site knowledge across sessions\n" .
-"  History        auto-snapshot before every write — restore anytime\n\n" .
+"  History           auto-snapshot before every write — restore anytime\n" .
+"  Template Library  pre-built section templates, searchable by category\n" .
+"  Business Profile  brand, contact, services, assets — AI project context\n" .
+"  Design System     apply or inspect design system presets\n\n" .
 "══════════════════════════════════════════════════════════\n" .
 "  START OF SESSION\n" .
 "══════════════════════════════════════════════════════════\n\n" .
 "Run this single call first — it loads site info, color palette,\n" .
-"global classes, CSS variables, design framework, and memories\n" .
-"in one request:\n\n" .
+"global classes, CSS variables, fonts, design framework, business\n" .
+"profile, template categories, and memories in one request:\n\n" .
 "  bricks_get_session_context\n\n" .
 "Then load the full element format guide and site rules:\n\n" .
 "  bricks_get_system_prompt\n\n" .

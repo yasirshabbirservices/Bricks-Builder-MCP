@@ -54,11 +54,11 @@ class Tool_Context extends Tool_Base {
 			$result['high_priority_memories'] = $this->get_high_priority_memories();
 		}
 
-		// Business profile — include if configured so AI can replace placeholder content in templates
+		// Business profile — include if configured so the AI has project context
 		$business_profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
 		if ( ! empty( $business_profile ) && is_array( $business_profile ) ) {
 			$result['business_profile']      = $business_profile;
-			$result['business_profile_note'] = 'Use this to replace ALL placeholder content in templates: logo_url → logoipsum/placeholder images, email → dummy emails, phone → +111 numbers, about_text → Lorem ipsum, services → placeholder service names, nav_items → placeholder navigation links.';
+			$result['business_profile_note'] = 'Authoritative project context. Use these values whenever writing or editing any site content — contact info, brand copy, navigation, logos, and service listings.';
 		}
 
 		// Template categories — let AI know the library exists without loading the CSV on every session
