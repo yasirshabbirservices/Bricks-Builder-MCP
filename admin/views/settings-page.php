@@ -340,7 +340,7 @@ $cfg_standard;
 			<!-- Brand Identity -->
 			<div class="bmcp-card">
 				<h2>Brand Identity</h2>
-				<p>Core information about your business. The AI uses this to replace placeholder content when applying library templates.</p>
+				<p>Context the AI uses to understand your project — brand, contact details, services, and assets — so it can make accurate decisions without asking you every time.</p>
 				<div class="bmcp-bp-grid">
 					<div class="bmcp-field">
 						<label for="bmcp-bp-business-name">Business Name</label>
