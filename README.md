@@ -8,11 +8,11 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 
 | Tool Group | What the AI can do |
 |---|---|
-| **Pages** | Create, read, update, delete pages + write Bricks element layouts |
+| **Pages** | Create, read, update, delete, and duplicate pages + write Bricks element layouts |
 | **Templates** | Header / footer / section templates with display conditions |
 | **Global Design** | Color palette, global CSS classes, theme styles, CSS variables |
 | **Posts & CPTs** | Manage any WordPress post type |
-| **Media** | Browse and import media assets |
+| **Media** | Browse, import, and delete media assets |
 | **Nav Menus** | Create and manage WordPress navigation menus |
 | **Components** | Manage Bricks reusable components |
 | **Search & Replace** | Find and replace colors, classes, or text across all pages |
@@ -21,10 +21,13 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **WooCommerce** | Browse products and categories (read-only) |
 | **AI Memory** | Persistent site knowledge injected into every AI session |
 | **History** | Auto-snapshot before every write — restore any previous state |
-| **Session Context** | Single startup call returning site info, palette, classes, and framework map |
+| **Template Library** | Search and fetch pre-built section templates by category |
+| **Business Profile** | Brand, contact, services, and assets used as AI project context |
+| **Design System** | Apply or inspect BricksTemplate design system presets |
+| **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, template categories, and memories |
 | **Validation** | Validate element arrays before writing — catches corrupt payloads early |
 
-**65 MCP tools** always active, plus 5 more when WooCommerce and SEO plugins are present.
+**73 MCP tools** across all groups.
 
 ---
 
@@ -67,9 +70,12 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-### Cursor / Trae AI
+### Claude Desktop
 
-Add to `~/.cursor/mcp.json` or `~/.trae/mcp.json`:
+Add to `claude_desktop_config.json` and restart Claude Desktop.
+
+- **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -99,7 +105,24 @@ Add to `.vscode/mcp.json`:
 }
 ```
 
-The **General** tab in the Connection panel also provides a universal plain-text block you can paste directly into any AI chat to get started.
+### Gemini CLI
+
+Add to `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "bricks-builder": {
+      "httpTransport": {
+        "url": "https://yoursite.com/wp-json/bricks-mcp/v1/mcp",
+        "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+      }
+    }
+  }
+}
+```
+
+The **General** tab in the Connection panel also provides a universal plain-text block you can paste into any AI chat to get started.
 
 ---
 
@@ -111,7 +134,7 @@ Once connected, start with a single call that loads everything in one shot:
 bricks_get_session_context
 ```
 
-This replaces five separate startup calls and returns the site info, color palette, global classes, CSS variables, active design framework, and high-priority memories in one response.
+This returns site info, color palette, global classes, CSS variables, fonts, active design framework, business profile, available template categories, and high-priority memories — all in one response.
 
 Then run:
 
@@ -132,6 +155,7 @@ bricks_validate_payload  (pass your elements array)
 |---|---|
 | **Connection** | API key, endpoint URL, per-client config snippets |
 | **Instructions** | Site-specific rules appended to the AI's system prompt |
+| **Business Profile** | Brand, contact, services, and assets — AI project context available in every session |
 | **Capabilities** | Per-tool enable/disable toggles (granular control over all tools) |
 | **Memory** | View, add, and edit persistent AI memories |
 | **History** | Browse and restore auto-snapshots |
