@@ -112,15 +112,6 @@ $cfg_general =
 "  • Never access payment gateway settings or API credentials\n" .
 "  • Follow the site-specific rules returned by bricks_get_system_prompt\n";
 
-$cfg_perplexity =
-"# Bricks Builder MCP — Perplexity / Comet Setup\n\n" .
-"In Comet browser: Settings → AI → MCP Servers → Add Server\n\n" .
-"  Name    Bricks Builder MCP\n" .
-"  Type    HTTP\n" .
-"  URL     {$endpoint}\n" .
-"  Header  Authorization: Bearer {$api_key}\n\n" .
-"─── or paste this JSON if your client supports it ───\n\n" .
-$cfg_standard;
 ?>
 <div class="wrap" id="bmcp-wrap">
 
@@ -238,13 +229,11 @@ $cfg_standard;
 			</div>
 
 			<nav class="bmcp-client-tabs" role="tablist" aria-label="Select AI client">
-				<button class="bmcp-client-tab active" role="tab" aria-selected="true"  data-client="general"    id="client-tab-general"    aria-controls="bmcp-panel-general">General</button>
-				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="claude"     id="client-tab-claude"     aria-controls="bmcp-panel-claude">Claude Code</button>
-				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="vscode"     id="client-tab-vscode"     aria-controls="bmcp-panel-vscode">VS Code</button>
-				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="cursor"     id="client-tab-cursor"     aria-controls="bmcp-panel-cursor">Cursor</button>
-				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="trae"       id="client-tab-trae"       aria-controls="bmcp-panel-trae">Trae AI</button>
-				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="gemini"     id="client-tab-gemini"     aria-controls="bmcp-panel-gemini">Gemini</button>
-				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="perplexity" id="client-tab-perplexity" aria-controls="bmcp-panel-perplexity">Perplexity</button>
+				<button class="bmcp-client-tab active" role="tab" aria-selected="true"  data-client="general"        id="client-tab-general"        aria-controls="bmcp-panel-general">General</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="claude"         id="client-tab-claude"         aria-controls="bmcp-panel-claude">Claude Code</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="claude-desktop" id="client-tab-claude-desktop" aria-controls="bmcp-panel-claude-desktop">Claude Desktop</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="vscode"         id="client-tab-vscode"         aria-controls="bmcp-panel-vscode">VS Code</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="gemini"         id="client-tab-gemini"         aria-controls="bmcp-panel-gemini">Gemini</button>
 			</nav>
 
 			<div class="bmcp-client-panel active" id="bmcp-panel-general" role="tabpanel" aria-labelledby="client-tab-general">
@@ -272,19 +261,11 @@ $cfg_standard;
 				</div>
 			</div>
 
-			<div class="bmcp-client-panel" id="bmcp-panel-cursor" role="tabpanel" aria-labelledby="client-tab-cursor" style="display:none">
-				<p class="bmcp-client-hint">Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> in the project root. Verify under <strong>Cursor → Settings → MCP</strong>.</p>
+			<div class="bmcp-client-panel" id="bmcp-panel-claude-desktop" role="tabpanel" aria-labelledby="client-tab-claude-desktop" style="display:none">
+				<p class="bmcp-client-hint">Add to <code>claude_desktop_config.json</code>. On Mac: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>. On Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code>. Restart Claude Desktop after saving.</p>
 				<div class="bmcp-config-block">
-					<pre id="bmcp-config-cursor"><?php echo esc_html( $cfg_standard ); ?></pre>
-					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-cursor" aria-label="Copy Cursor config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-				</div>
-			</div>
-
-			<div class="bmcp-client-panel" id="bmcp-panel-trae" role="tabpanel" aria-labelledby="client-tab-trae" style="display:none">
-				<p class="bmcp-client-hint">Open <strong>Trae AI → Settings → MCP Servers → Add Server</strong> and enter the URL and Bearer token, or paste the JSON below into <code>~/.trae/mcp.json</code>.</p>
-				<div class="bmcp-config-block">
-					<pre id="bmcp-config-trae"><?php echo esc_html( $cfg_standard ); ?></pre>
-					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-trae" aria-label="Copy Trae AI config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+					<pre id="bmcp-config-claude-desktop"><?php echo esc_html( $cfg_standard ); ?></pre>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-claude-desktop" aria-label="Copy Claude Desktop config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
@@ -293,14 +274,6 @@ $cfg_standard;
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-gemini"><?php echo esc_html( $cfg_gemini ); ?></pre>
 					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-gemini" aria-label="Copy Gemini config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-				</div>
-			</div>
-
-			<div class="bmcp-client-panel" id="bmcp-panel-perplexity" role="tabpanel" aria-labelledby="client-tab-perplexity" style="display:none">
-				<p class="bmcp-client-hint">In <strong>Comet browser</strong>: <strong>Settings → AI → MCP Servers → Add Server</strong> and fill in the details below.</p>
-				<div class="bmcp-config-block">
-					<pre id="bmcp-config-perplexity"><?php echo esc_html( $cfg_perplexity ); ?></pre>
-					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-perplexity" aria-label="Copy Perplexity config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
 			</div>
 
