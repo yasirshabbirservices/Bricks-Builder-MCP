@@ -1,0 +1,56 @@
+{
+  "label": "BricksTemplate",
+  "settings": {
+    "_custom": true,
+    "conditions": {
+      "conditions": [
+        {
+          "id": "pyqcwo",
+          "main": "any"
+        }
+      ]
+    },
+    "links": {
+      "typography": {
+        "color": {
+          "raw": "var(--color-primary)",
+          "id": "jqbtfg",
+          "name": "primary"
+        }
+      }
+    },
+    "typography": {
+      "typographyBody": {
+        "color": {
+          "raw": "var(--color-text)",
+          "id": "hltngu",
+          "name": "text"
+        },
+        "font-size": "var(--body-text-s)",
+        "font-family": "Inter",
+        "line-height": "1.5"
+      },
+      "typographyHeadings": {
+        "color": {
+          "raw": "var(--color-heading)",
+          "id": "samfyj",
+          "name": "heading"
+        },
+        "font-family": "Inter",
+        "line-height": "1.3"
+      }
+    },
+    "section": {
+      "padding": {
+        "bottom": "var(--section-padding-l)",
+        "top": "var(--section-padding-l)",
+        "left": "var(--section-padding-lr)",
+        "right": "var(--section-padding-lr)"
+      }
+    },
+    "container": {
+      "width": "var(--container-width)"
+    }
+  },
+  "id": "brickstemplate"
+}

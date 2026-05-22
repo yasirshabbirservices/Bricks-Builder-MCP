@@ -243,6 +243,8 @@ body.bricks_page_bricks-mcp-settings #wpbody-content {
 	margin-bottom: 24px;
 	width: fit-content;
 	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 }
 
 .bmcp-tab {
@@ -1107,6 +1109,8 @@ body.bricks_page_bricks-mcp-settings #wpbody-content {
 .bmcp-field-row .bmcp-field { flex: 1; }
 
 .bmcp-field input[type="text"],
+.bmcp-field input[type="email"],
+.bmcp-field input[type="url"],
 .bmcp-field select,
 .bmcp-field textarea {
 	background: var(--surface-3) !important;
@@ -1124,6 +1128,8 @@ body.bricks_page_bricks-mcp-settings #wpbody-content {
 .bmcp-field textarea { resize: vertical !important; line-height: 1.6 !important; }
 
 .bmcp-field input[type="text"]:focus,
+.bmcp-field input[type="email"]:focus,
+.bmcp-field input[type="url"]:focus,
 .bmcp-field select:focus,
 .bmcp-field textarea:focus {
 	border-color: var(--brand) !important;
@@ -1575,4 +1581,22 @@ body.bricks_page_bricks-mcp-settings .settings-error {
 	width: 15px;
 	height: 15px;
 	flex-shrink: 0;
+}
+
+/* ---- BUSINESS PROFILE GRID ---- */
+.bmcp-bp-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+	margin-top: 4px;
+}
+
+.bmcp-field--full {
+	grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+	.bmcp-bp-grid {
+		grid-template-columns: 1fr;
+	}
 }

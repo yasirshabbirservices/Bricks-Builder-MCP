@@ -21,10 +21,10 @@ class Tool_Design_System extends Tool_Base {
 			'label'       => 'BricksTemplate Library',
 			'description' => 'Professional design system from BricksTemplate Library. Includes 50 global classes, 43-color palette, 100+ CSS variables, and theme style.',
 			'files'       => [
-				'classes'      => 'bricks-css-classes-brickstemplate.json',
-				'palette'      => 'bricks-color-palette-brickstemplate.json',
-				'css_vars'     => 'bricks-css-variables-brickstemplate.json',
-				'theme_style'  => 'bricks-theme-style-brickstemplate.json',
+				'classes'      => 'bricks-css-classes.json',
+				'palette'      => 'bricks-color-palette.json',
+				'css_vars'     => 'bricks-css-variables.json',
+				'theme_style'  => 'bricks-theme-style.json',
 			],
 		],
 	];

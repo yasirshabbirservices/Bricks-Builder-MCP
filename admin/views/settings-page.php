@@ -340,159 +340,130 @@ $cfg_standard;
 			<!-- Brand Identity -->
 			<div class="bmcp-card">
 				<h2>Brand Identity</h2>
-				<p class="description" style="margin-bottom:16px">Core information about your business. The AI uses this to replace placeholder content when applying library templates.</p>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-business-name">Business Name</label></th>
-							<td><input type="text" id="bmcp-bp-business-name" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[business_name]" value="<?php echo esc_attr( $bp['business_name'] ?? '' ); ?>" class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-tagline">Tagline / Slogan</label></th>
-							<td><input type="text" id="bmcp-bp-tagline" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[tagline]" value="<?php echo esc_attr( $bp['tagline'] ?? '' ); ?>" class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-business-type">Business Type</label></th>
-							<td><input type="text" id="bmcp-bp-business-type" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[business_type]" value="<?php echo esc_attr( $bp['business_type'] ?? '' ); ?>" class="regular-text" placeholder="e.g. SaaS, Agency, Restaurant, E-commerce" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-target-audience">Target Audience</label></th>
-							<td><input type="text" id="bmcp-bp-target-audience" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[target_audience]" value="<?php echo esc_attr( $bp['target_audience'] ?? '' ); ?>" class="regular-text" placeholder="e.g. B2B SaaS founders, local homeowners" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-tone">Tone of Voice</label></th>
-							<td><input type="text" id="bmcp-bp-tone" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[tone_of_voice]" value="<?php echo esc_attr( $bp['tone_of_voice'] ?? '' ); ?>" class="regular-text" placeholder="e.g. Professional, Friendly, Bold, Minimal" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-about">About / Description</label></th>
-							<td>
-								<textarea id="bmcp-bp-about" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[about_text]" rows="4" class="large-text"><?php echo esc_textarea( $bp['about_text'] ?? '' ); ?></textarea>
-								<p class="description">1–3 sentences. Used to replace Lorem ipsum paragraphs in templates.</p>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<p>Core information about your business. The AI uses this to replace placeholder content when applying library templates.</p>
+				<div class="bmcp-bp-grid">
+					<div class="bmcp-field">
+						<label for="bmcp-bp-business-name">Business Name</label>
+						<input type="text" id="bmcp-bp-business-name" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[business_name]" value="<?php echo esc_attr( $bp['business_name'] ?? '' ); ?>" placeholder="Acme Studio" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-tagline">Tagline / Slogan</label>
+						<input type="text" id="bmcp-bp-tagline" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[tagline]" value="<?php echo esc_attr( $bp['tagline'] ?? '' ); ?>" placeholder="We build things people love" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-business-type">Business Type</label>
+						<input type="text" id="bmcp-bp-business-type" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[business_type]" value="<?php echo esc_attr( $bp['business_type'] ?? '' ); ?>" placeholder="e.g. SaaS, Agency, Restaurant, E-commerce" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-target-audience">Target Audience</label>
+						<input type="text" id="bmcp-bp-target-audience" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[target_audience]" value="<?php echo esc_attr( $bp['target_audience'] ?? '' ); ?>" placeholder="e.g. B2B SaaS founders, local homeowners" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-tone">Tone of Voice</label>
+						<input type="text" id="bmcp-bp-tone" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[tone_of_voice]" value="<?php echo esc_attr( $bp['tone_of_voice'] ?? '' ); ?>" placeholder="e.g. Professional, Friendly, Bold, Minimal" />
+					</div>
+					<div class="bmcp-field bmcp-field--full">
+						<label for="bmcp-bp-about">About / Description <span class="description">1–3 sentences — replaces Lorem ipsum in templates</span></label>
+						<textarea id="bmcp-bp-about" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[about_text]" rows="3"><?php echo esc_textarea( $bp['about_text'] ?? '' ); ?></textarea>
+					</div>
+				</div>
 			</div>
 
 			<!-- Contact -->
 			<div class="bmcp-card">
 				<h2>Contact Information</h2>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-email">Email</label></th>
-							<td><input type="email" id="bmcp-bp-email" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[email]" value="<?php echo esc_attr( $bp['email'] ?? '' ); ?>" class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-phone">Phone</label></th>
-							<td><input type="text" id="bmcp-bp-phone" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[phone]" value="<?php echo esc_attr( $bp['phone'] ?? '' ); ?>" class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-address">Street Address</label></th>
-							<td><input type="text" id="bmcp-bp-address" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[address]" value="<?php echo esc_attr( $bp['address'] ?? '' ); ?>" class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-city">City &amp; Country</label></th>
-							<td><input type="text" id="bmcp-bp-city" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[city_country]" value="<?php echo esc_attr( $bp['city_country'] ?? '' ); ?>" class="regular-text" placeholder="e.g. London, UK" /></td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="bmcp-bp-grid">
+					<div class="bmcp-field">
+						<label for="bmcp-bp-email">Email Address</label>
+						<input type="email" id="bmcp-bp-email" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[email]" value="<?php echo esc_attr( $bp['email'] ?? '' ); ?>" placeholder="hello@example.com" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-phone">Phone Number</label>
+						<input type="text" id="bmcp-bp-phone" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[phone]" value="<?php echo esc_attr( $bp['phone'] ?? '' ); ?>" placeholder="+1 (555) 000-0000" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-address">Street Address</label>
+						<input type="text" id="bmcp-bp-address" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[address]" value="<?php echo esc_attr( $bp['address'] ?? '' ); ?>" placeholder="123 Main Street" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-city">City &amp; Country</label>
+						<input type="text" id="bmcp-bp-city" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[city_country]" value="<?php echo esc_attr( $bp['city_country'] ?? '' ); ?>" placeholder="e.g. London, UK" />
+					</div>
+				</div>
 			</div>
 
 			<!-- Social Media -->
 			<div class="bmcp-card">
 				<h2>Social Media</h2>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<?php
-						$social_fields = [
-							'facebook_url'  => 'Facebook URL',
-							'instagram_url' => 'Instagram URL',
-							'linkedin_url'  => 'LinkedIn URL',
-							'twitter_url'   => 'Twitter / X URL',
-							'youtube_url'   => 'YouTube URL',
-						];
-						foreach ( $social_fields as $field_key => $field_label ) :
-						?>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-<?php echo esc_attr( $field_key ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
-							<td><input type="url" id="bmcp-bp-<?php echo esc_attr( $field_key ); ?>" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[<?php echo esc_attr( $field_key ); ?>]" value="<?php echo esc_attr( $bp[ $field_key ] ?? '' ); ?>" class="regular-text" placeholder="https://" /></td>
-						</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+				<div class="bmcp-bp-grid">
+					<?php
+					$social_fields = [
+						'facebook_url'  => [ 'label' => 'Facebook', 'placeholder' => 'https://facebook.com/yourpage' ],
+						'instagram_url' => [ 'label' => 'Instagram', 'placeholder' => 'https://instagram.com/yourhandle' ],
+						'linkedin_url'  => [ 'label' => 'LinkedIn', 'placeholder' => 'https://linkedin.com/company/yourco' ],
+						'twitter_url'   => [ 'label' => 'Twitter / X', 'placeholder' => 'https://x.com/yourhandle' ],
+						'youtube_url'   => [ 'label' => 'YouTube', 'placeholder' => 'https://youtube.com/@yourchannel' ],
+					];
+					foreach ( $social_fields as $field_key => $field_info ) :
+					?>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-<?php echo esc_attr( $field_key ); ?>"><?php echo esc_html( $field_info['label'] ); ?></label>
+						<input type="url" id="bmcp-bp-<?php echo esc_attr( $field_key ); ?>" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[<?php echo esc_attr( $field_key ); ?>]" value="<?php echo esc_attr( $bp[ $field_key ] ?? '' ); ?>" placeholder="<?php echo esc_attr( $field_info['placeholder'] ); ?>" />
+					</div>
+					<?php endforeach; ?>
+				</div>
 			</div>
 
 			<!-- Navigation & Copy -->
 			<div class="bmcp-card">
 				<h2>Navigation &amp; Copy</h2>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-nav-items">Navigation Items</label></th>
-							<td>
-								<input type="text" id="bmcp-bp-nav-items" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[nav_items]" value="<?php echo esc_attr( $bp['nav_items'] ?? '' ); ?>" class="regular-text" placeholder="Home, About, Services, Contact" />
-								<p class="description">Comma-separated list of main nav items.</p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-cta-text">CTA Button Text</label></th>
-							<td><input type="text" id="bmcp-bp-cta-text" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[cta_text]" value="<?php echo esc_attr( $bp['cta_text'] ?? '' ); ?>" class="regular-text" placeholder="Get Started" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-cta-url">CTA Button URL</label></th>
-							<td><input type="url" id="bmcp-bp-cta-url" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[cta_url]" value="<?php echo esc_attr( $bp['cta_url'] ?? '' ); ?>" class="regular-text" placeholder="https://" /></td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-copyright">Copyright Text</label></th>
-							<td><input type="text" id="bmcp-bp-copyright" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[copyright_text]" value="<?php echo esc_attr( $bp['copyright_text'] ?? '' ); ?>" class="regular-text" placeholder="© 2025 Company Name. All rights reserved." /></td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="bmcp-bp-grid">
+					<div class="bmcp-field bmcp-field--full">
+						<label for="bmcp-bp-nav-items">Navigation Items <span class="description">comma-separated</span></label>
+						<input type="text" id="bmcp-bp-nav-items" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[nav_items]" value="<?php echo esc_attr( $bp['nav_items'] ?? '' ); ?>" placeholder="Home, About, Services, Contact" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-cta-text">CTA Button Text</label>
+						<input type="text" id="bmcp-bp-cta-text" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[cta_text]" value="<?php echo esc_attr( $bp['cta_text'] ?? '' ); ?>" placeholder="Get Started" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-cta-url">CTA Button URL</label>
+						<input type="url" id="bmcp-bp-cta-url" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[cta_url]" value="<?php echo esc_attr( $bp['cta_url'] ?? '' ); ?>" placeholder="https://" />
+					</div>
+					<div class="bmcp-field bmcp-field--full">
+						<label for="bmcp-bp-copyright">Copyright Text</label>
+						<input type="text" id="bmcp-bp-copyright" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[copyright_text]" value="<?php echo esc_attr( $bp['copyright_text'] ?? '' ); ?>" placeholder="© 2025 Company Name. All rights reserved." />
+					</div>
+				</div>
 			</div>
 
 			<!-- Brand Assets -->
 			<div class="bmcp-card">
 				<h2>Brand Assets</h2>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-logo">Logo URL</label></th>
-							<td>
-								<input type="url" id="bmcp-bp-logo" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[logo_url]" value="<?php echo esc_attr( $bp['logo_url'] ?? '' ); ?>" class="large-text" placeholder="https://" />
-								<p class="description">Used to replace logoipsum and placeholder image URLs in templates.</p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-logo-dark">Dark Logo URL</label></th>
-							<td>
-								<input type="url" id="bmcp-bp-logo-dark" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[logo_dark_url]" value="<?php echo esc_attr( $bp['logo_dark_url'] ?? '' ); ?>" class="large-text" placeholder="https://" />
-								<p class="description">Used on dark backgrounds (dark header/footer sections).</p>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="bmcp-bp-grid">
+					<div class="bmcp-field">
+						<label for="bmcp-bp-logo">Logo URL <span class="description">replaces logoipsum images in templates</span></label>
+						<input type="url" id="bmcp-bp-logo" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[logo_url]" value="<?php echo esc_attr( $bp['logo_url'] ?? '' ); ?>" placeholder="https://" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-logo-dark">Dark Logo URL <span class="description">for dark backgrounds</span></label>
+						<input type="url" id="bmcp-bp-logo-dark" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[logo_dark_url]" value="<?php echo esc_attr( $bp['logo_dark_url'] ?? '' ); ?>" placeholder="https://" />
+					</div>
+				</div>
 			</div>
 
 			<!-- Services -->
 			<div class="bmcp-card">
 				<h2>Services / Offerings</h2>
-				<table class="form-table" role="presentation">
-					<tbody>
-						<tr>
-							<th scope="row"><label for="bmcp-bp-services">Services</label></th>
-							<td>
-								<textarea id="bmcp-bp-services" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[services]" rows="6" class="large-text" placeholder="Web Design&#10;SEO Consulting&#10;Brand Strategy"><?php echo esc_textarea( $bp['services'] ?? '' ); ?></textarea>
-								<p class="description">One service per line. Used to populate service sections and icon-box grids in templates.</p>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="bmcp-field">
+					<label for="bmcp-bp-services">One service per line <span class="description">populates service sections and icon-box grids in templates</span></label>
+					<textarea id="bmcp-bp-services" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[services]" rows="6" placeholder="Web Design&#10;SEO Consulting&#10;Brand Strategy"><?php echo esc_textarea( $bp['services'] ?? '' ); ?></textarea>
+				</div>
 			</div>
 
-			<div style="margin-top:8px">
+			<div class="bmcp-submit-row">
 				<?php submit_button( 'Save Business Profile', 'primary', 'submit', false ); ?>
-				<p class="description" style="margin-top:8px">Saved data is returned by <code>bricks_get_business_profile</code> and automatically included in every session context via <code>bricks_get_session_context</code>.</p>
+				<p class="description">Saved data is returned by <code>bricks_get_business_profile</code> and automatically included in every session via <code>bricks_get_session_context</code>.</p>
 			</div>
 
 		</form>

@@ -95,7 +95,10 @@ class Tool_Site extends Tool_Base {
 		];
 	}
 
-	private function set_front_page( int $page_id ): array {
+	private function set_front_page( int $page_id ): array|\WP_Error {
+		$err = $this->require_cap( 'manage_options' );
+		if ( $err ) return $err;
+
 		if ( $page_id > 0 ) {
 			$page = get_post( $page_id );
 			if ( ! $page || $page->post_type !== 'page' ) {

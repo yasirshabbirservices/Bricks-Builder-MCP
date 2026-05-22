@@ -1,0 +1,217 @@
+{
+  "id": "pqwzuc",
+  "name": "BricksTemplate",
+  "colors": [
+    {
+      "raw": "var(--color-primary)",
+      "id": "jqbtfg",
+      "name": "primary"
+    },
+    {
+      "raw": "var(--color-primary-hover)",
+      "id": "uziatt",
+      "name": "primary-hover"
+    },
+    {
+      "raw": "var(--color-primary-tint-9)",
+      "id": "xxfapw",
+      "name": "primary-tint-9"
+    },
+    {
+      "raw": "var(--color-primary-tint-8)",
+      "id": "vwanik",
+      "name": "primary-tint-8"
+    },
+    {
+      "raw": "var(--color-primary-tint-7)",
+      "id": "hcilux",
+      "name": "primary-tint-7"
+    },
+    {
+      "raw": "var(--color-primary-tint-6)",
+      "id": "lobdqs",
+      "name": "primary-tint-6"
+    },
+    {
+      "raw": "var(--color-primary-tint-5)",
+      "id": "cchlod",
+      "name": "primary-tint-5"
+    },
+    {
+      "raw": "var(--color-primary-tint-4)",
+      "id": "nlmzmj",
+      "name": "primary-tint-4"
+    },
+    {
+      "raw": "var(--color-primary-tint-3)",
+      "id": "fpqisc",
+      "name": "primary-tint-3"
+    },
+    {
+      "raw": "var(--color-primary-tint-2)",
+      "id": "ttzoht",
+      "name": "primary-tint-2"
+    },
+    {
+      "raw": "var(--color-primary-tint-1)",
+      "id": "pqrczf",
+      "name": "primary-tint-1"
+    },
+    {
+      "raw": "var(--color-secondary)",
+      "id": "ccyqsj",
+      "name": "secondary"
+    },
+    {
+      "raw": "var(--color-secondary-hover)",
+      "id": "uuajep",
+      "name": "secondary-hover"
+    },
+    {
+      "raw": "var(--color-secondary-tint-9)",
+      "id": "lmrvmm",
+      "name": "secondary-tint-9"
+    },
+    {
+      "raw": "var(--color-secondary-tint-8)",
+      "id": "flvyic",
+      "name": "secondary-tint-8"
+    },
+    {
+      "raw": "var(--color-secondary-tint-7)",
+      "id": "fjhovv",
+      "name": "secondary-tint-7"
+    },
+    {
+      "raw": "var(--color-secondary-tint-6)",
+      "id": "vlhvxs",
+      "name": "secondary-tint-6"
+    },
+    {
+      "raw": "var(--color-secondary-tint-5)",
+      "id": "vyqaib",
+      "name": "secondary-tint-5"
+    },
+    {
+      "raw": "var(--color-secondary-tint-4)",
+      "id": "cwmkth",
+      "name": "secondary-tint-4"
+    },
+    {
+      "raw": "var(--color-secondary-tint-3)",
+      "id": "yrrbkf",
+      "name": "secondary-tint-3"
+    },
+    {
+      "raw": "var(--color-secondary-tint-2)",
+      "id": "nshtwf",
+      "name": "secondary-tint-2"
+    },
+    {
+      "raw": "var(--color-secondary-tint-1)",
+      "id": "xaxmbh",
+      "name": "secondary-tint-1"
+    },
+    {
+      "raw": "var(--color-tertiary)",
+      "id": "rskhva",
+      "name": "tertiary"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-9)",
+      "id": "woajda",
+      "name": "tertiary-tint-9"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-8)",
+      "id": "mlgnkb",
+      "name": "tertiary-tint-8"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-7)",
+      "id": "wajeno",
+      "name": "tertiary-tint-7"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-6)",
+      "id": "vkqjgb",
+      "name": "tertiary-tint-6"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-5)",
+      "id": "cwlzey",
+      "name": "tertiary-tint-5"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-4)",
+      "id": "ufavdi",
+      "name": "tertiary-tint-4"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-3)",
+      "id": "azdczt",
+      "name": "tertiary-tint-3"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-2)",
+      "id": "uspwlf",
+      "name": "tertiary-tint-2"
+    },
+    {
+      "raw": "var(--color-tertiary-tint-1)",
+      "id": "ibseyn",
+      "name": "tertiary-tint-1"
+    },
+    {
+      "raw": "var(--color-heading)",
+      "id": "samfyj",
+      "name": "heading"
+    },
+    {
+      "raw": "var(--color-text)",
+      "id": "hltngu",
+      "name": "text"
+    },
+    {
+      "raw": "var(--color-text-muted)",
+      "id": "cwjalg",
+      "name": "text muted"
+    },
+    {
+      "raw": "var(--color-text-dark)",
+      "id": "tjvila",
+      "name": "text for dark"
+    },
+    {
+      "raw": "var(--color-text-dark-muted)",
+      "id": "pxfkeu",
+      "name": "text for dark muted"
+    },
+    {
+      "raw": "var(--color-primary-bg)",
+      "id": "ymhjyx",
+      "name": "primary BG"
+    },
+    {
+      "raw": "var(--color-secondary-bg)",
+      "id": "urnybv",
+      "name": "secondary BG"
+    },
+    {
+      "raw": "var(--color-border)",
+      "id": "blktit",
+      "name": "border"
+    },
+    {
+      "raw": "var(--color-black)",
+      "id": "nvixhj",
+      "name": "black"
+    },
+    {
+      "raw": "var(--color-white)",
+      "id": "kxlmvr",
+      "name": "white"
+    }
+  ],
+  "default": true
+}
