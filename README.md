@@ -21,13 +21,12 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **WooCommerce** | Browse products and categories (read-only) |
 | **AI Memory** | Persistent site knowledge injected into every AI session |
 | **History** | Auto-snapshot before every write — restore any previous state |
-| **Template Library** | Search and fetch pre-built section templates by category |
 | **Business Profile** | Brand, contact, services, and assets used as AI project context |
 | **Design System** | Apply or inspect BricksTemplate design system presets |
 | **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, template categories, and memories |
 | **Validation** | Validate element arrays before writing — catches corrupt payloads early |
 
-**73 MCP tools** across all groups.
+**71 MCP tools** across all groups.
 
 ---
 
@@ -134,7 +133,7 @@ Once connected, start with a single call that loads everything in one shot:
 bricks_get_session_context
 ```
 
-This returns site info, color palette, global classes, CSS variables, fonts, active design framework, business profile, available template categories, and high-priority memories — all in one response.
+This returns site info, color palette, global classes, CSS variables, fonts, active design framework, business profile, and high-priority memories — all in one response.
 
 Then run:
 

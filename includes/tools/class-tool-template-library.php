@@ -70,7 +70,7 @@ class Tool_Template_Library extends Tool_Base {
 	// -------------------------------------------------------------------------
 
 	private function get_csv_path(): string {
-		return BMCP_PLUGIN_DIR . 'assets/Bricks Builder Templates.csv';
+		return BMCP_PLUGIN_DIR . 'assets/design-systems/Bricks Builder Templates .csv';
 	}
 
 	private function load_csv(): array {
