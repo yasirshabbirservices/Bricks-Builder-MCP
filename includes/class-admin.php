@@ -20,6 +20,8 @@ class Admin {
 		add_action( 'wp_ajax_bmcp_history_restore', [ $this, 'ajax_history_restore' ] );
 		add_action( 'wp_ajax_bmcp_history_delete',  [ $this, 'ajax_history_delete' ] );
 		add_action( 'wp_ajax_bmcp_history_clear',   [ $this, 'ajax_history_clear' ] );
+		add_action( 'wp_ajax_bmcp_export_profile',  [ $this, 'ajax_export_profile' ] );
+		add_action( 'wp_ajax_bmcp_import_profile',  [ $this, 'ajax_import_profile' ] );
 	}
 
 	public function register_menu(): void {
@@ -358,5 +360,61 @@ class Admin {
 
 		History_Manager::clear_all();
 		wp_send_json_success();
+	}
+
+	public function ajax_export_profile(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
+
+		wp_send_json_success( [
+			'exported_at'  => wp_date( 'Y-m-d H:i:s' ),
+			'site_url'     => get_site_url(),
+			'bmcp_version' => BMCP_VERSION,
+			'profile'      => is_array( $profile ) ? $profile : [],
+		] );
+	}
+
+	public function ajax_import_profile(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$raw = isset( $_POST['profile_json'] ) ? wp_unslash( $_POST['profile_json'] ) : '';
+		if ( empty( $raw ) ) {
+			wp_send_json_error( 'No JSON provided.' );
+		}
+
+		$decoded = json_decode( $raw, true );
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			wp_send_json_error( 'Invalid JSON: ' . json_last_error_msg() );
+		}
+
+		// Accept either the full export blob or just the profile object
+		$incoming = isset( $decoded['profile'] ) && is_array( $decoded['profile'] )
+			? $decoded['profile']
+			: $decoded;
+
+		if ( ! is_array( $incoming ) || empty( $incoming ) ) {
+			wp_send_json_error( 'Profile data is empty or invalid.' );
+		}
+
+		$existing = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
+		if ( ! is_array( $existing ) ) {
+			$existing = [];
+		}
+
+		$merged = array_merge( $existing, $incoming );
+		$clean  = $this->sanitize_business_profile( $merged );
+
+		update_option( BMCP_BUSINESS_PROFILE_OPTION, $clean, false );
+
+		wp_send_json_success( [ 'message' => 'Business profile imported successfully. Reload the page to see updated values.' ] );
 	}
 }

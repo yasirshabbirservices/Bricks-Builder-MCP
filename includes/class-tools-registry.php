@@ -38,6 +38,7 @@ class Tools_Registry {
 			new Tools\Tool_Business_Profile(),
 			new Tools\Tool_Design_System(),
 			new Tools\Tool_Skills(),
+			new Tools\Tool_Audit(),
 		];
 
 		foreach ( $groups as $handler ) {

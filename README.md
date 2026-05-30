@@ -27,8 +27,10 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, and memories |
 | **Validation** | Validate element arrays before writing — catches corrupt payloads early |
 | **Agent Skills** | On-demand best-practice guides: accessibility, SEO, CSS, performance, typography, layout, dynamic data |
+| **Design Audit** | Scan all pages for design inconsistencies — hardcoded colors, mismatched fonts, spacing drift |
+| **Element Search** | Find elements by type, class, setting key/value, or text content across all pages |
 
-**73 MCP tools** across all groups.
+**77 MCP tools** across all groups.
 
 ---
 

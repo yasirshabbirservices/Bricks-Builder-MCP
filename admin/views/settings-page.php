@@ -617,6 +617,28 @@ $cfg_general =
 			</div>
 
 		</form>
+
+		<!-- Export / Import -->
+		<div class="bmcp-card" style="margin-top:24px">
+			<h3 class="bmcp-card-title">Export / Import Profile</h3>
+			<p class="description" style="margin-bottom:16px">Copy your brand configuration to another site, or restore it from a backup. Uses the same format as <code>bricks_export_business_profile</code> / <code>bricks_import_business_profile</code> MCP tools.</p>
+
+			<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+				<!-- Export -->
+				<div style="flex:1;min-width:240px">
+					<button type="button" class="button button-secondary" id="bmcp-export-profile-btn">Export Profile JSON</button>
+					<p class="description" style="margin-top:6px">Downloads a <code>.json</code> file of your current profile.</p>
+				</div>
+				<!-- Import -->
+				<div style="flex:2;min-width:300px">
+					<label for="bmcp-import-profile-json" class="screen-reader-text">Paste profile JSON to import</label>
+					<textarea id="bmcp-import-profile-json" rows="4" class="large-text code" placeholder='Paste JSON from bricks_export_business_profile here…' style="width:100%;font-size:12px;font-family:monospace;resize:vertical"></textarea>
+					<button type="button" class="button button-secondary" id="bmcp-import-profile-btn" style="margin-top:8px">Import Profile JSON</button>
+					<span id="bmcp-import-profile-status" style="margin-left:10px;font-size:13px"></span>
+				</div>
+			</div>
+		</div>
+
 	</div><!-- /tab-business-profile -->
 
 	<!-- ====================== CAPABILITIES TAB ====================== -->

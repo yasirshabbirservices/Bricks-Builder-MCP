@@ -596,6 +596,49 @@ jQuery( function ( $ ) {
 		bmcpReindexRepeater( $repeater );
 	} );
 
+	// ---- Business Profile Export ----
+	$( '#bmcp-export-profile-btn' ).on( 'click', function () {
+		var $btn = $( this );
+		$btn.prop( 'disabled', true ).text( 'Exporting…' );
+
+		$.post( ajaxurl, { action: 'bmcp_export_profile', nonce: cfg.nonce }, function ( res ) {
+			$btn.prop( 'disabled', false ).text( 'Export Profile JSON' );
+			if ( ! res.success ) { alert( 'Export failed: ' + ( res.data || 'Unknown error' ) ); return; }
+
+			var json    = JSON.stringify( res.data, null, 2 );
+			var blob    = new Blob( [ json ], { type: 'application/json' } );
+			var url     = URL.createObjectURL( blob );
+			var a       = document.createElement( 'a' );
+			var site    = ( res.data.site_url || 'site' ).replace( /https?:\/\//, '' ).replace( /[^a-z0-9]/gi, '-' );
+			a.href      = url;
+			a.download  = 'bmcp-profile-' + site + '.json';
+			a.click();
+			URL.revokeObjectURL( url );
+		} );
+	} );
+
+	// ---- Business Profile Import ----
+	$( '#bmcp-import-profile-btn' ).on( 'click', function () {
+		var json    = $( '#bmcp-import-profile-json' ).val().trim();
+		var $status = $( '#bmcp-import-profile-status' );
+		var $btn    = $( this );
+
+		if ( ! json ) { $status.text( 'Paste JSON first.' ).css( 'color', '#d63638' ); return; }
+
+		$btn.prop( 'disabled', true ).text( 'Importing…' );
+		$status.text( '' );
+
+		$.post( ajaxurl, { action: 'bmcp_import_profile', nonce: cfg.nonce, profile_json: json }, function ( res ) {
+			$btn.prop( 'disabled', false ).text( 'Import Profile JSON' );
+			if ( res.success ) {
+				$status.text( '✓ ' + ( res.data.message || 'Imported.' ) ).css( 'color', '#00a32a' );
+				$( '#bmcp-import-profile-json' ).val( '' );
+			} else {
+				$status.text( '✗ ' + ( res.data || 'Import failed.' ) ).css( 'color', '#d63638' );
+			}
+		} );
+	} );
+
 	// ---- Utility ----
 	function escHtml( str ) {
 		return String( str ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );

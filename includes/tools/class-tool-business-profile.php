@@ -15,6 +15,25 @@ class Tool_Business_Profile extends Tool_Base {
 	public function define(): array {
 		return [
 			[
+				'name'        => 'bricks_export_business_profile',
+				'description' => 'Export the full business profile as a portable JSON object. Use this to back up the profile, share it with another site, or inspect all configured fields at once. The returned JSON can be imported into any Bricks MCP site via bricks_import_business_profile.',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
+				'name'        => 'bricks_import_business_profile',
+				'description' => 'Import a business profile JSON object exported from bricks_export_business_profile. Validates and sanitizes all fields (colors, URLs, emails, selects). Merges into the current profile — existing fields not present in the import are preserved. Returns the full profile after import.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'profile' => [
+							'type'        => 'object',
+							'description' => 'Business profile data object (from bricks_export_business_profile). All fields are optional — only provided fields are updated.',
+						],
+					],
+					'required' => [ 'profile' ],
+				],
+			],
+			[
 				'name'        => 'bricks_get_business_profile',
 				'description' => 'Get the full business profile stored in plugin settings. Returns: brand identity (name, tagline, type, audience, tone, about); brand colors (primary, secondary, accent, text, heading, background, surface, border, success, error hex values); typography (heading font, body font, base size); design style (style preset, border radius, spacing scale, button style); contact details (email, phone, address, plus custom extra entries); social media links (repeater of platform+url pairs); navigation items, CTA, copyright; logo URLs; and services list. Use these values to replace ALL placeholder content when building or editing any section — substitute logos, dummy emails, phone numbers, addresses, Lorem ipsum, colors, fonts, and placeholder links with the real values here.',
 				'inputSchema' => [
@@ -26,8 +45,11 @@ class Tool_Business_Profile extends Tool_Base {
 	}
 
 	public function execute( string $name, array $args ): array|\WP_Error {
-		if ( $name !== 'bricks_get_business_profile' ) {
-			return $this->err( 'Unknown tool: ' . $name );
+		switch ( $name ) {
+			case 'bricks_export_business_profile':
+				return $this->export_profile();
+			case 'bricks_import_business_profile':
+				return $this->import_profile( $args['profile'] ?? [] );
 		}
 
 		$profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
@@ -93,6 +115,58 @@ class Tool_Business_Profile extends Tool_Base {
 			'services'     => array_values( array_filter(
 				array_map( 'trim', explode( "\n", $profile['services'] ?? '' ) )
 			) ),
+		];
+	}
+
+	// -------------------------------------------------------------------------
+
+	private function export_profile(): array {
+		$profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
+
+		if ( empty( $profile ) || ! is_array( $profile ) ) {
+			return [
+				'configured' => false,
+				'note'       => 'No business profile configured yet. Nothing to export.',
+			];
+		}
+
+		return [
+			'configured'   => true,
+			'exported_at'  => wp_date( 'Y-m-d H:i:s' ),
+			'site_url'     => get_site_url(),
+			'bmcp_version' => BMCP_VERSION,
+			'profile'      => $profile,
+			'note'         => 'Pass the "profile" value to bricks_import_business_profile on any Bricks MCP site to apply these settings.',
+		];
+	}
+
+	private function import_profile( $incoming ): array|\WP_Error {
+		$err = $this->require_cap( 'manage_options' );
+		if ( $err ) return $err;
+
+		if ( ! is_array( $incoming ) || empty( $incoming ) ) {
+			return $this->err( 'Invalid profile data. Pass the "profile" object from bricks_export_business_profile.' );
+		}
+
+		// Merge with existing profile so unset fields are preserved
+		$existing = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );
+		if ( ! is_array( $existing ) ) {
+			$existing = [];
+		}
+
+		$merged = array_merge( $existing, $incoming );
+
+		// Run through the same sanitizer used by the admin form
+		$admin = new \BricksMCP\Admin();
+		$clean = $admin->sanitize_business_profile( $merged );
+
+		update_option( BMCP_BUSINESS_PROFILE_OPTION, $clean, false );
+
+		return [
+			'success'     => true,
+			'imported_at' => wp_date( 'Y-m-d H:i:s' ),
+			'message'     => 'Business profile imported and saved successfully.',
+			'note'        => 'Call bricks_get_business_profile to verify the imported values.',
 		];
 	}
 }
