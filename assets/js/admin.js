@@ -523,6 +523,69 @@ jQuery( function ( $ ) {
 		}, 4000 );
 	}
 
+	// =========================================================================
+	// COLOR PICKERS
+	// =========================================================================
+
+	$( document ).on( 'input', '.bmcp-color-swatch', function () {
+		var $hex = $( '#' + $( this ).data( 'target' ) );
+		$hex.val( $( this ).val().toUpperCase() );
+	} );
+
+	$( document ).on( 'input', '.bmcp-color-hex', function () {
+		var val   = $( this ).val();
+		var $row  = $( this ).closest( '.bmcp-color-row' );
+		var $sw   = $row.find( '.bmcp-color-swatch' );
+		if ( /^#[0-9A-Fa-f]{6}$/.test( val ) ) {
+			$sw.val( val.toLowerCase() );
+		}
+	} );
+
+	// =========================================================================
+	// REPEATERS
+	// =========================================================================
+
+	function bmcpReindexRepeater( $repeater ) {
+		var fieldBase = $repeater.data( 'field-base' );
+		$repeater.find( '.bmcp-repeater-row' ).each( function ( i ) {
+			$( this ).attr( 'data-index', i );
+			$( this ).find( 'input' ).each( function () {
+				var name  = $( this ).attr( 'name' );
+				var clean = name.replace( /\[\d+\]/, '[' + i + ']' );
+				$( this ).attr( 'name', clean );
+			} );
+		} );
+	}
+
+	function bmcpMakeRow( fieldBase, index, fields ) {
+		var inputs = fields.map( function ( f ) {
+			return '<input type="' + f.type + '" ' +
+				'name="' + fieldBase + '[' + index + '][' + f.key + ']" ' +
+				'value="' + ( f.value || '' ) + '" ' +
+				'placeholder="' + ( f.placeholder || '' ) + '" ' +
+				'data-role="' + f.key + '" />';
+		} ).join( '' );
+		return '<div class="bmcp-repeater-row" data-index="' + index + '">' +
+			inputs +
+			'<button type="button" class="button bmcp-repeater-remove" aria-label="Remove row">&#x2715;</button>' +
+		'</div>';
+	}
+
+	$( document ).on( 'click', '.bmcp-repeater-add', function () {
+		var $btn      = $( this );
+		var $repeater = $( '#' + $btn.data( 'repeater' ) );
+		var fieldBase = $repeater.data( 'field-base' );
+		var fields    = JSON.parse( $btn.attr( 'data-fields' ) );
+		var newIndex  = $repeater.find( '.bmcp-repeater-row' ).length;
+		$repeater.append( bmcpMakeRow( fieldBase, newIndex, fields ) );
+	} );
+
+	$( document ).on( 'click', '.bmcp-repeater-remove', function () {
+		var $repeater = $( this ).closest( '.bmcp-repeater' );
+		$( this ).closest( '.bmcp-repeater-row' ).remove();
+		bmcpReindexRepeater( $repeater );
+	} );
+
 	// ---- Utility ----
 	function escHtml( str ) {
 		return String( str ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );

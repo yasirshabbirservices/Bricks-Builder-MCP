@@ -344,6 +344,118 @@ $cfg_general =
 				</div>
 			</div>
 
+			<!-- Brand Colors -->
+			<?php
+			$color_defs = [
+				'color_primary'    => [ 'label' => 'Primary',    'default' => '#000000' ],
+				'color_secondary'  => [ 'label' => 'Secondary',  'default' => '#000000' ],
+				'color_accent'     => [ 'label' => 'Accent',     'default' => '#000000' ],
+				'color_text'       => [ 'label' => 'Text',       'default' => '#111111' ],
+				'color_heading'    => [ 'label' => 'Heading',    'default' => '#000000' ],
+				'color_background' => [ 'label' => 'Background', 'default' => '#ffffff' ],
+				'color_surface'    => [ 'label' => 'Surface / Card', 'default' => '#f5f5f5' ],
+				'color_border'     => [ 'label' => 'Border',     'default' => '#e0e0e0' ],
+				'color_success'    => [ 'label' => 'Success',    'default' => '#22c55e' ],
+				'color_error'      => [ 'label' => 'Error',      'default' => '#ef4444' ],
+			];
+			?>
+			<div class="bmcp-card">
+				<h2>Brand Colors</h2>
+				<p>Core color tokens. The AI uses these when setting up global color palettes, writing inline styles, or choosing consistent values across components.</p>
+				<div class="bmcp-bp-grid">
+					<?php foreach ( $color_defs as $field_key => $color_info ) :
+						$saved_val = $bp[ $field_key ] ?? '';
+						$swatch_val = $saved_val !== '' ? $saved_val : $color_info['default'];
+						$hex_id = 'bmcp-' . str_replace( '_', '-', $field_key );
+					?>
+					<div class="bmcp-field">
+						<label for="<?php echo esc_attr( $hex_id ); ?>"><?php echo esc_html( $color_info['label'] ); ?></label>
+						<div class="bmcp-color-row">
+							<input type="color"
+								class="bmcp-color-swatch"
+								value="<?php echo esc_attr( strtolower( $swatch_val ) ); ?>"
+								data-target="<?php echo esc_attr( $hex_id ); ?>"
+								tabindex="-1"
+								aria-hidden="true"
+							/>
+							<input type="text"
+								id="<?php echo esc_attr( $hex_id ); ?>"
+								class="bmcp-color-hex"
+								name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[<?php echo esc_attr( $field_key ); ?>]"
+								value="<?php echo esc_attr( strtoupper( $saved_val ) ); ?>"
+								placeholder="<?php echo esc_attr( strtoupper( $color_info['default'] ) ); ?>"
+								maxlength="7"
+							/>
+						</div>
+					</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+
+			<!-- Typography -->
+			<div class="bmcp-card">
+				<h2>Typography</h2>
+				<p>Font and sizing preferences. Use Google Font names (e.g. "Inter", "Playfair Display") — the AI uses these when configuring theme styles or writing font-family values.</p>
+				<div class="bmcp-bp-grid">
+					<div class="bmcp-field">
+						<label for="bmcp-bp-font-heading">Heading Font</label>
+						<input type="text" id="bmcp-bp-font-heading" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[font_heading]" value="<?php echo esc_attr( $bp['font_heading'] ?? '' ); ?>" placeholder="e.g. Inter, Playfair Display" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-font-body">Body Font</label>
+						<input type="text" id="bmcp-bp-font-body" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[font_body]" value="<?php echo esc_attr( $bp['font_body'] ?? '' ); ?>" placeholder="e.g. Inter, Open Sans" />
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-font-size">Base Font Size</label>
+						<input type="text" id="bmcp-bp-font-size" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[font_size_base]" value="<?php echo esc_attr( $bp['font_size_base'] ?? '' ); ?>" placeholder="e.g. 16px, 1rem" />
+					</div>
+				</div>
+			</div>
+
+			<!-- Design Style -->
+			<div class="bmcp-card">
+				<h2>Design Style</h2>
+				<p>High-level design direction. The AI uses these tokens when making layout, spacing, radius, and interaction decisions — keeping everything consistent with your brand feel.</p>
+				<div class="bmcp-bp-grid">
+					<div class="bmcp-field">
+						<label for="bmcp-bp-design-style">Design Style</label>
+						<select id="bmcp-bp-design-style" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[design_style]">
+							<option value="">— Not set —</option>
+							<?php foreach ( [ 'modern' => 'Modern', 'minimal' => 'Minimal', 'bold' => 'Bold', 'elegant' => 'Elegant', 'playful' => 'Playful', 'corporate' => 'Corporate', 'creative' => 'Creative', 'luxury' => 'Luxury' ] as $v => $l ) : ?>
+							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $bp['design_style'] ?? '', $v ); ?>><?php echo esc_html( $l ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-border-radius">Border Radius</label>
+						<select id="bmcp-bp-border-radius" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[border_radius]">
+							<option value="">— Not set —</option>
+							<?php foreach ( [ 'none' => 'None / Sharp (0px)', 'small' => 'Small (4px)', 'medium' => 'Medium (8px)', 'large' => 'Large (16px)', 'rounded' => 'Rounded (24px)', 'pill' => 'Pill (999px)' ] as $v => $l ) : ?>
+							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $bp['border_radius'] ?? '', $v ); ?>><?php echo esc_html( $l ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-spacing-scale">Spacing Scale</label>
+						<select id="bmcp-bp-spacing-scale" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[spacing_scale]">
+							<option value="">— Not set —</option>
+							<?php foreach ( [ 'compact' => 'Compact', 'normal' => 'Normal', 'spacious' => 'Spacious' ] as $v => $l ) : ?>
+							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $bp['spacing_scale'] ?? '', $v ); ?>><?php echo esc_html( $l ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+					<div class="bmcp-field">
+						<label for="bmcp-bp-button-style">Button Style</label>
+						<select id="bmcp-bp-button-style" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[button_style]">
+							<option value="">— Not set —</option>
+							<?php foreach ( [ 'filled' => 'Filled', 'outline' => 'Outline', 'ghost' => 'Ghost', 'soft' => 'Soft' ] as $v => $l ) : ?>
+							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $bp['button_style'] ?? '', $v ); ?>><?php echo esc_html( $l ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+				</div>
+			</div>
+
 			<!-- Contact -->
 			<div class="bmcp-card">
 				<h2>Contact Information</h2>
@@ -365,28 +477,91 @@ $cfg_general =
 						<input type="text" id="bmcp-bp-city" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[city_country]" value="<?php echo esc_attr( $bp['city_country'] ?? '' ); ?>" placeholder="e.g. London, UK" />
 					</div>
 				</div>
+
+				<?php
+				$contact_extra  = $bp['contact_extra'] ?? [];
+				$contact_fields = json_encode( [
+					[ 'key' => 'label', 'type' => 'text', 'placeholder' => 'Label (e.g. WhatsApp)' ],
+					[ 'key' => 'value', 'type' => 'text', 'placeholder' => 'Value or URL' ],
+				] );
+				?>
+				<div style="margin-top:14px">
+					<label style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:8px">Additional Contact Details <span style="font-weight:400">(WhatsApp, fax, hours, etc.)</span></label>
+					<div class="bmcp-repeater bmcp-repeater--contact" id="bmcp-contact-extra-repeater"
+						data-field-base="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[contact_extra]">
+						<?php foreach ( $contact_extra as $i => $item ) : ?>
+						<div class="bmcp-repeater-row" data-index="<?php echo esc_attr( $i ); ?>">
+							<input type="text"
+								name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[contact_extra][<?php echo esc_attr( $i ); ?>][label]"
+								value="<?php echo esc_attr( $item['label'] ?? '' ); ?>"
+								placeholder="Label (e.g. WhatsApp)"
+								data-role="label" />
+							<input type="text"
+								name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[contact_extra][<?php echo esc_attr( $i ); ?>][value]"
+								value="<?php echo esc_attr( $item['value'] ?? '' ); ?>"
+								placeholder="Value or URL"
+								data-role="value" />
+							<button type="button" class="button bmcp-repeater-remove" aria-label="Remove">&#x2715;</button>
+						</div>
+						<?php endforeach; ?>
+					</div>
+					<button type="button" class="button bmcp-repeater-add"
+						data-repeater="bmcp-contact-extra-repeater"
+						data-fields='<?php echo esc_attr( $contact_fields ); ?>'>
+						+ Add Contact Detail
+					</button>
+				</div>
 			</div>
 
 			<!-- Social Media -->
+			<?php
+			$social_links       = $bp['social_links'] ?? [];
+			$social_field_defs  = json_encode( [
+				[ 'key' => 'platform', 'type' => 'text',  'placeholder' => 'Platform (e.g. LinkedIn)' ],
+				[ 'key' => 'url',      'type' => 'url',   'placeholder' => 'https://' ],
+			] );
+			// If no repeater entries yet, seed with the 5 legacy fixed fields
+			if ( empty( $social_links ) ) {
+				$legacy_map = [
+					'facebook_url'  => 'Facebook',
+					'instagram_url' => 'Instagram',
+					'linkedin_url'  => 'LinkedIn',
+					'twitter_url'   => 'Twitter / X',
+					'youtube_url'   => 'YouTube',
+				];
+				foreach ( $legacy_map as $lk => $lname ) {
+					if ( ! empty( $bp[ $lk ] ) ) {
+						$social_links[] = [ 'platform' => $lname, 'url' => $bp[ $lk ] ];
+					}
+				}
+			}
+			?>
 			<div class="bmcp-card">
 				<h2>Social Media</h2>
-				<div class="bmcp-bp-grid">
-					<?php
-					$social_fields = [
-						'facebook_url'  => [ 'label' => 'Facebook', 'placeholder' => 'https://facebook.com/yourpage' ],
-						'instagram_url' => [ 'label' => 'Instagram', 'placeholder' => 'https://instagram.com/yourhandle' ],
-						'linkedin_url'  => [ 'label' => 'LinkedIn', 'placeholder' => 'https://linkedin.com/company/yourco' ],
-						'twitter_url'   => [ 'label' => 'Twitter / X', 'placeholder' => 'https://x.com/yourhandle' ],
-						'youtube_url'   => [ 'label' => 'YouTube', 'placeholder' => 'https://youtube.com/@yourchannel' ],
-					];
-					foreach ( $social_fields as $field_key => $field_info ) :
-					?>
-					<div class="bmcp-field">
-						<label for="bmcp-bp-<?php echo esc_attr( $field_key ); ?>"><?php echo esc_html( $field_info['label'] ); ?></label>
-						<input type="url" id="bmcp-bp-<?php echo esc_attr( $field_key ); ?>" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[<?php echo esc_attr( $field_key ); ?>]" value="<?php echo esc_attr( $bp[ $field_key ] ?? '' ); ?>" placeholder="<?php echo esc_attr( $field_info['placeholder'] ); ?>" />
+				<p>Add any social platform — as many as you need. The AI uses these when building footers, contact sections, or navigation.</p>
+				<div class="bmcp-repeater bmcp-repeater--social" id="bmcp-social-repeater"
+					data-field-base="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[social_links]">
+					<?php foreach ( $social_links as $i => $item ) : ?>
+					<div class="bmcp-repeater-row" data-index="<?php echo esc_attr( $i ); ?>">
+						<input type="text"
+							name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[social_links][<?php echo esc_attr( $i ); ?>][platform]"
+							value="<?php echo esc_attr( $item['platform'] ?? '' ); ?>"
+							placeholder="Platform (e.g. LinkedIn)"
+							data-role="platform" />
+						<input type="url"
+							name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[social_links][<?php echo esc_attr( $i ); ?>][url]"
+							value="<?php echo esc_attr( $item['url'] ?? '' ); ?>"
+							placeholder="https://"
+							data-role="url" />
+						<button type="button" class="button bmcp-repeater-remove" aria-label="Remove">&#x2715;</button>
 					</div>
 					<?php endforeach; ?>
 				</div>
+				<button type="button" class="button bmcp-repeater-add"
+					data-repeater="bmcp-social-repeater"
+					data-fields='<?php echo esc_attr( $social_field_defs ); ?>'>
+					+ Add Social Link
+				</button>
 			</div>
 
 			<!-- Navigation & Copy -->

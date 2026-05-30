@@ -72,30 +72,72 @@ class Admin {
 			return [];
 		}
 
-		$text_fields = [
-			'business_name', 'tagline', 'business_type', 'target_audience', 'tone_of_voice',
-			'phone', 'address', 'city_country', 'nav_items', 'cta_text', 'copyright_text',
-		];
-
-		$url_fields = [
-			'facebook_url', 'instagram_url', 'linkedin_url', 'twitter_url', 'youtube_url',
-			'logo_url', 'logo_dark_url', 'cta_url',
-		];
-
 		$output = [];
 
-		foreach ( $text_fields as $field ) {
+		// ── Text fields ───────────────────────────────────────────────
+		foreach ( [ 'business_name', 'tagline', 'business_type', 'target_audience', 'tone_of_voice',
+		             'phone', 'address', 'city_country', 'nav_items', 'cta_text', 'copyright_text',
+		             'font_heading', 'font_body', 'font_size_base' ] as $field ) {
 			$output[ $field ] = sanitize_text_field( $input[ $field ] ?? '' );
 		}
 
+		// ── Email & URL fields ────────────────────────────────────────
 		$output['email'] = sanitize_email( $input['email'] ?? '' );
 
-		foreach ( $url_fields as $field ) {
+		foreach ( [ 'logo_url', 'logo_dark_url', 'cta_url' ] as $field ) {
 			$output[ $field ] = sanitize_url( $input[ $field ] ?? '' );
 		}
 
+		// ── Textarea fields ───────────────────────────────────────────
 		$output['about_text'] = sanitize_textarea_field( $input['about_text'] ?? '' );
 		$output['services']   = sanitize_textarea_field( $input['services']   ?? '' );
+
+		// ── Colors (hex only) ─────────────────────────────────────────
+		foreach ( [ 'color_primary', 'color_secondary', 'color_accent', 'color_text',
+		             'color_heading', 'color_background', 'color_surface', 'color_border',
+		             'color_success', 'color_error' ] as $field ) {
+			$output[ $field ] = sanitize_hex_color( $input[ $field ] ?? '' ) ?? '';
+		}
+
+		// ── Design style (allowlisted selects) ────────────────────────
+		$allowed = [
+			'design_style'  => [ '', 'modern', 'minimal', 'bold', 'elegant', 'playful', 'corporate', 'creative', 'luxury' ],
+			'border_radius' => [ '', 'none', 'small', 'medium', 'large', 'rounded', 'pill' ],
+			'spacing_scale' => [ '', 'compact', 'normal', 'spacious' ],
+			'button_style'  => [ '', 'filled', 'outline', 'ghost', 'soft' ],
+		];
+		foreach ( $allowed as $field => $values ) {
+			$val = sanitize_key( $input[ $field ] ?? '' );
+			$output[ $field ] = in_array( $val, $values, true ) ? $val : '';
+		}
+
+		// ── Social links (repeater) ───────────────────────────────────
+		$social_links = [];
+		if ( ! empty( $input['social_links'] ) && is_array( $input['social_links'] ) ) {
+			foreach ( array_values( $input['social_links'] ) as $item ) {
+				if ( ! is_array( $item ) ) continue;
+				$platform = sanitize_text_field( $item['platform'] ?? '' );
+				$url      = sanitize_url( $item['url'] ?? '' );
+				if ( $platform !== '' || $url !== '' ) {
+					$social_links[] = [ 'platform' => $platform, 'url' => $url ];
+				}
+			}
+		}
+		$output['social_links'] = $social_links;
+
+		// ── Extra contact items (repeater) ────────────────────────────
+		$contact_extra = [];
+		if ( ! empty( $input['contact_extra'] ) && is_array( $input['contact_extra'] ) ) {
+			foreach ( array_values( $input['contact_extra'] ) as $item ) {
+				if ( ! is_array( $item ) ) continue;
+				$label = sanitize_text_field( $item['label'] ?? '' );
+				$value = sanitize_text_field( $item['value'] ?? '' );
+				if ( $label !== '' || $value !== '' ) {
+					$contact_extra[] = [ 'label' => $label, 'value' => $value ];
+				}
+			}
+		}
+		$output['contact_extra'] = $contact_extra;
 
 		return $output;
 	}

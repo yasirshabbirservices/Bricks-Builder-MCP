@@ -16,7 +16,7 @@ class Tool_Business_Profile extends Tool_Base {
 		return [
 			[
 				'name'        => 'bricks_get_business_profile',
-				'description' => 'Get the business profile stored in the plugin settings: brand identity (name, tagline, type, audience, tone, about text), contact details (email, phone, address), social media URLs, navigation items, CTA button text and URL, copyright text, logo URLs, and services list. Use this data to replace ALL placeholder content when inserting library templates — substitute logo images, dummy emails, phone numbers, addresses, Lorem ipsum text, and placeholder navigation links with the real values found here.',
+				'description' => 'Get the full business profile stored in plugin settings. Returns: brand identity (name, tagline, type, audience, tone, about); brand colors (primary, secondary, accent, text, heading, background, surface, border, success, error hex values); typography (heading font, body font, base size); design style (style preset, border radius, spacing scale, button style); contact details (email, phone, address, plus custom extra entries); social media links (repeater of platform+url pairs); navigation items, CTA, copyright; logo URLs; and services list. Use these values to replace ALL placeholder content when building or editing any section — substitute logos, dummy emails, phone numbers, addresses, Lorem ipsum, colors, fonts, and placeholder links with the real values here.',
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [],
@@ -40,8 +40,8 @@ class Tool_Business_Profile extends Tool_Base {
 		}
 
 		return [
-			'configured' => true,
-			'brand'      => [
+			'configured'   => true,
+			'brand'        => [
 				'business_name'   => $profile['business_name']   ?? '',
 				'tagline'         => $profile['tagline']          ?? '',
 				'business_type'   => $profile['business_type']   ?? '',
@@ -49,30 +49,48 @@ class Tool_Business_Profile extends Tool_Base {
 				'tone_of_voice'   => $profile['tone_of_voice']   ?? '',
 				'about_text'      => $profile['about_text']      ?? '',
 			],
-			'contact'    => [
+			'colors'       => [
+				'primary'    => $profile['color_primary']    ?? '',
+				'secondary'  => $profile['color_secondary']  ?? '',
+				'accent'     => $profile['color_accent']     ?? '',
+				'text'       => $profile['color_text']       ?? '',
+				'heading'    => $profile['color_heading']    ?? '',
+				'background' => $profile['color_background'] ?? '',
+				'surface'    => $profile['color_surface']    ?? '',
+				'border'     => $profile['color_border']     ?? '',
+				'success'    => $profile['color_success']    ?? '',
+				'error'      => $profile['color_error']      ?? '',
+			],
+			'typography'   => [
+				'font_heading'   => $profile['font_heading']   ?? '',
+				'font_body'      => $profile['font_body']      ?? '',
+				'font_size_base' => $profile['font_size_base'] ?? '',
+			],
+			'design_style' => [
+				'style'         => $profile['design_style']  ?? '',
+				'border_radius' => $profile['border_radius'] ?? '',
+				'spacing_scale' => $profile['spacing_scale'] ?? '',
+				'button_style'  => $profile['button_style']  ?? '',
+			],
+			'contact'      => [
 				'email'        => $profile['email']        ?? '',
 				'phone'        => $profile['phone']        ?? '',
 				'address'      => $profile['address']      ?? '',
 				'city_country' => $profile['city_country'] ?? '',
+				'extra'        => $profile['contact_extra'] ?? [],
 			],
-			'social'     => [
-				'facebook_url'  => $profile['facebook_url']  ?? '',
-				'instagram_url' => $profile['instagram_url'] ?? '',
-				'linkedin_url'  => $profile['linkedin_url']  ?? '',
-				'twitter_url'   => $profile['twitter_url']   ?? '',
-				'youtube_url'   => $profile['youtube_url']   ?? '',
-			],
-			'navigation' => [
+			'social'       => $profile['social_links'] ?? [],
+			'navigation'   => [
 				'nav_items'      => $profile['nav_items']      ?? '',
 				'cta_text'       => $profile['cta_text']       ?? '',
 				'cta_url'        => $profile['cta_url']        ?? '',
 				'copyright_text' => $profile['copyright_text'] ?? '',
 			],
-			'assets'     => [
+			'assets'       => [
 				'logo_url'      => $profile['logo_url']      ?? '',
 				'logo_dark_url' => $profile['logo_dark_url'] ?? '',
 			],
-			'services'   => array_values( array_filter(
+			'services'     => array_values( array_filter(
 				array_map( 'trim', explode( "\n", $profile['services'] ?? '' ) )
 			) ),
 		];
