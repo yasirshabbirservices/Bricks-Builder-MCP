@@ -61,19 +61,25 @@ class Tool_Context extends Tool_Base {
 			$result['business_profile_note'] = 'Authoritative project context. Use these values whenever writing or editing any site content — contact info, brand copy, navigation, logos, and service listings.';
 		}
 
-		// Template categories — let AI know the library exists without loading the CSV on every session
-		$result['template_categories'] = [
-			'note'       => 'Call bricks_search_templates to get full JSON for any category. Call bricks_get_template_library with the exact name to fetch elements.',
-			'categories' => [
-				'Back To Top', 'Banner', 'Bio Links', 'Brands', 'Button',
-				'Call To Action', 'Cart', 'Coming Soon', 'Contact US', 'Counter',
-				'Email Opt-In', 'Error Page', 'FAQs', 'Features', 'Footer',
-				'Header', 'Hero', 'Pagination', 'Popup', 'Post Grid',
-				'Post Loop', 'Post Section', 'Pricing', 'Product Categories',
-				'Product Tabs', 'Products', 'Pros and Cons', 'Single Post',
-				'Single Product', 'Slider', 'Table of Contents', 'Team', 'Testimonials',
-			],
-		];
+		// Template categories — auto-discovered from assets/templates/ subdirectories
+		$tpl_dir    = BMCP_PLUGIN_DIR . 'assets/templates/';
+		$categories = [];
+		if ( is_dir( $tpl_dir ) ) {
+			$subdirs = glob( $tpl_dir . '*', GLOB_ONLYDIR );
+			if ( $subdirs ) {
+				foreach ( $subdirs as $cat_dir ) {
+					$categories[] = ucwords( str_replace( [ '-', '_' ], ' ', basename( $cat_dir ) ) );
+				}
+				sort( $categories );
+			}
+		}
+
+		$result['template_categories'] = empty( $categories )
+			? [ 'note' => 'No template categories found. Add folders to assets/templates/ to populate the library.' ]
+			: [
+				'note'       => 'Call bricks_search_templates({category}) to list templates. Call bricks_get_template_library({template_name}) to fetch elements.',
+				'categories' => $categories,
+			];
 
 		// Design system detection — embed mandatory onboarding directive in the response
 		// so the AI treats it as a hard requirement (tool data), not a soft guideline (system prompt).

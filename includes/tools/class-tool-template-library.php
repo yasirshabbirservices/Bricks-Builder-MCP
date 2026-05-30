@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Tools for searching and retrieving pre-built Bricks Builder templates
- * from the bundled CSV library (assets/Bricks Builder Templates.csv).
+ * from assets/templates/{category}/{template-name}.json
  */
 class Tool_Template_Library extends Tool_Base {
 
@@ -15,7 +15,7 @@ class Tool_Template_Library extends Tool_Base {
 		return [
 			[
 				'name'        => 'bricks_search_templates',
-				'description' => 'Search the built-in Bricks Builder template library by category name or keyword. Returns a list of matching templates with their name and category. Use this BEFORE building any section from scratch — a pre-built template almost certainly exists. Available categories: Back To Top, Banner, Bio Links, Brands, Button, Call To Action, Cart, Coming Soon, Contact US, Counter, Email Opt-In, Error Page, FAQs, Features, Footer, Header, Hero, Pagination, Popup, Post Grid, Post Loop, Post Section, Pricing, Product Categories, Product Tabs, Products, Pros and Cons, Single Post, Single Product, Slider, Table of Contents, Team, Testimonials.',
+				'description' => 'Search the built-in Bricks Builder template library by category name or keyword. Returns a list of matching templates with their name and category. Use this BEFORE building any section from scratch — a pre-built template almost certainly exists. Categories are discovered automatically from the assets/templates/ directory.',
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
@@ -69,51 +69,55 @@ class Tool_Template_Library extends Tool_Base {
 
 	// -------------------------------------------------------------------------
 
-	private function get_csv_path(): string {
-		return BMCP_PLUGIN_DIR . 'assets/design-systems/Bricks Builder Templates .csv';
+	private function get_templates_dir(): string {
+		return BMCP_PLUGIN_DIR . 'assets/templates/';
 	}
 
-	private function load_csv(): array {
-		$path = $this->get_csv_path();
-		if ( ! file_exists( $path ) ) {
+	/**
+	 * Scans assets/templates/{category}/*.json and returns a flat index.
+	 * Category = folder name (title-cased, hyphens/underscores → spaces).
+	 * Name     = filename without .json (title-cased, hyphens/underscores → spaces).
+	 */
+	private function index_templates(): array {
+		$dir = $this->get_templates_dir();
+		if ( ! is_dir( $dir ) ) {
 			return [];
 		}
-		$rows   = [];
-		$handle = fopen( $path, 'r' );
-		if ( ! $handle ) {
-			return [];
-		}
-		while ( ( $line = fgetcsv( $handle, 0, ',', '"', '\\' ) ) !== false ) {
-			if ( isset( $line[0], $line[1] ) && trim( $line[0] ) !== '' ) {
-				$rows[] = [
-					'name' => trim( $line[0] ),
-					'json' => $line[1],
+
+		$items = [];
+		foreach ( glob( $dir . '*', GLOB_ONLYDIR ) as $cat_dir ) {
+			$category = ucwords( str_replace( [ '-', '_' ], ' ', basename( $cat_dir ) ) );
+			$files    = glob( $cat_dir . '/*.json' );
+			if ( ! $files ) {
+				continue;
+			}
+			foreach ( $files as $file ) {
+				$slug    = basename( $file, '.json' );
+				$name    = ucwords( str_replace( [ '-', '_' ], ' ', $slug ) );
+				$items[] = [
+					'name'     => $name,
+					'category' => $category,
+					'path'     => $file,
 				];
 			}
 		}
-		fclose( $handle );
-		return $rows;
+		return $items;
 	}
 
 	private function search_templates( string $category, string $keyword, int $limit ): array {
-		$rows    = $this->load_csv();
 		$results = [];
 
-		foreach ( $rows as $row ) {
-			$name = $row['name'];
-
-			if ( $category !== '' && stripos( $name, $category ) === false ) {
+		foreach ( $this->index_templates() as $tpl ) {
+			if ( $category !== '' && stripos( $tpl['category'], $category ) === false ) {
 				continue;
 			}
-			if ( $keyword !== '' && stripos( $name, $keyword ) === false ) {
+			if ( $keyword !== '' && stripos( $tpl['name'], $keyword ) === false ) {
 				continue;
 			}
-
 			$results[] = [
-				'name'     => $name,
-				'category' => $name,
+				'name'     => $tpl['name'],
+				'category' => $tpl['category'],
 			];
-
 			if ( count( $results ) >= $limit ) {
 				break;
 			}
@@ -122,7 +126,9 @@ class Tool_Template_Library extends Tool_Base {
 		return [
 			'count'     => count( $results ),
 			'templates' => $results,
-			'note'      => 'Use bricks_get_template_library with the exact template name to fetch its full JSON structure.',
+			'note'      => count( $results ) === 0
+				? 'No templates found. Add JSON files to assets/templates/{category}/ to populate the library.'
+				: 'Use bricks_get_template_library with the exact template name to fetch its full structure.',
 		];
 	}
 
@@ -131,38 +137,38 @@ class Tool_Template_Library extends Tool_Base {
 			return $this->err( 'template_name is required.' );
 		}
 
-		$rows  = $this->load_csv();
-		$found = null;
-
-		foreach ( $rows as $row ) {
-			if ( strtolower( $row['name'] ) === strtolower( $template_name ) ) {
-				$found = $row;
-				break;
+		foreach ( $this->index_templates() as $tpl ) {
+			if ( strtolower( $tpl['name'] ) !== strtolower( $template_name ) ) {
+				continue;
 			}
+
+			$json = file_get_contents( $tpl['path'] );
+			if ( $json === false ) {
+				return $this->err( 'Could not read template file.' );
+			}
+
+			$decoded = json_decode( $json, true );
+			if ( json_last_error() !== JSON_ERROR_NONE ) {
+				return $this->err( 'Failed to parse template JSON: ' . json_last_error_msg() );
+			}
+
+			$content         = $decoded['content']       ?? [];
+			$global_classes  = $decoded['globalClasses'] ?? [];
+			$placeholder_map = $this->detect_placeholders( $content );
+
+			return [
+				'name'            => $tpl['name'],
+				'category'        => $tpl['category'],
+				'content'         => $content,
+				'globalClasses'   => $global_classes,
+				'placeholder_map' => $placeholder_map,
+				'note'            => empty( $placeholder_map )
+					? 'No placeholder values detected. Template is ready to use after validation.'
+					: 'Replace placeholder_map values with real content from bricks_get_business_profile before writing.',
+			];
 		}
 
-		if ( $found === null ) {
-			return $this->err( "Template not found: {$template_name}. Use bricks_search_templates to list available templates." );
-		}
-
-		$decoded = json_decode( $found['json'], true );
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return $this->err( 'Failed to parse template JSON: ' . json_last_error_msg() );
-		}
-
-		$content         = $decoded['content']       ?? [];
-		$global_classes  = $decoded['globalClasses'] ?? [];
-		$placeholder_map = $this->detect_placeholders( $content );
-
-		return [
-			'name'          => $found['name'],
-			'content'       => $content,
-			'globalClasses' => $global_classes,
-			'placeholder_map' => $placeholder_map,
-			'note'          => empty( $placeholder_map )
-				? 'No placeholder values detected. Template is ready to use after validation.'
-				: 'Replace all values in placeholder_map with real content from bricks_get_business_profile before writing to a page.',
-		];
+		return $this->err( "Template not found: {$template_name}. Use bricks_search_templates to list available templates." );
 	}
 
 	// -------------------------------------------------------------------------
