@@ -237,6 +237,7 @@ jQuery( function ( $ ) {
 
 	function bindMemoryActions() {
 		$( '.bmcp-btn-edit-mem' ).on( 'click', function () {
+			$modalTrigger = $( this );
 			var mem = JSON.parse( $( this ).attr( 'data-mem' ) );
 			openModal( mem );
 		} );
@@ -252,6 +253,8 @@ jQuery( function ( $ ) {
 	}
 
 	// ---- Modal ----
+	var $modalTrigger = null;
+
 	function openModal( mem ) {
 		var editing = !! ( mem && mem.id );
 		$( '#bmcp-modal-title' ).text( editing ? 'Edit Memory' : 'Add Memory' );
@@ -267,9 +270,16 @@ jQuery( function ( $ ) {
 
 	function closeModal() {
 		$( '#bmcp-memory-modal' ).hide();
+		if ( $modalTrigger ) {
+			$modalTrigger.focus();
+			$modalTrigger = null;
+		}
 	}
 
-	$( '#bmcp-btn-add-memory' ).on( 'click', function () { openModal( null ); } );
+	$( '#bmcp-btn-add-memory' ).on( 'click', function () {
+		$modalTrigger = $( this );
+		openModal( null );
+	} );
 	$( '.bmcp-modal-close, .bmcp-modal-cancel' ).on( 'click', closeModal );
 	$( '.bmcp-modal-backdrop' ).on( 'click', closeModal );
 

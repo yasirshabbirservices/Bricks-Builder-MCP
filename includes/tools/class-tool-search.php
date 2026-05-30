@@ -105,8 +105,8 @@ class Tool_Search extends Tool_Base {
 		$changed = [];
 
 		foreach ( $posts as $post_id => $post_type ) {
-			$meta_keys = $this->meta_keys_for( $post_type );
-			$post_matched = false;
+			$meta_keys    = $this->meta_keys_for( $post_type );
+			$post_touched = false;
 
 			foreach ( $meta_keys as $meta_key ) {
 				$elements = get_post_meta( $post_id, $meta_key, true );
@@ -115,18 +115,17 @@ class Tool_Search extends Tool_Base {
 				$json = wp_json_encode( $elements );
 				if ( ! $json || ! str_contains( $json, $search ) ) continue;
 
+				$area = $this->area_label( $meta_key );
+
 				if ( ! $dry_run ) {
-					if ( ! $post_matched ) {
-						// Snapshot this post once before any modification
-						History_Manager::capture( $post_id, $this->area_label( $meta_key ), 'bricks_replace_content' );
-						$post_matched = true;
-					}
+					// Snapshot each affected area individually so every area can be restored
+					History_Manager::capture( $post_id, $area, 'bricks_replace_content' );
 
 					$new_json  = str_replace( $search, $replace, $json );
 					$new_elems = json_decode( $new_json, true );
 					if ( json_last_error() === JSON_ERROR_NONE && is_array( $new_elems ) ) {
 						update_post_meta( $post_id, $meta_key, $new_elems );
-						wp_update_post( [ 'ID' => $post_id, 'post_modified' => current_time( 'mysql' ), 'post_modified_gmt' => current_time( 'mysql', true ) ] );
+						$post_touched = true;
 					}
 				}
 
@@ -134,8 +133,12 @@ class Tool_Search extends Tool_Base {
 					'post_id'   => $post_id,
 					'post_type' => $post_type,
 					'title'     => get_the_title( $post_id ),
-					'area'      => $this->area_label( $meta_key ),
+					'area'      => $area,
 				];
+			}
+
+			if ( $post_touched ) {
+				wp_update_post( [ 'ID' => $post_id, 'post_modified' => current_time( 'mysql' ), 'post_modified_gmt' => current_time( 'mysql', true ) ] );
 			}
 		}
 

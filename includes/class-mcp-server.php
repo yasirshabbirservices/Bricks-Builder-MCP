@@ -151,7 +151,7 @@ class MCP_Server {
 		}
 
 		$tool   = $this->registry->get_tool( 'bricks_get_system_prompt' );
-		$prompt = $tool ? $tool->execute( [] ) : 'System prompt unavailable.';
+		$prompt = $tool ? $tool->execute( 'bricks_get_system_prompt', [] ) : 'System prompt unavailable.';
 		if ( is_array( $prompt ) ) {
 			$prompt = $prompt['prompt'] ?? wp_json_encode( $prompt );
 		}

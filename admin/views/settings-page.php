@@ -887,8 +887,8 @@ $cfg_general =
 						<?php foreach ( $log as $entry ) : ?>
 						<tr>
 							<td style="color:var(--text-muted);font-size:0.8rem;white-space:nowrap">
-								<time datetime="<?php echo esc_attr( date( 'c', $entry['timestamp'] ) ); ?>">
-									<?php echo esc_html( date( 'M j H:i:s', $entry['timestamp'] ) ); ?>
+								<time datetime="<?php echo esc_attr( wp_date( 'c', $entry['timestamp'] ) ); ?>">
+									<?php echo esc_html( wp_date( 'M j H:i:s', $entry['timestamp'] ) ); ?>
 								</time>
 							</td>
 							<td><code><?php echo esc_html( $entry['tool'] ); ?></code></td>
