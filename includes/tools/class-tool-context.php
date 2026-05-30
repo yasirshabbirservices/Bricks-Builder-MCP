@@ -81,6 +81,18 @@ class Tool_Context extends Tool_Base {
 				'categories' => $categories,
 			];
 
+		// Skills index — slug + title + when_to_use only (NOT full content — token-efficient)
+		$skills_index = ( new Tool_Skills() )->index_skills();
+		if ( ! empty( $skills_index ) ) {
+			$result['available_skills'] = [
+				'note'   => 'Load the relevant skill with bricks_get_skill(slug) BEFORE each task. Load only what the current task requires — not all skills at once.',
+				'skills' => array_map(
+					fn( $s ) => [ 'slug' => $s['slug'], 'title' => $s['title'], 'when_to_use' => $s['when_to_use'] ],
+					$skills_index
+				),
+			];
+		}
+
 		// Design system detection — embed mandatory onboarding directive in the response
 		// so the AI treats it as a hard requirement (tool data), not a soft guideline (system prompt).
 		$has_design_system = count( $global_classes ) >= 2

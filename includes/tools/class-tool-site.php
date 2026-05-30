@@ -364,6 +364,30 @@ Wait for an explicit "yes", "go ahead", or "confirmed" before calling the tool.
 
 ---
 
+## AGENT SKILLS — On-Demand Best-Practice Guides
+
+This plugin provides skill guides you can load on demand. The `available_skills` index is included in every `bricks_get_session_context` response — check the `when_to_use` field for each skill and load the relevant ones before starting a task.
+
+**Load skills with:** `bricks_get_skill({skill: "slug"})`
+
+| Slug | Load before... |
+|---|---|
+| `bricks-elements` | Any element array creation, editing, or layout writing |
+| `css-best-practices` | Any styling work — classes, variables, or inline settings |
+| `accessibility` | Any form, nav, modal, interactive element, or image |
+| `seo-html` | Any page with headings, metadata, or content structure |
+| `performance` | Image-heavy sections, query loops, or above-fold content |
+| `bricks-dynamic-data` | ACF fields, JetEngine meta, or any query loop |
+| `typography` | Any text styling, font selection, or readability work |
+| `layout-patterns` | Any new section, hero, grid, or responsive layout |
+
+**Rules:**
+- Load only the skill(s) relevant to the current task — not all at once
+- Load before building, not after — the guide contains rules to follow during construction
+- Skills are versioned with the plugin — new skills appear automatically in the index
+
+---
+
 ## Settings Reference — Sizing & Layout
 
 **All dimension values are plain CSS strings — never use `{size, unit}` objects:**

@@ -26,8 +26,9 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Template Library** | Search and retrieve built-in wireframe templates by category |
 | **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, and memories |
 | **Validation** | Validate element arrays before writing — catches corrupt payloads early |
+| **Agent Skills** | On-demand best-practice guides: accessibility, SEO, CSS, performance, typography, layout, dynamic data |
 
-**71 MCP tools** across all groups.
+**73 MCP tools** across all groups.
 
 ---
 
@@ -203,6 +204,25 @@ This repo uses a GitHub Actions workflow (`.github/workflows/release.yml`) that 
 The plugin checks for new releases every 15 minutes and shows the standard WordPress "Update available" notice when a newer version is found.
 
 **To release a new version:** bump `BMCP_VERSION` in `bricks-builder-mcp.php`, then commit and push to `main`.
+
+---
+
+## Agent Skills
+
+The plugin ships 8 on-demand best-practice guides for AI agents. When building a page, the AI checks the `available_skills` index in `bricks_get_session_context` and loads the relevant guide with `bricks_get_skill(slug)` before starting work — not all at once, only what the current task requires.
+
+| Skill | When the AI loads it |
+|---|---|
+| `bricks-elements` | Any element array creation or editing |
+| `css-best-practices` | Any styling work — classes, variables, inline settings |
+| `accessibility` | Forms, navs, modals, images, interactive elements |
+| `seo-html` | Any page with headings, metadata, or content structure |
+| `performance` | Image-heavy sections, query loops, above-fold content |
+| `bricks-dynamic-data` | ACF, JetEngine, or any query loop |
+| `typography` | Text styling, font selection, readability |
+| `layout-patterns` | New sections, heroes, grids, responsive layouts |
+
+Skills are markdown files in `assets/skills/` — add your own and they appear automatically in `bricks_list_skills` with no code changes.
 
 ---
 
