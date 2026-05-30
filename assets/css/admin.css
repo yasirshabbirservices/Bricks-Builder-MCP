@@ -3,7 +3,7 @@
    Author: Yasir Shabbir <contact@yasirshabbir.com>
    ══════════════════════════════════════════════════════════════ */
 
-/* ---- WP Admin page background ---- */
+/* ---- WP Admin page background + overflow lock ---- */
 body.settings_page_bricks-mcp,
 body.settings_page_bricks-mcp #wpcontent,
 body.settings_page_bricks-mcp #wpbody,
@@ -13,6 +13,37 @@ body.bricks_page_bricks-mcp-settings #wpcontent,
 body.bricks_page_bricks-mcp-settings #wpbody,
 body.bricks_page_bricks-mcp-settings #wpbody-content {
 	background-color: #070c0a !important;
+}
+
+/* Kill horizontal scrollbar on the plugin pages entirely */
+body.settings_page_bricks-mcp #wpcontent,
+body.bricks_page_bricks-mcp-settings #wpcontent {
+	overflow-x: hidden;
+}
+
+/* ---- Branded scrollbars (all scrollable areas on the plugin page) ---- */
+body.settings_page_bricks-mcp ::-webkit-scrollbar,
+body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar {
+	width: 5px;
+	height: 5px;
+}
+body.settings_page_bricks-mcp ::-webkit-scrollbar-track,
+body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-track {
+	background: #080d0b;
+	border-radius: 3px;
+}
+body.settings_page_bricks-mcp ::-webkit-scrollbar-thumb,
+body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-thumb {
+	background: #274038;
+	border-radius: 3px;
+}
+body.settings_page_bricks-mcp ::-webkit-scrollbar-thumb:hover,
+body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-thumb:hover {
+	background: #00d68f;
+}
+body.settings_page_bricks-mcp ::-webkit-scrollbar-corner,
+body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-corner {
+	background: #080d0b;
 }
 
 /* ---- Accessibility: Focus ---- */
