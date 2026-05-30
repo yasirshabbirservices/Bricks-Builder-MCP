@@ -15,15 +15,16 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Media** | Browse, import, and delete media assets |
 | **Nav Menus** | Create and manage WordPress navigation menus |
 | **Components** | Manage Bricks reusable components |
-| **Search & Replace** | Find and replace colors, classes, or text across all pages |
+| **Search & Replace** | Find and replace colors, classes, or text across all pages and templates |
 | **SEO** | Read/write meta title, description, OG data (Yoast or Rank Math) |
 | **Cache** | Clear site cache after writes (WP Rocket, LiteSpeed, W3TC, etc.) |
 | **WooCommerce** | Browse products and categories (read-only) |
 | **AI Memory** | Persistent site knowledge injected into every AI session |
 | **History** | Auto-snapshot before every write — restore any previous state |
-| **Business Profile** | Brand, contact, services, and assets used as AI project context |
+| **Business Profile** | Brand colors, typography, design style, contact, social, services — full AI project context |
 | **Design System** | Apply or inspect BricksTemplate design system presets |
-| **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, template categories, and memories |
+| **Template Library** | Search and retrieve built-in wireframe templates by category |
+| **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, and memories |
 | **Validation** | Validate element arrays before writing — catches corrupt payloads early |
 
 **71 MCP tools** across all groups.
@@ -125,7 +126,7 @@ The **General** tab in the Connection panel also provides a universal plain-text
 
 ---
 
-## First Steps (ask your AI)
+## First Steps
 
 Once connected, start with a single call that loads everything in one shot:
 
@@ -133,7 +134,7 @@ Once connected, start with a single call that loads everything in one shot:
 bricks_get_session_context
 ```
 
-This returns site info, color palette, global classes, CSS variables, fonts, active design framework, business profile, and high-priority memories — all in one response.
+This returns site info, color palette, global classes, CSS variables, fonts, active design framework, business profile (including brand colors, typography, design style tokens), and high-priority memories — all in one response.
 
 Then run:
 
@@ -154,12 +155,44 @@ bricks_validate_payload  (pass your elements array)
 |---|---|
 | **Connection** | API key, endpoint URL, per-client config snippets |
 | **Instructions** | Site-specific rules appended to the AI's system prompt |
-| **Business Profile** | Brand, contact, services, and assets — AI project context available in every session |
+| **Business Profile** | Brand identity, brand colors (with color pickers), typography, design style, contact, social media links, assets, and services — all returned to the AI in every session |
 | **Capabilities** | Per-tool enable/disable toggles (granular control over all tools) |
 | **Memory** | View, add, and edit persistent AI memories |
 | **History** | Browse and restore auto-snapshots |
 | **Activity** | Last 20 MCP tool calls |
 | **Advanced** | Uninstall data cleanup, activity logging, debug mode |
+
+### Business Profile — What the AI receives
+
+The `bricks_get_business_profile` tool (also included in every `bricks_get_session_context`) returns structured data the AI uses automatically:
+
+- **Brand** — name, tagline, type, audience, tone, about text
+- **Colors** — 10 hex tokens (primary, secondary, accent, text, heading, background, surface, border, success, error)
+- **Typography** — heading font, body font, base font size
+- **Design Style** — style preset, border radius, spacing scale, button style
+- **Contact** — email, phone, address, plus custom extra entries (repeater)
+- **Social** — any platform/URL pairs (dynamic repeater, not fixed fields)
+- **Navigation** — nav items, CTA text/URL, copyright
+- **Assets** — logo URL, dark logo URL
+- **Services** — one per line
+
+---
+
+## Security
+
+- **Bearer token auth** with constant-time comparison (`hash_equals`) — safe against timing attacks
+- **Rate limiting** — 120 requests per minute per authenticated user
+- **Capability checks** on every write operation (`edit_pages`, `delete_pages`, `edit_posts`, etc.)
+- **Input sanitization** on all admin form fields (`sanitize_text_field`, `sanitize_hex_color`, `sanitize_url`, `sanitize_email`, allowlist checks for select fields)
+- **Prepared statements** for all database queries (`$wpdb->prepare`)
+- **Output escaping** on all admin-rendered values (`esc_html`, `esc_attr`, `esc_textarea`)
+- **AJAX nonce verification** on all admin AJAX handlers
+
+---
+
+## Auto-Snapshots & History
+
+Every write operation automatically saves a snapshot of the affected content area before modifying it. If the AI makes a mistake, you can restore any previous state from the **History** tab — or the AI can do it itself via `bricks_snapshot_restore`. Restoring is also undoable (the current state is snapshotted before the restore).
 
 ---
 
@@ -170,6 +203,14 @@ This repo uses a GitHub Actions workflow (`.github/workflows/release.yml`) that 
 The plugin checks for new releases every 15 minutes and shows the standard WordPress "Update available" notice when a newer version is found.
 
 **To release a new version:** bump `BMCP_VERSION` in `bricks-builder-mcp.php`, then commit and push to `main`.
+
+---
+
+## Template Library
+
+Drop Bricks Builder template JSON exports into `assets/templates/{category}/` and they become instantly searchable by the AI via `bricks_search_templates` and retrievable via `bricks_get_template_library`. Categories are discovered automatically from folder names — no code changes needed.
+
+**Format:** standard Bricks Builder export (`{"content": [...], "globalClasses": [...]}`) — export directly from Bricks and save as `template-name.json` in the matching folder.
 
 ---
 
