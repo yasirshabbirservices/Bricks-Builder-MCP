@@ -59,39 +59,49 @@ class Auth {
 			);
 		}
 
-		$admin_id = (int) get_option( BMCP_ADMIN_USER_OPTION, 1 );
+		$admin_id    = (int) get_option( BMCP_ADMIN_USER_OPTION, 1 );
+		$matched_key = null;
+		$matched_scopes = [];
 
 		// ── Primary key (full access) ──────────────────────────────────────
 		if ( hash_equals( $stored, $provided ) ) {
-			wp_set_current_user( $admin_id );
-
-			// Optional HMAC validation (primary key only)
-			if ( self::is_hmac_required() ) {
-				$hmac_err = self::validate_hmac( $request, $stored );
-				if ( $hmac_err ) return $hmac_err;
-			}
-
-			return true;
+			$matched_key    = $stored;
+			$matched_scopes = []; // empty = full access
 		}
 
 		// ── Secondary keys (scoped access) ────────────────────────────────
-		$secondary_keys = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
-		if ( is_array( $secondary_keys ) ) {
-			foreach ( $secondary_keys as $sk ) {
-				$sk_key = $sk['key'] ?? '';
-				if ( $sk_key && hash_equals( $sk_key, $provided ) ) {
-					wp_set_current_user( $admin_id );
-					self::$current_scopes = $sk['scopes'] ?? [ 'read' ];
-					return true;
+		if ( $matched_key === null ) {
+			$secondary_keys = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
+			if ( is_array( $secondary_keys ) ) {
+				foreach ( $secondary_keys as $sk ) {
+					$sk_key = $sk['key'] ?? '';
+					if ( $sk_key && hash_equals( $sk_key, $provided ) ) {
+						$matched_key    = $sk_key;
+						$matched_scopes = $sk['scopes'] ?? [ 'read' ];
+						break;
+					}
 				}
 			}
 		}
 
-		return new \WP_Error(
-			'bmcp_auth_failed',
-			'Invalid or missing API key. Provide it as: Authorization: Bearer YOUR_KEY',
-			[ 'status' => 401 ]
-		);
+		if ( $matched_key === null ) {
+			return new \WP_Error(
+				'bmcp_auth_failed',
+				'Invalid or missing API key. Provide it as: Authorization: Bearer YOUR_KEY',
+				[ 'status' => 401 ]
+			);
+		}
+
+		// ── HMAC validation applies to ALL matched keys when required ─────
+		if ( self::is_hmac_required() ) {
+			$hmac_err = self::validate_hmac( $request, $matched_key );
+			if ( $hmac_err ) return $hmac_err;
+		}
+
+		wp_set_current_user( $admin_id );
+		self::$current_scopes = $matched_scopes;
+
+		return true;
 	}
 
 	/**
