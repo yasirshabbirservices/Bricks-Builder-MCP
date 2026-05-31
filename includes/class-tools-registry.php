@@ -39,6 +39,7 @@ class Tools_Registry {
 			new Tools\Tool_Design_System(),
 			new Tools\Tool_Skills(),
 			new Tools\Tool_Audit(),
+			new Tools\Tool_Preview(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -106,6 +107,16 @@ class Tools_Registry {
 		$handler = $this->tools[ $name ] ?? null;
 		if ( ! $handler ) {
 			return new \WP_Error( 'bmcp_unknown_tool', "Unknown tool: {$name}" );
+		}
+
+		// Scope check for secondary API keys (primary key always passes)
+		$required_scope = Auth::scope_for_tool( $name );
+		if ( ! Auth::has_scope( $required_scope ) ) {
+			return new \WP_Error(
+				'bmcp_forbidden',
+				"This API key does not have '{$required_scope}' scope required by tool '{$name}'.",
+				[ 'status' => 403 ]
+			);
 		}
 
 		// Auto-snapshot before any write operation so the AI can restore its own mistakes

@@ -20,8 +20,10 @@ class Admin {
 		add_action( 'wp_ajax_bmcp_history_restore', [ $this, 'ajax_history_restore' ] );
 		add_action( 'wp_ajax_bmcp_history_delete',  [ $this, 'ajax_history_delete' ] );
 		add_action( 'wp_ajax_bmcp_history_clear',   [ $this, 'ajax_history_clear' ] );
-		add_action( 'wp_ajax_bmcp_export_profile',  [ $this, 'ajax_export_profile' ] );
-		add_action( 'wp_ajax_bmcp_import_profile',  [ $this, 'ajax_import_profile' ] );
+		add_action( 'wp_ajax_bmcp_export_profile',      [ $this, 'ajax_export_profile' ] );
+		add_action( 'wp_ajax_bmcp_import_profile',      [ $this, 'ajax_import_profile' ] );
+		add_action( 'wp_ajax_bmcp_add_secondary_key',   [ $this, 'ajax_add_secondary_key' ] );
+		add_action( 'wp_ajax_bmcp_delete_secondary_key', [ $this, 'ajax_delete_secondary_key' ] );
 	}
 
 	public function register_menu(): void {
@@ -377,6 +379,57 @@ class Admin {
 			'bmcp_version' => BMCP_VERSION,
 			'profile'      => is_array( $profile ) ? $profile : [],
 		] );
+	}
+
+	public function ajax_add_secondary_key(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$name   = sanitize_text_field( wp_unslash( $_POST['key_name'] ?? '' ) );
+		$scopes = isset( $_POST['scopes'] ) && is_array( $_POST['scopes'] )
+			? array_intersect( array_map( 'sanitize_key', $_POST['scopes'] ), [ 'read', 'write', 'delete', 'admin' ] )
+			: [ 'read' ];
+
+		if ( empty( $name ) ) {
+			wp_send_json_error( 'Key name is required.' );
+		}
+
+		$plain_key = wp_generate_password( 32, false );
+
+		$secondary_keys   = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
+		$secondary_keys[] = [
+			'id'         => wp_generate_password( 8, false ),
+			'name'       => $name,
+			'key'        => $plain_key,
+			'scopes'     => array_values( $scopes ),
+			'created_at' => current_time( 'Y-m-d' ),
+		];
+
+		update_option( BMCP_SECONDARY_KEYS_OPTION, $secondary_keys, false );
+
+		wp_send_json_success( [
+			'plain_key'  => $plain_key,
+			'name'       => $name,
+			'scopes'     => array_values( $scopes ),
+			'created_at' => current_time( 'Y-m-d' ),
+			'message'    => 'Key created. Copy it now — it will not be shown again.',
+		] );
+	}
+
+	public function ajax_delete_secondary_key(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$key_id         = sanitize_text_field( wp_unslash( $_POST['key_id'] ?? '' ) );
+		$secondary_keys = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
+		$filtered       = array_values( array_filter( $secondary_keys, fn( $k ) => ( $k['id'] ?? '' ) !== $key_id ) );
+
+		update_option( BMCP_SECONDARY_KEYS_OPTION, $filtered, false );
+		wp_send_json_success();
 	}
 
 	public function ajax_import_profile(): void {

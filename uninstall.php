@@ -26,6 +26,7 @@ $options = [
 	'bmcp_last_seen',
 	'bmcp_update_cache',
 	'bmcp_business_profile',
+	'bmcp_secondary_keys',
 ];
 foreach ( $options as $option ) {
 	delete_option( $option );

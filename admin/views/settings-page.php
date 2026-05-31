@@ -278,6 +278,67 @@ $cfg_general =
 
 		</div><!-- /AI Client Setup card -->
 
+		<!-- Secondary API Keys card -->
+		<div class="bmcp-card" style="margin-top:24px">
+			<h2>Additional API Keys</h2>
+			<p class="description" style="margin-bottom:16px">Create scoped API keys for CI pipelines, review-only agents, or additional AI clients. Each key can be restricted to <strong>read</strong>, <strong>write</strong>, or <strong>delete</strong> scope. The primary key above always has full access.</p>
+
+			<?php
+			$secondary_keys = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
+			?>
+
+			<table class="widefat striped" id="bmcp-secondary-keys-table" style="margin-bottom:16px">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Scopes</th>
+						<th>Created</th>
+						<th>Key (masked)</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( empty( $secondary_keys ) ) : ?>
+					<tr id="bmcp-no-keys-row"><td colspan="5" style="color:#aaa;font-style:italic">No additional keys yet.</td></tr>
+				<?php else : ?>
+					<?php foreach ( $secondary_keys as $sk ) : ?>
+					<tr data-key-id="<?php echo esc_attr( $sk['id'] ?? '' ); ?>">
+						<td><?php echo esc_html( $sk['name'] ?? '' ); ?></td>
+						<td><?php echo esc_html( implode( ', ', $sk['scopes'] ?? [] ) ); ?></td>
+						<td><?php echo esc_html( $sk['created_at'] ?? '' ); ?></td>
+						<td><code><?php echo esc_html( str_repeat( '•', 24 ) . substr( $sk['key'] ?? '', -4 ) ); ?></code></td>
+						<td><button type="button" class="button button-link-delete bmcp-delete-secondary-key" data-key-id="<?php echo esc_attr( $sk['id'] ?? '' ); ?>" aria-label="<?php esc_attr_e( 'Delete key', 'bricks-builder-mcp' ); ?>">Delete</button></td>
+					</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				</tbody>
+			</table>
+
+			<details style="margin-bottom:16px">
+				<summary style="cursor:pointer;font-weight:600;margin-bottom:12px">Add new key</summary>
+				<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;padding:12px 0 0">
+					<div>
+						<label for="bmcp-new-key-name" style="display:block;margin-bottom:4px;font-weight:600">Key name</label>
+						<input type="text" id="bmcp-new-key-name" class="regular-text" placeholder="e.g. Claude Desktop (review-only)" />
+					</div>
+					<div>
+						<label style="display:block;margin-bottom:4px;font-weight:600">Scopes</label>
+						<label style="margin-right:10px"><input type="checkbox" class="bmcp-scope-check" value="read" checked /> Read</label>
+						<label style="margin-right:10px"><input type="checkbox" class="bmcp-scope-check" value="write" /> Write</label>
+						<label style="margin-right:10px"><input type="checkbox" class="bmcp-scope-check" value="delete" /> Delete</label>
+					</div>
+					<div>
+						<button type="button" class="button button-primary" id="bmcp-add-secondary-key-btn">Generate Key</button>
+					</div>
+				</div>
+				<div id="bmcp-new-key-result" style="display:none;margin-top:12px;padding:12px;background:#f0f6fc;border:1px solid #a8d0f7;border-radius:4px">
+					<p style="margin:0 0 6px;font-weight:600">New key generated — copy it now, it won't be shown again:</p>
+					<code id="bmcp-new-key-value" style="font-size:13px;word-break:break-all"></code>
+					<p style="margin:8px 0 0;font-size:12px;color:#555">Scope: <span id="bmcp-new-key-scopes"></span></p>
+				</div>
+			</details>
+		</div><!-- /Secondary API Keys card -->
+
 	</div><!-- /tab-connection -->
 
 	<!-- ====================== INSTRUCTIONS TAB ====================== -->
@@ -953,6 +1014,37 @@ $cfg_general =
 							<td class="bmcp-adv-td-toggle">
 								<label class="bmcp-toggle">
 									<input type="checkbox" name="<?php echo esc_attr( BMCP_ADVANCED_OPTION ); ?>[erase_on_uninstall]" value="1" <?php checked( $erase ); ?> />
+									<span class="bmcp-toggle-slider" aria-hidden="true"></span>
+								</label>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="bmcp-card">
+				<h2>Security</h2>
+				<table class="bmcp-adv-table">
+					<tbody>
+						<tr>
+							<td class="bmcp-adv-td-label">
+								<strong>Require HMAC request signing</strong>
+								<div class="description" style="margin-top:4px">When enabled, every MCP request must include <code>X-BMCP-Signature</code> and <code>X-BMCP-Timestamp</code> headers signed with HMAC-SHA256. Protects against replay attacks. Only enable if your MCP client supports custom request signing. Default: off.</div>
+								<details style="margin-top:8px">
+									<summary style="cursor:pointer;color:#0073aa">Signing specification</summary>
+									<div style="margin-top:8px;font-size:12px;font-family:monospace;background:#f6f7f7;padding:10px;border-radius:4px;line-height:1.7">
+										timestamp = Unix timestamp (seconds)<br>
+										body = raw JSON request body<br>
+										signature = "sha256=" + HMAC-SHA256(timestamp + "." + body, api_key)<br><br>
+										X-BMCP-Timestamp: {timestamp}<br>
+										X-BMCP-Signature: {signature}<br><br>
+										Requests older than 5 minutes are rejected.
+									</div>
+								</details>
+							</td>
+							<td class="bmcp-adv-td-toggle">
+								<label class="bmcp-toggle">
+									<input type="checkbox" name="<?php echo esc_attr( BMCP_ADVANCED_OPTION ); ?>[require_hmac]" value="1" <?php checked( ! empty( $adv['require_hmac'] ) ); ?> />
 									<span class="bmcp-toggle-slider" aria-hidden="true"></span>
 								</label>
 							</td>

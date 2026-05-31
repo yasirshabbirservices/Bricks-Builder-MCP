@@ -29,8 +29,9 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Agent Skills** | On-demand best-practice guides: accessibility, SEO, CSS, performance, typography, layout, dynamic data |
 | **Design Audit** | Scan all pages for design inconsistencies — hardcoded colors, mismatched fonts, spacing drift |
 | **Element Search** | Find elements by type, class, setting key/value, or text content across all pages |
+| **Preview Mode** | Staged editing: AI writes to draft copies, you review, then commit or discard in one step |
 
-**77 MCP tools** across all groups.
+**82 MCP tools** across all groups.
 
 ---
 
@@ -162,6 +163,7 @@ bricks_validate_payload  (pass your elements array)
 | **Capabilities** | Per-tool enable/disable toggles (granular control over all tools) |
 | **Memory** | View, add, and edit persistent AI memories |
 | **History** | Browse and restore auto-snapshots |
+| **API Keys** | Manage scoped secondary API keys (read / write / delete) per AI client |
 | **Activity** | Last 20 MCP tool calls |
 | **Advanced** | Uninstall data cleanup, activity logging, debug mode |
 
@@ -184,6 +186,8 @@ The `bricks_get_business_profile` tool (also included in every `bricks_get_sessi
 ## Security
 
 - **Bearer token auth** with constant-time comparison (`hash_equals`) — safe against timing attacks
+- **Multi-key auth** — create scoped secondary API keys (read / write / delete); revoke individually without disrupting other clients
+- **Optional HMAC-SHA256 request signing** — timestamp-bound signatures prevent replay attacks (Advanced → Security toggle)
 - **Rate limiting** — 120 requests per minute per authenticated user
 - **Capability checks** on every write operation (`edit_pages`, `delete_pages`, `edit_posts`, etc.)
 - **Input sanitization** on all admin form fields (`sanitize_text_field`, `sanitize_hex_color`, `sanitize_url`, `sanitize_email`, allowlist checks for select fields)

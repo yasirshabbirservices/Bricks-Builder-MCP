@@ -596,6 +596,54 @@ jQuery( function ( $ ) {
 		bmcpReindexRepeater( $repeater );
 	} );
 
+	// ---- Secondary API Keys ----
+	$( '#bmcp-add-secondary-key-btn' ).on( 'click', function () {
+		var name = $( '#bmcp-new-key-name' ).val().trim();
+		if ( ! name ) { alert( 'Enter a key name first.' ); return; }
+
+		var scopes = [];
+		$( '.bmcp-scope-check:checked' ).each( function () { scopes.push( $( this ).val() ); } );
+		if ( ! scopes.length ) scopes = [ 'read' ];
+
+		var $btn = $( this ).prop( 'disabled', true ).text( 'Generating…' );
+
+		$.post( ajaxurl, { action: 'bmcp_add_secondary_key', nonce: cfg.nonce, key_name: name, scopes: scopes }, function ( res ) {
+			$btn.prop( 'disabled', false ).text( 'Generate Key' );
+			if ( ! res.success ) { alert( res.data || 'Error.' ); return; }
+
+			var d   = res.data;
+			$( '#bmcp-new-key-value' ).text( d.plain_key );
+			$( '#bmcp-new-key-scopes' ).text( d.scopes.join( ', ' ) );
+			$( '#bmcp-new-key-result' ).show();
+			$( '#bmcp-new-key-name' ).val( '' );
+			$( '#bmcp-no-keys-row' ).remove();
+
+			// Add row to table
+			var masked = '••••••••••••••••••••••••' + d.plain_key.slice( -4 );
+			var row = '<tr><td>' + escHtml( d.name ) + '</td><td>' + escHtml( d.scopes.join( ', ' ) ) + '</td><td>' + escHtml( d.created_at ) + '</td><td><code>' + escHtml( masked ) + '</code></td><td><button type="button" class="button button-link-delete bmcp-delete-secondary-key">Delete</button></td></tr>';
+			$( '#bmcp-secondary-keys-table tbody' ).append( row );
+		} );
+	} );
+
+	$( document ).on( 'click', '.bmcp-delete-secondary-key', function () {
+		if ( ! confirm( 'Delete this API key? Any client using it will lose access immediately.' ) ) return;
+		var $row   = $( this ).closest( 'tr' );
+		var key_id = $row.data( 'key-id' ) || '';
+
+		if ( ! key_id ) { $row.remove(); return; } // newly added row without an ID
+
+		$.post( ajaxurl, { action: 'bmcp_delete_secondary_key', nonce: cfg.nonce, key_id: key_id }, function ( res ) {
+			if ( res.success ) {
+				$row.remove();
+				if ( $( '#bmcp-secondary-keys-table tbody tr' ).length === 0 ) {
+					$( '#bmcp-secondary-keys-table tbody' ).html( '<tr id="bmcp-no-keys-row"><td colspan="5" style="color:#aaa;font-style:italic">No additional keys yet.</td></tr>' );
+				}
+			} else {
+				alert( res.data || 'Delete failed.' );
+			}
+		} );
+	} );
+
 	// ---- Business Profile Export ----
 	$( '#bmcp-export-profile-btn' ).on( 'click', function () {
 		var $btn = $( this );

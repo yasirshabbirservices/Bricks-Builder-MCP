@@ -2,6 +2,7 @@
 namespace BricksMCP\Tools;
 
 use BricksMCP\Bricks_Data;
+use BricksMCP\Preview_Manager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -187,15 +188,17 @@ class Tool_Pages extends Tool_Base {
 			return $this->err( 'title is required.' );
 		}
 
+		$in_preview = Preview_Manager::is_active();
+
 		$post_data = [
 			'post_type'   => 'page',
-			'post_title'  => sanitize_text_field( $title ),
-			'post_status' => $this->str_arg( $args, 'status', 'draft' ),
+			'post_title'  => sanitize_text_field( $in_preview ? '[Preview] ' . $title : $title ),
+			'post_status' => $in_preview ? 'draft' : $this->str_arg( $args, 'status', 'draft' ),
 			'post_parent' => $this->int_arg( $args, 'parent', 0 ),
 		];
 
 		$slug = $this->str_arg( $args, 'slug' );
-		if ( $slug ) {
+		if ( $slug && ! $in_preview ) {
 			$post_data['post_name'] = sanitize_title( $slug );
 		}
 
@@ -218,13 +221,22 @@ class Tool_Pages extends Tool_Base {
 			Bricks_Data::set_page_settings( $post_id, $page_settings );
 		}
 
+		if ( $in_preview ) {
+			// live_id = 0 means this is a brand-new page with no live equivalent yet
+			Preview_Manager::record_draft( 0, $post_id, $title );
+			update_post_meta( $post_id, '_bmcp_preview_session', Preview_Manager::get_session()['session_id'] ?? '' );
+		}
+
 		return [
-			'id'       => $post_id,
-			'title'    => $title,
-			'url'      => get_permalink( $post_id ) ?: '',
-			'edit_url' => $this->edit_url( $post_id ),
-			'status'   => $post_data['post_status'],
-			'message'  => 'Page created successfully.',
+			'id'         => $post_id,
+			'title'      => $title,
+			'url'        => get_permalink( $post_id ) ?: '',
+			'edit_url'   => $this->edit_url( $post_id ),
+			'status'     => $post_data['post_status'],
+			'message'    => $in_preview
+				? 'Preview draft created (live site not modified). Call bricks_commit_preview to publish.'
+				: 'Page created successfully.',
+			'in_preview' => $in_preview,
 		];
 	}
 
@@ -242,11 +254,30 @@ class Tool_Pages extends Tool_Base {
 			return $this->err( "Page {$post_id} not found." );
 		}
 
-		$update = [ 'ID' => $post_id ];
-		if ( isset( $args['title'] ) ) {
-			$update['post_title'] = sanitize_text_field( $args['title'] );
+		$in_preview  = Preview_Manager::is_active();
+		$target_id   = $post_id;
+		$is_new_draft = false;
+
+		if ( $in_preview ) {
+			// Redirect the write to the preview draft instead of the live page
+			$draft_id = Preview_Manager::get_draft_for( $post_id );
+			if ( ! $draft_id ) {
+				$draft_id = Preview_Manager::clone_to_draft( $post_id );
+				if ( ! $draft_id ) {
+					return $this->err( "Failed to create preview draft for page {$post_id}." );
+				}
+				$is_new_draft = true;
+			}
+			$target_id = $draft_id;
 		}
-		if ( isset( $args['status'] ) ) {
+
+		$update = [ 'ID' => $target_id ];
+		if ( isset( $args['title'] ) ) {
+			$update['post_title'] = $in_preview
+				? '[Preview] ' . sanitize_text_field( $args['title'] )
+				: sanitize_text_field( $args['title'] );
+		}
+		if ( isset( $args['status'] ) && ! $in_preview ) {
 			$update['post_status'] = sanitize_key( $args['status'] );
 		}
 
@@ -257,21 +288,26 @@ class Tool_Pages extends Tool_Base {
 		$elements = $this->arr_arg( $args, 'elements' );
 		if ( $elements ) {
 			$area   = $this->str_arg( $args, 'area', 'content' );
-			$result = Bricks_Data::set_elements( $post_id, $elements, $area );
+			$result = Bricks_Data::set_elements( $target_id, $elements, $area );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
 		}
 
 		if ( isset( $args['page_settings'] ) && is_array( $args['page_settings'] ) ) {
-			$existing = Bricks_Data::get_page_settings( $post_id );
-			Bricks_Data::set_page_settings( $post_id, array_merge( $existing, $args['page_settings'] ) );
+			$existing = Bricks_Data::get_page_settings( $target_id );
+			Bricks_Data::set_page_settings( $target_id, array_merge( $existing, $args['page_settings'] ) );
 		}
 
 		return [
-			'success' => true,
-			'post_id' => $post_id,
-			'message' => 'Page updated successfully.',
+			'success'     => true,
+			'post_id'     => $post_id,
+			'draft_id'    => $in_preview ? $target_id : null,
+			'is_new_draft' => $is_new_draft,
+			'in_preview'  => $in_preview,
+			'message'     => $in_preview
+				? "Preview draft updated (live page {$post_id} not modified). Call bricks_commit_preview to publish."
+				: 'Page updated successfully.',
 		];
 	}
 
