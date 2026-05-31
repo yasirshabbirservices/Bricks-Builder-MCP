@@ -183,28 +183,107 @@ $cfg_general =
 	<!-- ====================== CONNECTION TAB ====================== -->
 	<div class="bmcp-panel" id="tab-connection" role="tabpanel" aria-labelledby="nav-tab-connection">
 
-		<div class="bmcp-card">
-			<h2>API Key &amp; Endpoint</h2>
-			<p>Authenticate MCP clients with the key below. Never share it publicly.</p>
+		<!-- Combined API Keys & Endpoint card -->
+		<div class="bmcp-card" style="margin-bottom:16px">
+			<h2>API Keys &amp; Endpoint</h2>
 
-			<div class="bmcp-api-grid">
-				<div class="bmcp-api-grid-item">
-					<div class="bmcp-api-grid-label">API Key</div>
+			<div class="bmcp-conn-split" style="margin-top:14px">
+				<!-- Primary key -->
+				<div>
+					<div class="bmcp-api-grid-label">
+						Primary Key
+						<span class="bmcp-scope-pill bmcp-scope-pill--admin">Full Access</span>
+					</div>
 					<div class="bmcp-key-row">
 						<code class="bmcp-key-display" id="bmcp-key-masked"><?php echo esc_html( \BricksMCP\Auth::masked_key() ); ?></code>
 						<button type="button" class="button bmcp-icon-btn" id="bmcp-btn-copy" title="<?php esc_attr_e( 'Copy API key', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Copy API key', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-						<button type="button" class="button bmcp-icon-btn" id="bmcp-btn-regen" title="<?php esc_attr_e( 'Regenerate API key', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Regenerate API key', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+						<button type="button" class="button bmcp-icon-btn" id="bmcp-btn-regen" title="<?php esc_attr_e( 'Regenerate key', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Regenerate key', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
 					</div>
 				</div>
-				<div class="bmcp-api-grid-item">
+				<!-- Endpoint -->
+				<div>
 					<div class="bmcp-api-grid-label">MCP Endpoint</div>
 					<div class="bmcp-key-row">
 						<code class="bmcp-key-display" id="bmcp-endpoint"><?php echo esc_html( $endpoint ); ?></code>
-						<button type="button" class="button bmcp-icon-btn bmcp-copy-config" data-target="bmcp-endpoint" title="<?php esc_attr_e( 'Copy endpoint URL', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Copy endpoint URL', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+						<button type="button" class="button bmcp-icon-btn bmcp-copy-config" data-target="bmcp-endpoint" title="<?php esc_attr_e( 'Copy endpoint', 'bricks-builder-mcp' ); ?>" aria-label="<?php esc_attr_e( 'Copy endpoint URL', 'bricks-builder-mcp' ); ?>"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 					</div>
 				</div>
 			</div>
-			<p class="description" style="margin-top:10px">Regenerating the key invalidates your current config — update all MCP clients after regenerating.</p>
+
+			<!-- Additional keys section -->
+			<div class="bmcp-conn-divider">
+				<span class="bmcp-conn-divider-label">Additional Keys</span>
+				<button type="button" class="button" id="bmcp-toggle-add-key-form">
+					<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" style="margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Key
+				</button>
+			</div>
+
+			<!-- Add key form (hidden by default) -->
+			<div id="bmcp-add-key-form" class="bmcp-add-key-form" style="display:none" role="region" aria-label="Add new API key">
+				<div style="flex:1;min-width:180px">
+					<label for="bmcp-new-key-name">Key name</label>
+					<input type="text" id="bmcp-new-key-name" class="regular-text" placeholder="e.g. Claude Desktop (read-only)" style="width:100%" />
+				</div>
+				<div>
+					<label>Scopes</label>
+					<div class="bmcp-scope-check-wrap">
+						<label class="bmcp-scope-toggle"><input type="checkbox" class="bmcp-scope-check" value="read" checked /> Read</label>
+						<label class="bmcp-scope-toggle"><input type="checkbox" class="bmcp-scope-check" value="write" /> Write</label>
+						<label class="bmcp-scope-toggle"><input type="checkbox" class="bmcp-scope-check" value="delete" /> Delete</label>
+					</div>
+				</div>
+				<div style="min-width:auto;flex:none">
+					<label style="visibility:hidden;display:block">Generate</label>
+					<button type="button" class="button button-primary" id="bmcp-add-secondary-key-btn">Generate</button>
+				</div>
+			</div>
+
+			<!-- Generated key notice -->
+			<div id="bmcp-new-key-result" class="bmcp-key-generated-notice" style="display:none">
+				<strong>Key generated — copy it now, it won't be shown again:</strong>
+				<code class="bmcp-key-generated-value" id="bmcp-new-key-value"></code>
+				<p class="description">Scope: <span id="bmcp-new-key-scopes"></span></p>
+			</div>
+
+			<!-- Keys table -->
+			<?php $secondary_keys = get_option( BMCP_SECONDARY_KEYS_OPTION, [] ); ?>
+			<table class="bmcp-keys-table" id="bmcp-secondary-keys-table" aria-label="Additional API keys">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Scopes</th>
+						<th>Created</th>
+						<th>Key (masked)</th>
+						<th style="width:60px"></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( empty( $secondary_keys ) ) : ?>
+					<tr class="bmcp-keys-empty" id="bmcp-no-keys-row"><td colspan="5">No additional keys yet.</td></tr>
+				<?php else : ?>
+					<?php foreach ( $secondary_keys as $sk ) :
+						$scopes = $sk['scopes'] ?? [];
+					?>
+					<tr data-key-id="<?php echo esc_attr( $sk['id'] ?? '' ); ?>">
+						<td><?php echo esc_html( $sk['name'] ?? '' ); ?></td>
+						<td>
+							<?php foreach ( $scopes as $scope ) : ?>
+							<span class="bmcp-scope-pill bmcp-scope-pill--<?php echo esc_attr( $scope ); ?>"><?php echo esc_html( ucfirst( $scope ) ); ?></span>
+							<?php endforeach; ?>
+						</td>
+						<td style="color:var(--text-muted)"><?php echo esc_html( $sk['created_at'] ?? '' ); ?></td>
+						<td><code style="font-size:0.78rem;letter-spacing:0.02em"><?php echo esc_html( str_repeat( '•', 24 ) . substr( $sk['key'] ?? '', -4 ) ); ?></code></td>
+						<td>
+							<button type="button" class="button bmcp-icon-btn bmcp-btn-del-snap bmcp-delete-secondary-key" data-key-id="<?php echo esc_attr( $sk['id'] ?? '' ); ?>" aria-label="<?php esc_attr_e( 'Delete key', 'bricks-builder-mcp' ); ?>">
+								<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+							</button>
+						</td>
+					</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				</tbody>
+			</table>
+			<p class="description" style="margin-top:10px">Regenerating the primary key invalidates all existing client configs. Scoped keys can be revoked individually.</p>
 		</div>
 
 		<div class="bmcp-card">
@@ -278,67 +357,6 @@ $cfg_general =
 
 		</div><!-- /AI Client Setup card -->
 
-		<!-- Secondary API Keys card -->
-		<div class="bmcp-card" style="margin-top:24px">
-			<h2>Additional API Keys</h2>
-			<p class="description" style="margin-bottom:16px">Create scoped API keys for CI pipelines, review-only agents, or additional AI clients. Each key can be restricted to <strong>read</strong>, <strong>write</strong>, or <strong>delete</strong> scope. The primary key above always has full access.</p>
-
-			<?php
-			$secondary_keys = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
-			?>
-
-			<table class="widefat striped" id="bmcp-secondary-keys-table" style="margin-bottom:16px">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Scopes</th>
-						<th>Created</th>
-						<th>Key (masked)</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( empty( $secondary_keys ) ) : ?>
-					<tr id="bmcp-no-keys-row"><td colspan="5" style="color:#aaa;font-style:italic">No additional keys yet.</td></tr>
-				<?php else : ?>
-					<?php foreach ( $secondary_keys as $sk ) : ?>
-					<tr data-key-id="<?php echo esc_attr( $sk['id'] ?? '' ); ?>">
-						<td><?php echo esc_html( $sk['name'] ?? '' ); ?></td>
-						<td><?php echo esc_html( implode( ', ', $sk['scopes'] ?? [] ) ); ?></td>
-						<td><?php echo esc_html( $sk['created_at'] ?? '' ); ?></td>
-						<td><code><?php echo esc_html( str_repeat( '•', 24 ) . substr( $sk['key'] ?? '', -4 ) ); ?></code></td>
-						<td><button type="button" class="button button-link-delete bmcp-delete-secondary-key" data-key-id="<?php echo esc_attr( $sk['id'] ?? '' ); ?>" aria-label="<?php esc_attr_e( 'Delete key', 'bricks-builder-mcp' ); ?>">Delete</button></td>
-					</tr>
-					<?php endforeach; ?>
-				<?php endif; ?>
-				</tbody>
-			</table>
-
-			<details style="margin-bottom:16px">
-				<summary style="cursor:pointer;font-weight:600;margin-bottom:12px">Add new key</summary>
-				<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;padding:12px 0 0">
-					<div>
-						<label for="bmcp-new-key-name" style="display:block;margin-bottom:4px;font-weight:600">Key name</label>
-						<input type="text" id="bmcp-new-key-name" class="regular-text" placeholder="e.g. Claude Desktop (review-only)" />
-					</div>
-					<div>
-						<label style="display:block;margin-bottom:4px;font-weight:600">Scopes</label>
-						<label style="margin-right:10px"><input type="checkbox" class="bmcp-scope-check" value="read" checked /> Read</label>
-						<label style="margin-right:10px"><input type="checkbox" class="bmcp-scope-check" value="write" /> Write</label>
-						<label style="margin-right:10px"><input type="checkbox" class="bmcp-scope-check" value="delete" /> Delete</label>
-					</div>
-					<div>
-						<button type="button" class="button button-primary" id="bmcp-add-secondary-key-btn">Generate Key</button>
-					</div>
-				</div>
-				<div id="bmcp-new-key-result" style="display:none;margin-top:12px;padding:12px;background:#f0f6fc;border:1px solid #a8d0f7;border-radius:4px">
-					<p style="margin:0 0 6px;font-weight:600">New key generated — copy it now, it won't be shown again:</p>
-					<code id="bmcp-new-key-value" style="font-size:13px;word-break:break-all"></code>
-					<p style="margin:8px 0 0;font-size:12px;color:#555">Scope: <span id="bmcp-new-key-scopes"></span></p>
-				</div>
-			</details>
-		</div><!-- /Secondary API Keys card -->
-
 	</div><!-- /tab-connection -->
 
 	<!-- ====================== INSTRUCTIONS TAB ====================== -->
@@ -373,10 +391,18 @@ $cfg_general =
 			<?php settings_fields( 'bmcp_settings_business_profile' ); ?>
 			<?php $bp = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] ); ?>
 
-			<!-- Brand Identity -->
-			<div class="bmcp-card">
-				<h2>Brand Identity</h2>
-				<p>Context the AI uses to understand your project — brand, contact details, services, and assets — so it can make accurate decisions without asking you every time.</p>
+			<div class="bmcp-cards-toolbar">
+				<button type="button" class="button bmcp-expand-all" id="bmcp-bp-expand-all">Expand all</button>
+			</div>
+
+			<!-- Brand Identity (open by default) -->
+			<div class="bmcp-card bmcp-card--collapsible" id="bmcp-card-bp-brand">
+				<button type="button" class="bmcp-card-head" aria-expanded="true" aria-controls="bmcp-body-bp-brand">
+					<h2>Brand Identity</h2>
+					<span class="bmcp-chevron" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+				</button>
+				<div class="bmcp-card-body" id="bmcp-body-bp-brand">
+				<p style="margin:12px 0 14px;color:var(--text-muted);font-size:0.875rem">Context the AI uses to understand your project — brand, contact details, services, and assets — so it can make accurate decisions without asking you every time.</p>
 				<div class="bmcp-bp-grid">
 					<div class="bmcp-field">
 						<label for="bmcp-bp-business-name">Business Name</label>
@@ -403,7 +429,8 @@ $cfg_general =
 						<textarea id="bmcp-bp-about" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[about_text]" rows="3"><?php echo esc_textarea( $bp['about_text'] ?? '' ); ?></textarea>
 					</div>
 				</div>
-			</div>
+				</div><!-- /bmcp-card-body -->
+			</div><!-- /bmcp-card bp-brand -->
 
 			<!-- Brand Colors -->
 			<?php
@@ -420,9 +447,13 @@ $cfg_general =
 				'color_error'      => [ 'label' => 'Error',      'default' => '#ef4444' ],
 			];
 			?>
-			<div class="bmcp-card">
-				<h2>Brand Colors</h2>
-				<p>Core color tokens. The AI uses these when setting up global color palettes, writing inline styles, or choosing consistent values across components.</p>
+			<div class="bmcp-card bmcp-card--collapsible bmcp-card--collapsed" id="bmcp-card-bp-colors">
+				<button type="button" class="bmcp-card-head" aria-expanded="false" aria-controls="bmcp-body-bp-colors">
+					<h2>Brand Colors</h2>
+					<span class="bmcp-chevron" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+				</button>
+				<div class="bmcp-card-body" id="bmcp-body-bp-colors" style="display:none">
+				<p style="margin:12px 0 14px;color:var(--text-muted);font-size:0.875rem">Core color tokens. The AI uses these when setting up global color palettes, writing inline styles, or choosing consistent values across components.</p>
 				<div class="bmcp-bp-grid">
 					<?php foreach ( $color_defs as $field_key => $color_info ) :
 						$saved_val = $bp[ $field_key ] ?? '';
@@ -451,12 +482,17 @@ $cfg_general =
 					</div>
 					<?php endforeach; ?>
 				</div>
-			</div>
+				</div><!-- /body -->
+			</div><!-- /bp-colors -->
 
 			<!-- Typography -->
-			<div class="bmcp-card">
-				<h2>Typography</h2>
-				<p>Font and sizing preferences. Use Google Font names (e.g. "Inter", "Playfair Display") — the AI uses these when configuring theme styles or writing font-family values.</p>
+			<div class="bmcp-card bmcp-card--collapsible bmcp-card--collapsed" id="bmcp-card-bp-typography">
+				<button type="button" class="bmcp-card-head" aria-expanded="false" aria-controls="bmcp-body-bp-typography">
+					<h2>Typography</h2>
+					<span class="bmcp-chevron" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+				</button>
+				<div class="bmcp-card-body" id="bmcp-body-bp-typography" style="display:none">
+				<p style="margin:12px 0 14px;color:var(--text-muted);font-size:0.875rem">Font and sizing preferences. Use Google Font names (e.g. "Inter", "Playfair Display") — the AI uses these when configuring theme styles or writing font-family values.</p>
 				<div class="bmcp-bp-grid">
 					<div class="bmcp-field">
 						<label for="bmcp-bp-font-heading">Heading Font</label>
@@ -470,13 +506,17 @@ $cfg_general =
 						<label for="bmcp-bp-font-size">Base Font Size</label>
 						<input type="text" id="bmcp-bp-font-size" name="<?php echo esc_attr( BMCP_BUSINESS_PROFILE_OPTION ); ?>[font_size_base]" value="<?php echo esc_attr( $bp['font_size_base'] ?? '' ); ?>" placeholder="e.g. 16px, 1rem" />
 					</div>
-				</div>
-			</div>
+				</div><!-- /body bp-typography -->
+			</div><!-- /bp-typography -->
 
 			<!-- Design Style -->
-			<div class="bmcp-card">
-				<h2>Design Style</h2>
-				<p>High-level design direction. The AI uses these tokens when making layout, spacing, radius, and interaction decisions — keeping everything consistent with your brand feel.</p>
+			<div class="bmcp-card bmcp-card--collapsible bmcp-card--collapsed" id="bmcp-card-bp-design">
+				<button type="button" class="bmcp-card-head" aria-expanded="false" aria-controls="bmcp-body-bp-design">
+					<h2>Design Style</h2>
+					<span class="bmcp-chevron" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+				</button>
+				<div class="bmcp-card-body" id="bmcp-body-bp-design" style="display:none">
+				<p style="margin:12px 0 14px;color:var(--text-muted);font-size:0.875rem">High-level design direction. The AI uses these tokens when making layout, spacing, radius, and interaction decisions — keeping everything consistent with your brand feel.</p>
 				<div class="bmcp-bp-grid">
 					<div class="bmcp-field">
 						<label for="bmcp-bp-design-style">Design Style</label>
@@ -515,9 +555,10 @@ $cfg_general =
 						</select>
 					</div>
 				</div>
-			</div>
+				</div>
+			</div><!-- /bp-design -->
 
-			<!-- Contact -->
+				<!-- Contact (remaining BP cards are made collapsible via JS) -->
 			<div class="bmcp-card">
 				<h2>Contact Information</h2>
 				<div class="bmcp-bp-grid">
@@ -1031,8 +1072,8 @@ $cfg_general =
 								<strong>Require HMAC request signing</strong>
 								<div class="description" style="margin-top:4px">When enabled, every MCP request must include <code>X-BMCP-Signature</code> and <code>X-BMCP-Timestamp</code> headers signed with HMAC-SHA256. Protects against replay attacks. Only enable if your MCP client supports custom request signing. Default: off.</div>
 								<details style="margin-top:8px">
-									<summary style="cursor:pointer;color:#0073aa">Signing specification</summary>
-									<div style="margin-top:8px;font-size:12px;font-family:monospace;background:#f6f7f7;padding:10px;border-radius:4px;line-height:1.7">
+									<summary >Signing specification</summary>
+									<div class="bmcp-hmac-spec">
 										timestamp = Unix timestamp (seconds)<br>
 										body = raw JSON request body<br>
 										signature = "sha256=" + HMAC-SHA256(timestamp + "." + body, api_key)<br><br>

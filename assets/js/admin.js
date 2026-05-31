@@ -597,9 +597,17 @@ jQuery( function ( $ ) {
 	} );
 
 	// ---- Secondary API Keys ----
+	$( '#bmcp-toggle-add-key-form' ).on( 'click', function () {
+		var $form = $( '#bmcp-add-key-form' );
+		var open  = $form.is( ':visible' );
+		$form.slideToggle( 180 );
+		$( this ).text( open ? '+ Add Key' : '✕ Cancel' );
+		if ( ! open ) $( '#bmcp-new-key-name' ).trigger( 'focus' );
+	} );
+
 	$( '#bmcp-add-secondary-key-btn' ).on( 'click', function () {
 		var name = $( '#bmcp-new-key-name' ).val().trim();
-		if ( ! name ) { alert( 'Enter a key name first.' ); return; }
+		if ( ! name ) { $( '#bmcp-new-key-name' ).trigger( 'focus' ); return; }
 
 		var scopes = [];
 		$( '.bmcp-scope-check:checked' ).each( function () { scopes.push( $( this ).val() ); } );
@@ -608,19 +616,32 @@ jQuery( function ( $ ) {
 		var $btn = $( this ).prop( 'disabled', true ).text( 'Generating…' );
 
 		$.post( ajaxurl, { action: 'bmcp_add_secondary_key', nonce: cfg.nonce, key_name: name, scopes: scopes }, function ( res ) {
-			$btn.prop( 'disabled', false ).text( 'Generate Key' );
+			$btn.prop( 'disabled', false ).text( 'Generate' );
 			if ( ! res.success ) { alert( res.data || 'Error.' ); return; }
 
-			var d   = res.data;
+			var d = res.data;
+			// Show the generated key notice
 			$( '#bmcp-new-key-value' ).text( d.plain_key );
 			$( '#bmcp-new-key-scopes' ).text( d.scopes.join( ', ' ) );
-			$( '#bmcp-new-key-result' ).show();
+			$( '#bmcp-new-key-result' ).slideDown( 200 );
 			$( '#bmcp-new-key-name' ).val( '' );
 			$( '#bmcp-no-keys-row' ).remove();
 
-			// Add row to table
-			var masked = '••••••••••••••••••••••••' + d.plain_key.slice( -4 );
-			var row = '<tr><td>' + escHtml( d.name ) + '</td><td>' + escHtml( d.scopes.join( ', ' ) ) + '</td><td>' + escHtml( d.created_at ) + '</td><td><code>' + escHtml( masked ) + '</code></td><td><button type="button" class="button button-link-delete bmcp-delete-secondary-key">Delete</button></td></tr>';
+			// Build scope pills
+			var pillHtml = d.scopes.map( function( s ) {
+				return '<span class="bmcp-scope-pill bmcp-scope-pill--' + escHtml( s ) + '">' + escHtml( s.charAt(0).toUpperCase() + s.slice(1) ) + '</span>';
+			} ).join( ' ' );
+
+			// Build masked key
+			var masked = '&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;' + escHtml( d.plain_key.slice( -4 ) );
+
+			var row = '<tr>' +
+				'<td>' + escHtml( d.name ) + '</td>' +
+				'<td>' + pillHtml + '</td>' +
+				'<td style="color:var(--text-muted)">' + escHtml( d.created_at ) + '</td>' +
+				'<td><code style="font-size:.78rem">' + masked + '</code></td>' +
+				'<td><button type="button" class="button bmcp-icon-btn bmcp-btn-del-snap bmcp-delete-secondary-key" aria-label="Delete key">' +
+				ICON_TRASH + '</button></td></tr>';
 			$( '#bmcp-secondary-keys-table tbody' ).append( row );
 		} );
 	} );
@@ -630,18 +651,80 @@ jQuery( function ( $ ) {
 		var $row   = $( this ).closest( 'tr' );
 		var key_id = $row.data( 'key-id' ) || '';
 
-		if ( ! key_id ) { $row.remove(); return; } // newly added row without an ID
+		if ( ! key_id ) { $row.fadeOut( 150, function () { $( this ).remove(); } ); return; }
 
 		$.post( ajaxurl, { action: 'bmcp_delete_secondary_key', nonce: cfg.nonce, key_id: key_id }, function ( res ) {
 			if ( res.success ) {
-				$row.remove();
-				if ( $( '#bmcp-secondary-keys-table tbody tr' ).length === 0 ) {
-					$( '#bmcp-secondary-keys-table tbody' ).html( '<tr id="bmcp-no-keys-row"><td colspan="5" style="color:#aaa;font-style:italic">No additional keys yet.</td></tr>' );
-				}
+				$row.fadeOut( 150, function () {
+					$( this ).remove();
+					if ( $( '#bmcp-secondary-keys-table tbody tr:visible' ).length === 0 ) {
+						$( '#bmcp-secondary-keys-table tbody' ).html(
+							'<tr class="bmcp-keys-empty" id="bmcp-no-keys-row"><td colspan="5">No additional keys yet.</td></tr>'
+						);
+					}
+				} );
 			} else {
 				alert( res.data || 'Delete failed.' );
 			}
 		} );
+	} );
+
+	// ---- Collapsible BP cards (JS-driven for remaining non-converted cards) ----
+	// Convert plain .bmcp-card inside #tab-business-profile form into collapsible
+	$( '#tab-business-profile form .bmcp-card:not(.bmcp-card--collapsible)' ).each( function ( idx ) {
+		var $card = $( this );
+		var $h2   = $card.children( 'h2' ).first();
+		if ( ! $h2.length ) return;
+
+		var headId = 'bmcp-card-head-js-' + idx;
+		var bodyId = 'bmcp-card-body-js-' + idx;
+		var chevron = '<span class="bmcp-chevron" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>';
+
+		// Wrap everything except h2 in a body div
+		var $body = $card.children().not( $h2 ).wrapAll( '<div class="bmcp-card-body" id="' + bodyId + '"></div>' ).parent();
+
+		// Replace h2 with a button header
+		var $btn = $( '<button type="button" class="bmcp-card-head" id="' + headId + '" aria-expanded="false" aria-controls="' + bodyId + '"></button>' ).append( $h2, chevron );
+		$body.before( $btn );
+
+		// Apply collapsible classes and collapse
+		$card.addClass( 'bmcp-card--collapsible bmcp-card--collapsed' );
+		$body.hide();
+	} );
+
+	// Toggle handler (works for both PHP-built and JS-built collapsible cards)
+	$( document ).on( 'click', '.bmcp-card--collapsible .bmcp-card-head', function () {
+		var $card     = $( this ).closest( '.bmcp-card--collapsible' );
+		var $body     = $card.find( '.bmcp-card-body' ).first();
+		var collapsed = $card.hasClass( 'bmcp-card--collapsed' );
+
+		$card.toggleClass( 'bmcp-card--collapsed', ! collapsed );
+		$( this ).attr( 'aria-expanded', collapsed ? 'true' : 'false' );
+
+		if ( collapsed ) {
+			$body.slideDown( 220 );
+		} else {
+			$body.slideUp( 180 );
+		}
+	} );
+
+	// Expand all / Collapse all button
+	$( '#bmcp-bp-expand-all' ).on( 'click', function () {
+		var $btn      = $( this );
+		var expanding = $btn.text().trim().startsWith( 'Expand' );
+		var $cards    = $( '#tab-business-profile .bmcp-card--collapsible' );
+
+		if ( expanding ) {
+			$cards.removeClass( 'bmcp-card--collapsed' );
+			$cards.find( '.bmcp-card-head' ).attr( 'aria-expanded', 'true' );
+			$cards.find( '.bmcp-card-body' ).slideDown( 180 );
+			$btn.text( 'Collapse all' );
+		} else {
+			$cards.addClass( 'bmcp-card--collapsed' );
+			$cards.find( '.bmcp-card-head' ).attr( 'aria-expanded', 'false' );
+			$cards.find( '.bmcp-card-body' ).slideUp( 150 );
+			$btn.text( 'Expand all' );
+		}
 	} );
 
 	// ---- Business Profile Export ----
