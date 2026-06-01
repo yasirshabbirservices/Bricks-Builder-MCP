@@ -61,14 +61,16 @@ class Tool_Templates extends Tool_Base {
 			],
 			[
 				'name'        => 'bricks_update_template',
-				'description' => 'Update an existing Bricks template — its title, type, and/or element structure.',
+				'description' => "Update an existing Bricks template — its title, type, and/or element structure.\n\nBy default, the elements array REPLACES all existing elements. Set append=true to ADD elements after the existing content instead of replacing it. Colliding IDs are auto-regenerated.",
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
 						'template_id' => [ 'type' => 'integer', 'description' => 'Template post ID' ],
 						'title'       => [ 'type' => 'string', 'description' => 'New title' ],
 						'type'        => [ 'type' => 'string', 'description' => 'New template type' ],
-						'elements'    => [ 'type' => 'array', 'description' => 'Replacement element array', 'items' => [ 'type' => 'object' ] ],
+						'elements'    => [ 'type' => 'array', 'description' => 'Bricks element array. Replaces existing elements unless append=true.', 'items' => [ 'type' => 'object' ] ],
+						'append'      => [ 'type' => 'boolean', 'description' => 'When true, ADD elements after existing content instead of replacing. Colliding IDs are auto-regenerated. (default: false)', 'default' => false ],
+						'insert_after'=> [ 'type' => 'string', 'description' => 'Element ID to insert after (append mode only). Omit to append at the end.' ],
 					],
 					'required' => [ 'template_id' ],
 				],
@@ -267,11 +269,28 @@ class Tool_Templates extends Tool_Base {
 		$elements = $this->arr_arg( $args, 'elements' );
 		if ( $elements ) {
 			$area   = Bricks_Data::template_area( $new_type );
-			$result = Bricks_Data::set_elements( $id, $elements, $area );
+			$append = $this->bool_arg( $args, 'append', false );
+
+			if ( $append ) {
+				$insert_after = $this->str_arg( $args, 'insert_after' );
+				$result = Bricks_Data::append_elements( $id, $elements, $area, $insert_after );
+			} else {
+				$result = Bricks_Data::set_elements( $id, $elements, $area );
+			}
+
 			if ( is_wp_error( $result ) ) return $result;
 		}
 
-		return [ 'success' => true, 'template_id' => $id, 'message' => 'Template updated successfully.' ];
+		$append_used = $this->bool_arg( $args, 'append', false );
+
+		return [
+			'success'     => true,
+			'template_id' => $id,
+			'appended'    => $append_used && ! empty( $elements ),
+			'message'     => $append_used && ! empty( $elements )
+				? 'Template updated successfully. Elements appended to existing content.'
+				: 'Template updated successfully.',
+		];
 	}
 
 	private function delete_template( array $args ): array|\WP_Error {

@@ -56,15 +56,17 @@ class Tool_Pages extends Tool_Base {
 			],
 			[
 				'name'        => 'bricks_update_page',
-				'description' => 'Update an existing page — title, status, or Bricks elements. Use area to target content (default), header, or footer.',
+				'description' => "Update an existing page — title, status, or Bricks elements. Use area to target content (default), header, or footer.\n\nBy default, the elements array REPLACES all existing elements in the target area. Set append=true to ADD elements after the existing content instead of replacing it. When appending, any element IDs that collide with existing ones are automatically regenerated to prevent conflicts.\n\nUse insert_after to place appended elements after a specific existing element ID (only works with append=true).",
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
 						'post_id'       => [ 'type' => 'integer', 'description' => 'WordPress post ID' ],
 						'title'         => [ 'type' => 'string', 'description' => 'New page title' ],
 						'status'        => [ 'type' => 'string', 'description' => 'New status: draft | publish | private' ],
-						'elements'      => [ 'type' => 'array', 'description' => 'Full replacement element array for the target area', 'items' => [ 'type' => 'object' ] ],
+						'elements'      => [ 'type' => 'array', 'description' => 'Bricks element array. Replaces existing elements unless append=true.', 'items' => [ 'type' => 'object' ] ],
 						'area'          => [ 'type' => 'string', 'description' => 'Which area to update: content | header | footer (default: content)', 'default' => 'content' ],
+						'append'        => [ 'type' => 'boolean', 'description' => 'When true, ADD elements after existing content instead of replacing. Colliding IDs are auto-regenerated. (default: false)', 'default' => false ],
+						'insert_after'  => [ 'type' => 'string', 'description' => 'Element ID to insert after (append mode only). New root-level elements are placed after this element\'s root section. Omit to append at the end.' ],
 						'page_settings' => [ 'type' => 'object', 'description' => 'Bricks page-level settings to merge' ],
 					],
 					'required' => [ 'post_id' ],
@@ -288,7 +290,15 @@ class Tool_Pages extends Tool_Base {
 		$elements = $this->arr_arg( $args, 'elements' );
 		if ( $elements ) {
 			$area   = $this->str_arg( $args, 'area', 'content' );
-			$result = Bricks_Data::set_elements( $target_id, $elements, $area );
+			$append = $this->bool_arg( $args, 'append', false );
+
+			if ( $append ) {
+				$insert_after = $this->str_arg( $args, 'insert_after' );
+				$result = Bricks_Data::append_elements( $target_id, $elements, $area, $insert_after );
+			} else {
+				$result = Bricks_Data::set_elements( $target_id, $elements, $area );
+			}
+
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
@@ -299,15 +309,20 @@ class Tool_Pages extends Tool_Base {
 			Bricks_Data::set_page_settings( $target_id, array_merge( $existing, $args['page_settings'] ) );
 		}
 
+		$append_used = $this->bool_arg( $args, 'append', false );
+
 		return [
 			'success'     => true,
 			'post_id'     => $post_id,
 			'draft_id'    => $in_preview ? $target_id : null,
 			'is_new_draft' => $is_new_draft,
 			'in_preview'  => $in_preview,
+			'appended'    => $append_used && ! empty( $elements ),
 			'message'     => $in_preview
 				? "Preview draft updated (live page {$post_id} not modified). Call bricks_commit_preview to publish."
-				: 'Page updated successfully.',
+				: ( $append_used && ! empty( $elements )
+					? 'Page updated successfully. Elements appended to existing content.'
+					: 'Page updated successfully.' ),
 		];
 	}
 

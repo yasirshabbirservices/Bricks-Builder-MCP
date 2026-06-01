@@ -69,7 +69,7 @@ class Tool_Posts extends Tool_Base {
 			],
 			[
 				'name'        => 'bricks_update_post',
-				'description' => 'Update any post\'s title, content, status, Bricks elements, or custom meta.',
+				'description' => "Update any post's title, content, status, Bricks elements, or custom meta.\n\nBy default, the elements array REPLACES all existing elements. Set append=true to ADD elements after the existing content instead of replacing. Colliding IDs are auto-regenerated.",
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
@@ -78,7 +78,9 @@ class Tool_Posts extends Tool_Base {
 						'content'        => [ 'type' => 'string', 'description' => 'New WordPress editor content' ],
 						'excerpt'        => [ 'type' => 'string', 'description' => 'New excerpt' ],
 						'status'         => [ 'type' => 'string', 'description' => 'New status' ],
-						'elements'       => [ 'type' => 'array', 'description' => 'New Bricks element array', 'items' => [ 'type' => 'object' ] ],
+						'elements'       => [ 'type' => 'array', 'description' => 'Bricks element array. Replaces existing elements unless append=true.', 'items' => [ 'type' => 'object' ] ],
+						'append'         => [ 'type' => 'boolean', 'description' => 'When true, ADD elements after existing content instead of replacing. Colliding IDs are auto-regenerated. (default: false)', 'default' => false ],
+						'insert_after'   => [ 'type' => 'string', 'description' => 'Element ID to insert after (append mode only). Omit to append at end.' ],
 						'custom_meta'    => [ 'type' => 'object', 'description' => 'Custom meta to update/add' ],
 						'featured_image' => [ 'type' => 'integer', 'description' => 'Featured image attachment ID' ],
 					],
@@ -317,7 +319,13 @@ class Tool_Posts extends Tool_Base {
 
 		$elements = $this->arr_arg( $args, 'elements' );
 		if ( $elements ) {
-			$result = Bricks_Data::set_elements( $post_id, $elements, 'content' );
+			$append = $this->bool_arg( $args, 'append', false );
+			if ( $append ) {
+				$insert_after = $this->str_arg( $args, 'insert_after' );
+				$result = Bricks_Data::append_elements( $post_id, $elements, 'content', $insert_after );
+			} else {
+				$result = Bricks_Data::set_elements( $post_id, $elements, 'content' );
+			}
 			if ( is_wp_error( $result ) ) return $result;
 		}
 
@@ -330,7 +338,15 @@ class Tool_Posts extends Tool_Base {
 			}
 		}
 
-		return [ 'success' => true, 'post_id' => $post_id, 'message' => 'Post updated successfully.' ];
+		$append_used = $this->bool_arg( $args, 'append', false );
+		return [
+			'success'  => true,
+			'post_id'  => $post_id,
+			'appended' => $append_used && ! empty( $elements ),
+			'message'  => $append_used && ! empty( $elements )
+				? 'Post updated successfully. Elements appended to existing content.'
+				: 'Post updated successfully.',
+		];
 	}
 
 	private function delete_post( array $args ): array|\WP_Error {

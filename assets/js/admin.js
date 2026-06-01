@@ -158,8 +158,13 @@ jQuery( function ( $ ) {
 			category: memCat,
 			search:   memSearch,
 		}, function ( res ) {
-			if ( ! res.success ) return;
+			if ( ! res.success ) {
+				$( '#bmcp-memory-list' ).html( '<p class="bmcp-empty">Failed to load memories. Please refresh the page.</p>' );
+				return;
+			}
 			renderMemoryTable( res.data );
+		} ).fail( function () {
+			$( '#bmcp-memory-list' ).html( '<p class="bmcp-empty">Failed to load memories. Please refresh the page.</p>' );
 		} );
 	}
 
@@ -328,9 +333,7 @@ jQuery( function ( $ ) {
 
 	// ---- Load when tab activates ----
 	$( '[data-tab="memory"]' ).on( 'click', function () {
-		if ( $( '#bmcp-memory-list' ).find( '.bmcp-empty' ).length ) {
-			loadMemories();
-		}
+		loadMemories();
 	} );
 
 	// =========================================================================

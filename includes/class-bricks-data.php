@@ -82,6 +82,141 @@ class Bricks_Data {
 	}
 
 	/**
+	 * Append elements to existing content instead of replacing.
+	 * Reads current elements, resolves ID collisions, merges, and writes back.
+	 *
+	 * @param int    $post_id      Post/page/template ID.
+	 * @param array  $new_elements Elements to append.
+	 * @param string $area         'content' | 'header' | 'footer'.
+	 * @param string $insert_after Optional element ID — new root elements are inserted after this element's root section.
+	 * @return bool|\WP_Error
+	 */
+	public static function append_elements( int $post_id, array $new_elements, string $area = 'content', string $insert_after = '' ): bool|\WP_Error {
+		$existing = self::get_elements( $post_id, $area );
+
+		// Collect all existing IDs for collision detection
+		$existing_ids = [];
+		foreach ( $existing as $el ) {
+			if ( ! empty( $el['id'] ) ) {
+				$existing_ids[ $el['id'] ] = true;
+			}
+		}
+
+		// Resolve ID collisions in new elements: remap any IDs that already exist
+		$id_remap = [];
+		foreach ( $new_elements as &$el ) {
+			if ( ! empty( $el['id'] ) && isset( $existing_ids[ $el['id'] ] ) ) {
+				$old_id = $el['id'];
+				$new_id = self::generate_element_id();
+				// Ensure the new ID is also unique
+				while ( isset( $existing_ids[ $new_id ] ) ) {
+					$new_id = self::generate_element_id();
+				}
+				$id_remap[ $old_id ] = $new_id;
+				$el['id'] = $new_id;
+				$existing_ids[ $new_id ] = true;
+			}
+		}
+		unset( $el );
+
+		// Apply ID remapping to parent and children references
+		if ( ! empty( $id_remap ) ) {
+			foreach ( $new_elements as &$el ) {
+				// Remap parent references
+				if ( ! empty( $el['parent'] ) && is_string( $el['parent'] ) && isset( $id_remap[ $el['parent'] ] ) ) {
+					$el['parent'] = $id_remap[ $el['parent'] ];
+				}
+				// Remap children references
+				if ( ! empty( $el['children'] ) && is_array( $el['children'] ) ) {
+					$el['children'] = array_map(
+						function ( $child_id ) use ( $id_remap ) {
+							return $id_remap[ $child_id ] ?? $child_id;
+						},
+						$el['children']
+					);
+				}
+			}
+			unset( $el );
+		}
+
+		// Determine insertion position
+		if ( $insert_after !== '' && ! empty( $existing ) ) {
+			// Find the root section that contains or IS the insert_after element
+			$insert_index = null;
+			$target_root  = null;
+
+			// First, find the insert_after element and trace to its root
+			foreach ( $existing as $i => $el ) {
+				if ( ( $el['id'] ?? '' ) === $insert_after ) {
+					// Trace up to find the root element (parent = 0 or "0")
+					$target_root = $el;
+					while ( isset( $target_root['parent'] ) && $target_root['parent'] !== 0 && $target_root['parent'] !== '0' ) {
+						foreach ( $existing as $candidate ) {
+							if ( ( $candidate['id'] ?? '' ) === $target_root['parent'] ) {
+								$target_root = $candidate;
+								break;
+							}
+						}
+						break; // safety: only trace one level to avoid infinite loops
+					}
+					break;
+				}
+			}
+
+			if ( $target_root ) {
+				// Find the last element that belongs to this root section's tree
+				$root_id     = $target_root['id'];
+				$tree_ids    = self::collect_tree_ids( $existing, $root_id );
+				$last_index  = 0;
+				foreach ( $existing as $i => $el ) {
+					if ( isset( $tree_ids[ $el['id'] ?? '' ] ) ) {
+						$last_index = $i;
+					}
+				}
+				$insert_index = $last_index + 1;
+			}
+
+			if ( $insert_index !== null ) {
+				$merged = array_merge(
+					array_slice( $existing, 0, $insert_index ),
+					$new_elements,
+					array_slice( $existing, $insert_index )
+				);
+			} else {
+				// insert_after ID not found — append at end
+				$merged = array_merge( $existing, $new_elements );
+			}
+		} else {
+			$merged = array_merge( $existing, $new_elements );
+		}
+
+		return self::set_elements( $post_id, $merged, $area );
+	}
+
+	/**
+	 * Collect all element IDs in a tree starting from a root element.
+	 */
+	private static function collect_tree_ids( array $elements, string $root_id ): array {
+		$ids = [ $root_id => true ];
+		$changed = true;
+
+		// Iteratively collect all descendants
+		while ( $changed ) {
+			$changed = false;
+			foreach ( $elements as $el ) {
+				$el_id = $el['id'] ?? '';
+				$parent = $el['parent'] ?? '0';
+				if ( $el_id && ! isset( $ids[ $el_id ] ) && isset( $ids[ $parent ] ) ) {
+					$ids[ $el_id ] = true;
+					$changed = true;
+				}
+			}
+		}
+
+		return $ids;
+	}
+
+	/**
 	 * Normalize and validate an elements array.
 	 * Auto-generates IDs for elements missing them and fixes parent/children consistency.
 	 */
