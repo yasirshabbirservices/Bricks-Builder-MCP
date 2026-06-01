@@ -64,52 +64,130 @@ $cfg_gemini = json_encode( [
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 
 $cfg_general =
-"# Bricks Builder MCP\n" .
-"# Site: {$site_name}\n\n" .
-"ENDPOINT  ▶  {$endpoint}\n" .
-"AUTH      ▶  Authorization: Bearer {$api_key}\n" .
-"PROTOCOL  ▶  MCP 2024-11-05 · JSON-RPC 2.0 · Streamable HTTP\n\n" .
-"══════════════════════════════════════════════════════════\n" .
-"  CAPABILITIES\n" .
-"══════════════════════════════════════════════════════════\n\n" .
-"You have full programmatic control over this Bricks Builder\n" .
-"WordPress site. Available tool groups:\n\n" .
-"  Pages          create, read, update, delete + Bricks layouts\n" .
-"  Templates      header / footer / section templates + conditions\n" .
-"  Global Design  color palette, CSS classes, theme styles, CSS vars\n" .
-"  Posts & CPTs   any WordPress post type\n" .
-"  Media          browse and import assets\n" .
-"  Nav Menus      create and manage navigation menus\n" .
-"  Components     Bricks reusable components\n" .
-"  Search         find and replace across all pages and templates\n" .
-"  SEO            meta title, description, OG data (Yoast / Rank Math)\n" .
-"  Cache          clear site cache after writes\n" .
-"  WooCommerce    browse products and categories (read-only)\n" .
-"  AI Memory      persistent site knowledge across sessions\n" .
+"╔══════════════════════════════════════════════════════════════╗\n" .
+"  BRICKS BUILDER MCP — AI AGENT SETUP GUIDE\n" .
+"  Site: {$site_name}\n" .
+"╚══════════════════════════════════════════════════════════════╝\n\n" .
+
+"You are being connected to a Bricks Builder MCP server that gives\n" .
+"you full programmatic control over a WordPress site.\n" .
+"Follow the steps below IN ORDER before doing any work.\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  STEP 1 — ADD THE MCP SERVER\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+
+"MCP Endpoint:   {$endpoint}\n" .
+"Auth Header:    Authorization: Bearer {$api_key}\n" .
+"Protocol:       MCP 2024-11-05 · JSON-RPC 2.0 · Streamable HTTP\n\n" .
+
+"For Claude Code — add to ~/.claude/settings.json:\n\n" .
+"  {\n" .
+"    \"mcpServers\": {\n" .
+"      \"bricks-builder\": {\n" .
+"        \"type\": \"http\",\n" .
+"        \"url\": \"{$endpoint}\",\n" .
+"        \"headers\": { \"Authorization\": \"Bearer {$api_key}\" }\n" .
+"      }\n" .
+"    }\n" .
+"  }\n\n" .
+
+"For Claude Desktop — add to claude_desktop_config.json (same format).\n" .
+"For VS Code — add to .vscode/mcp.json under \"servers\" instead of \"mcpServers\".\n\n" .
+
+"If you are already connected (the user pasted this as context), skip to Step 2.\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  STEP 2 — LOAD SESSION CONTEXT (required every session)\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+
+"Call this FIRST — it returns site info, color palette, global CSS\n" .
+"classes, CSS variables, registered fonts, active design framework,\n" .
+"business profile, and high-priority memories in a single round-trip:\n\n" .
+"  → bricks_get_session_context\n\n" .
+
+"Study the response carefully:\n" .
+"  • framework.semantic_map  — use these CSS variable names, never guess\n" .
+"  • global_classes          — reuse these; never duplicate styles inline\n" .
+"  • color_palette           — use these IDs for all color values\n" .
+"  • business_profile        — replace every placeholder with real data\n" .
+"  • available_skills        — on-demand best-practice guides (see Step 4)\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  STEP 3 — LOAD SITE RULES\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+
+"  → bricks_get_system_prompt\n\n" .
+
+"Read this carefully. It contains:\n" .
+"  • Bricks element JSON format (8-field structure, flat array rules)\n" .
+"  • Layout hierarchy (section → container → block → content elements)\n" .
+"  • Responsive suffix syntax for breakpoints\n" .
+"  • Global styles priority order (classes → vars → theme → palette)\n" .
+"  • Site-specific rules set by the site owner\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  STEP 4 — LOAD RELEVANT SKILLS (before each task)\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+
+"Before starting any task, check available_skills from Step 2 and load\n" .
+"the guides relevant to what you are about to build:\n\n" .
+"  → bricks_get_skill({ \"skill\": \"bricks-elements\" })   ← before building any page\n" .
+"  → bricks_get_skill({ \"skill\": \"accessibility\" })     ← before forms, navs, images\n" .
+"  → bricks_get_skill({ \"skill\": \"css-best-practices\" }) ← before any styling work\n" .
+"  → bricks_get_skill({ \"skill\": \"seo-html\" })          ← before writing content\n" .
+"  → bricks_get_skill({ \"skill\": \"performance\" })       ← before image-heavy sections\n" .
+"  → bricks_get_skill({ \"skill\": \"layout-patterns\" })   ← before grids, heroes, sections\n\n" .
+"Load only the skills relevant to the current task — not all at once.\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  STEP 5 — VALIDATE BEFORE EVERY WRITE\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+
+"Before calling bricks_create_page, bricks_update_page, or any template\n" .
+"write, ALWAYS validate your element array first:\n\n" .
+"  → bricks_validate_payload({ \"elements\": [...], \"auto_fix\": true })\n\n" .
+"If valid: true → proceed with the write.\n" .
+"If valid: false → apply the fixed_payload or fix errors manually, then re-validate.\n" .
+"NEVER skip this step — writing a broken payload corrupts the page.\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  CAPABILITIES (82 tools across these groups)\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+"  Pages            create, read, update, delete + Bricks layouts\n" .
+"  Templates        header / footer / section templates + conditions\n" .
+"  Global Design    color palette, CSS classes, theme styles, CSS vars\n" .
+"  Posts & CPTs     any WordPress post type\n" .
+"  Media            browse and import assets\n" .
+"  Nav Menus        create and manage navigation menus\n" .
+"  Components       Bricks reusable components\n" .
+"  Search & Replace find/replace across all pages and templates\n" .
+"  Element Search   find elements by type, class, or settings value\n" .
+"  SEO              meta title, description, OG data (Yoast / Rank Math)\n" .
+"  Cache            clear site cache after writes\n" .
+"  WooCommerce      browse products and categories (read-only)\n" .
+"  AI Memory        persistent site knowledge across sessions\n" .
 "  History          auto-snapshot before every write — restore anytime\n" .
-"  Business Profile  brand, contact, services, assets — AI project context\n" .
-"  Design System     apply or inspect design system presets\n\n" .
-"══════════════════════════════════════════════════════════\n" .
-"  START OF SESSION\n" .
-"══════════════════════════════════════════════════════════\n\n" .
-"Run this single call first — it loads site info, color palette,\n" .
-"global classes, CSS variables, fonts, design framework, business\n" .
-"profile, and memories in one request:\n\n" .
-"  bricks_get_session_context\n\n" .
-"Then load the full element format guide and site rules:\n\n" .
-"  bricks_get_system_prompt\n\n" .
-"Before writing any elements, always validate first:\n\n" .
-"  bricks_validate_payload  { \"elements\": [...] }\n\n" .
-"══════════════════════════════════════════════════════════\n" .
-"  RULES\n" .
-"══════════════════════════════════════════════════════════\n\n" .
-"  • Use bricks_get_session_context at the start of every session\n" .
-"  • Always validate element arrays before writing\n" .
-"  • Use framework.semantic_map for CSS variable names — never guess\n" .
-"  • Reuse existing colors and global classes — never hardcode values\n" .
-"  • Save useful patterns and preferences via bricks_memory_add\n" .
-"  • Never access payment gateway settings or API credentials\n" .
-"  • Follow the site-specific rules returned by bricks_get_system_prompt\n";
+"  Business Profile brand, contact, services, assets — project context\n" .
+"  Design System    apply or inspect design system presets\n" .
+"  Design Audit     detect hardcoded colours and design drift across pages\n" .
+"  Agent Skills     on-demand best-practice guides (accessibility, SEO…)\n" .
+"  Preview Mode     AI writes to draft copies — review before going live\n\n" .
+
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+"  STANDING RULES (apply to every session)\n" .
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" .
+"  1. Always start with bricks_get_session_context — never skip it\n" .
+"  2. Load relevant skills before each task (bricks_get_skill)\n" .
+"  3. Use framework.semantic_map for CSS var names — never guess\n" .
+"  4. Reuse global classes and palette colors — never hardcode values\n" .
+"  5. Validate element arrays before every write\n" .
+"  6. Confirm with the user before any global/destructive operation\n" .
+"     (color palette, theme styles, replace content across all pages)\n" .
+"  7. Save useful findings and preferences via bricks_memory_add\n" .
+"  8. If something goes wrong: bricks_snapshot_list then restore\n" .
+"  9. Never read or modify payment credentials or sensitive user data\n" .
+" 10. Follow all site-specific rules in bricks_get_system_prompt\n";
 
 ?>
 <div class="wrap" id="bmcp-wrap">
@@ -315,7 +393,7 @@ $cfg_general =
 			</nav>
 
 			<div class="bmcp-client-panel active" id="bmcp-panel-general" role="tabpanel" aria-labelledby="client-tab-general">
-				<p class="bmcp-client-hint">Connection details and session instructions — paste this into any AI client to get started.</p>
+				<p class="bmcp-client-hint">Copy and paste this entire block into any AI chat or agent context. It includes step-by-step setup instructions, the connection config, and the workflow the AI must follow every session.</p>
 				<div class="bmcp-config-block bmcp-config-collapsible" id="bmcp-general-collapse-wrap">
 					<pre id="bmcp-config-general"><?php echo esc_html( $cfg_general ); ?></pre>
 					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-general" aria-label="Copy general setup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
