@@ -209,7 +209,7 @@ This repo uses a GitHub Actions workflow (`.github/workflows/release.yml`) that 
 
 The plugin checks for new releases every 15 minutes and shows the standard WordPress "Update available" notice when a newer version is found.
 
-**To release a new version:** bump `BMCP_VERSION` in `bricks-builder-mcp.php`, then commit and push to `main`.
+**To release a new version:** bump `BMCP_VERSION` in `bricks-builder-mcp.php`, then commit and push to `main`. The plugin URI now points to the GitHub repository — the WordPress update checker links directly to the release page.
 
 ---
 
