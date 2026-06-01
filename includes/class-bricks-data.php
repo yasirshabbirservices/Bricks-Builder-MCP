@@ -263,6 +263,16 @@ class Bricks_Data {
 		return is_array( $data ) ? $data : [];
 	}
 
+	/**
+	 * Update or create a theme style.
+	 *
+	 * Bricks expects a dual structure for theme styles to work correctly:
+	 * - Top-level keys (typography, links, buttons, etc.) → used for CSS output
+	 * - Nested `settings` key mirroring those same values → used by the Bricks builder UI panels
+	 *
+	 * This method auto-creates the nested `settings` wrapper from top-level keys
+	 * so the AI doesn't need to maintain both copies manually.
+	 */
 	public static function update_theme_style( string $style_id, array $settings ): array {
 		$styles = self::get_theme_styles();
 
@@ -272,6 +282,23 @@ class Bricks_Data {
 
 		$styles[ $style_id ] = array_merge( $styles[ $style_id ], $settings );
 		$styles[ $style_id ]['id'] = $style_id;
+
+		// Auto-populate the nested 'settings' wrapper for Bricks UI compatibility.
+		// The builder reads from settings.typography, settings.links, etc. for its panels.
+		$ui_keys = [
+			'typography', 'links', 'buttons', 'section', 'container',
+			'conditions', 'headings', 'colors', 'forms', 'misc',
+		];
+
+		$nested = $styles[ $style_id ]['settings'] ?? [];
+		foreach ( $ui_keys as $uk ) {
+			if ( isset( $styles[ $style_id ][ $uk ] ) && ! isset( $nested[ $uk ] ) ) {
+				$nested[ $uk ] = $styles[ $style_id ][ $uk ];
+			}
+		}
+		if ( ! empty( $nested ) ) {
+			$styles[ $style_id ]['settings'] = $nested;
+		}
 
 		$key = defined( 'BRICKS_DB_THEME_STYLES' ) ? BRICKS_DB_THEME_STYLES : 'bricks_theme_styles';
 		update_option( $key, $styles );
@@ -283,6 +310,21 @@ class Bricks_Data {
 		$key  = defined( 'BRICKS_DB_GLOBAL_VARIABLES' ) ? BRICKS_DB_GLOBAL_VARIABLES : 'bricks_global_variables';
 		$data = get_option( $key, [] );
 		return is_array( $data ) ? $data : [];
+	}
+
+	/**
+	 * Update Style Manager global variables (stored in bricks_global_variables option).
+	 *
+	 * These are the CSS variables visible in Bricks → Settings → Style Manager,
+	 * including HSL-decomposed color tokens (--primary-h, --primary-s, --primary-l).
+	 *
+	 * @param array $variables Full replacement array of variable groups/entries.
+	 * @return array Updated variables.
+	 */
+	public static function update_global_variables( array $variables ): array {
+		$key = defined( 'BRICKS_DB_GLOBAL_VARIABLES' ) ? BRICKS_DB_GLOBAL_VARIABLES : 'bricks_global_variables';
+		update_option( $key, $variables );
+		return $variables;
 	}
 
 	// -------------------------------------------------------------------------

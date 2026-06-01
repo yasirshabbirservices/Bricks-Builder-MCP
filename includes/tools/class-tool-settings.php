@@ -111,7 +111,32 @@ class Tool_Settings extends Tool_Base {
 			],
 			[
 				'name'        => 'bricks_get_css_variables',
-				'description' => 'Extract all CSS custom properties (--variable-name: value) defined in Bricks global settings customCss. Use this to discover available design tokens before styling elements — never guess variable names.',
+				'description' => 'Extract all CSS custom properties (--variable-name: value) from BOTH global customCss AND Style Manager global variables (bricks_global_variables). Use this to discover all available design tokens before styling elements — never guess variable names.',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
+				'name'        => 'bricks_get_global_variables',
+				'description' => 'Get Style Manager global variables (stored in bricks_global_variables option). These are the CSS variables managed via Bricks → Settings → Style Manager, including HSL-decomposed color tokens. Separate from customCss variables.',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
+				'name'        => 'bricks_update_global_variables',
+				'description' => 'Replace Style Manager global variables (bricks_global_variables option). This is the proper way to update CSS variables shown in Bricks Style Manager (e.g., HSL color tokens). Pass the full variables array.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'variables' => [
+							'type'        => 'array',
+							'description' => 'Full replacement array of variable groups. Each group has id, name, and variables array. Example: [{"id":"colors","name":"Colors","variables":[{"id":"v1","name":"--primary-h","value":"160"}]}]',
+							'items'       => [ 'type' => 'object' ],
+						],
+					],
+					'required' => [ 'variables' ],
+				],
+			],
+			[
+				'name'        => 'bricks_get_custom_css',
+				'description' => 'Get the raw customCss content from Bricks global settings. Use this when you need to read or incrementally edit the full CSS, not just extract variable names.',
 				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
 			],
 			[
@@ -126,14 +151,20 @@ class Tool_Settings extends Tool_Base {
 			],
 			[
 				'name'        => 'bricks_update_theme_styles',
-				'description' => 'Update or create a theme style entry. Merges with the existing style if it exists.',
+				'description' => 'Update or create a theme style entry. Merges with the existing style. '
+					. 'Bricks uses a DUAL structure: top-level keys (typography, links, buttons, section, container, conditions) '
+					. 'generate CSS output, and a nested "settings" key mirrors those same values for the builder UI panels. '
+					. 'The server auto-creates the nested "settings" wrapper from your top-level keys, so you only need to provide the top-level structure. '
+					. 'Example: {"label":"My Style", "typography":{"font-family":"Inter","font-size":"16px","color":{"raw":"var(--text)"}}, '
+					. '"links":{"color":{"raw":"var(--primary)"},"text-decoration":"none"}, '
+					. '"conditions":[{"condition":"all"}]}',
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
-						'style_id' => [ 'type' => 'string', 'description' => 'Unique style identifier' ],
+						'style_id' => [ 'type' => 'string', 'description' => 'Unique style identifier (lowercase, hyphens, e.g. "ys-styles")' ],
 						'settings' => [
 							'type'        => 'object',
-							'description' => 'Style settings object. Should include "label" and element-specific CSS settings.',
+							'description' => 'Style settings object. Must include "label". Top-level keys: typography, links, buttons, section, container, conditions, headings, colors, forms, misc. The nested "settings" wrapper is auto-generated.',
 						],
 					],
 					'required' => [ 'style_id', 'settings' ],
@@ -162,6 +193,12 @@ class Tool_Settings extends Tool_Base {
 				return $this->delete_global_class( $args );
 			case 'bricks_get_css_variables':
 				return $this->get_css_variables();
+			case 'bricks_get_global_variables':
+				return $this->get_global_variables();
+			case 'bricks_update_global_variables':
+				return $this->update_global_variables( $args );
+			case 'bricks_get_custom_css':
+				return $this->get_custom_css();
 			case 'bricks_list_global_fonts':
 				return $this->list_global_fonts();
 			case 'bricks_get_theme_styles':
@@ -177,10 +214,10 @@ class Tool_Settings extends Tool_Base {
 		$filtered = $this->filter_sensitive( $settings );
 
 		// Replace raw customCss (can be 15–50 KB on design-system sites) with a size hint.
-		// Use bricks_get_css_variables to get the extracted variables instead.
+		// Use bricks_get_custom_css for the raw content or bricks_get_css_variables for extracted variables.
 		if ( isset( $filtered['customCss'] ) ) {
 			$filtered['customCss_note'] = sprintf(
-				'%d chars — call bricks_get_css_variables to get extracted CSS variables.',
+				'%d chars — call bricks_get_custom_css for raw CSS content, or bricks_get_css_variables for extracted variables from both customCss and Style Manager.',
 				strlen( $settings['customCss'] ?? '' )
 			);
 			unset( $filtered['customCss'] );
@@ -304,23 +341,93 @@ class Tool_Settings extends Tool_Base {
 	}
 
 	private function get_css_variables(): array {
+		$variables = [];
+
+		// Source 1: customCss in global settings
 		$settings   = Bricks_Data::get_global_settings();
 		$custom_css = $settings['customCss'] ?? '';
-		$variables  = [];
 
 		if ( $custom_css ) {
 			preg_match_all( '/(-{2}[\w-]+)\s*:\s*([^;}\n]+)/', $custom_css, $matches, PREG_SET_ORDER );
 			foreach ( $matches as $m ) {
-				$variables[ trim( $m[1] ) ] = trim( $m[2] );
+				$variables[ trim( $m[1] ) ] = [
+					'value'  => trim( $m[2] ),
+					'source' => 'customCss',
+				];
 			}
 		}
 
+		// Source 2: Style Manager global variables (bricks_global_variables option)
+		$global_vars = Bricks_Data::get_global_variables();
+		if ( is_array( $global_vars ) ) {
+			foreach ( $global_vars as $group ) {
+				$group_name = $group['name'] ?? 'unnamed';
+				$entries    = $group['variables'] ?? [];
+				foreach ( $entries as $entry ) {
+					$var_name = $entry['name'] ?? '';
+					$var_val  = $entry['value'] ?? '';
+					if ( $var_name !== '' ) {
+						// Ensure -- prefix
+						$key = str_starts_with( $var_name, '--' ) ? $var_name : '--' . $var_name;
+						$variables[ $key ] = [
+							'value'  => $var_val,
+							'source' => 'style_manager',
+							'group'  => $group_name,
+						];
+					}
+				}
+			}
+		}
+
+		// Flatten for backward compatibility — also provide source info
+		$flat = [];
+		foreach ( $variables as $name => $info ) {
+			$flat[ $name ] = $info['value'];
+		}
+
+		return [
+			'variables'        => $flat,
+			'variables_detail' => $variables,
+			'count'            => count( $variables ),
+			'tip'              => empty( $variables )
+				? 'No CSS variables found. Use actual hex values from bricks_get_color_palette instead.'
+				: 'Use these in color objects as {"raw": "var(--variable-name)"} or in plain string settings. Check "source" in variables_detail to see where each variable is defined.',
+		];
+	}
+
+	private function get_global_variables(): array {
+		$variables = Bricks_Data::get_global_variables();
 		return [
 			'variables' => $variables,
-			'count'     => count( $variables ),
-			'tip'       => empty( $variables )
-				? 'No CSS variables found in customCss. Use actual hex values from bricks_get_color_palette instead.'
-				: 'Use these in color objects as {"raw": "var(--variable-name)"} or in plain string settings.',
+			'count'     => is_array( $variables ) ? count( $variables ) : 0,
+			'tip'       => 'These are Style Manager variables (Bricks → Settings → Style Manager). Use bricks_update_global_variables to modify them. Separate from customCss.',
+		];
+	}
+
+	private function update_global_variables( array $args ): array|\WP_Error {
+		$err = $this->require_cap( 'manage_options' );
+		if ( $err ) return $err;
+
+		$variables = $args['variables'] ?? null;
+		if ( ! is_array( $variables ) ) {
+			return $this->err( '"variables" must be an array of variable groups.' );
+		}
+
+		$result = Bricks_Data::update_global_variables( $variables );
+		return [
+			'success'   => true,
+			'variables' => $result,
+			'message'   => 'Style Manager global variables updated.',
+		];
+	}
+
+	private function get_custom_css(): array {
+		$settings   = Bricks_Data::get_global_settings();
+		$custom_css = $settings['customCss'] ?? '';
+		return [
+			'customCss' => $custom_css,
+			'length'    => strlen( $custom_css ),
+			'tip'       => 'Use bricks_update_global_settings with {"settings":{"customCss":"..."}} to update. For Style Manager variables, use bricks_update_global_variables instead.',
 		];
 	}
 
