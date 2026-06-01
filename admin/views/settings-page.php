@@ -721,8 +721,8 @@ $cfg_general =
 		</form>
 
 		<!-- Export / Import -->
-		<div class="bmcp-card" style="margin-top:24px">
-			<h3 class="bmcp-card-title">Export / Import Profile</h3>
+		<div class="bmcp-card" style="margin-top:16px">
+			<h2>Export / Import Profile</h2>
 			<p class="description" style="margin-bottom:16px">Copy your brand configuration to another site, or restore it from a backup. Uses the same format as <code>bricks_export_business_profile</code> / <code>bricks_import_business_profile</code> MCP tools.</p>
 
 			<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
@@ -816,6 +816,11 @@ $cfg_general =
 				],
 			];
 
+			?>
+			<div class="bmcp-caps-toolbar">
+				<button type="button" class="button bmcp-expand-all" id="bmcp-caps-expand-all">Expand all</button>
+			</div>
+			<?php
 			foreach ( $cap_groups as $group_key => $group ) :
 				$group_tools    = array_keys( $group['tools'] );
 				$enabled_count  = count( array_filter( $group_tools, fn( $t ) => ( $tool_states[ $t ] ?? true ) ) );

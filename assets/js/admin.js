@@ -669,6 +669,47 @@ jQuery( function ( $ ) {
 		} );
 	} );
 
+	// ---- Capabilities: collapsible group sections ----
+	var $capGroups = $( '.bmcp-cap-group' );
+	var capChevron = '<span class="bmcp-cap-chevron" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>';
+
+	$capGroups.each( function ( idx ) {
+		var $group = $( this );
+		var $title = $group.find( '.bmcp-cap-group-title' );
+		// Append chevron to the title area
+		$title.append( capChevron );
+		// All groups start collapsed except none by default — start all collapsed
+		$group.addClass( 'bmcp-cap-group--collapsed' );
+		$group.find( '.bmcp-capabilities-table' ).hide();
+	} );
+
+	// Toggle on header click (but NOT when clicking the Enable All / Disable All button)
+	$( document ).on( 'click', '.bmcp-cap-group-header', function ( e ) {
+		if ( $( e.target ).closest( '.bmcp-cap-toggle-all' ).length ) return;
+
+		var $group = $( this ).closest( '.bmcp-cap-group' );
+		var collapsed = $group.hasClass( 'bmcp-cap-group--collapsed' );
+
+		$group.toggleClass( 'bmcp-cap-group--collapsed', ! collapsed );
+		$group.find( '.bmcp-capabilities-table' ).slideToggle( 200 );
+	} );
+
+	// Expand / Collapse all for Capabilities
+	$( '#bmcp-caps-expand-all' ).on( 'click', function () {
+		var $btn      = $( this );
+		var expanding = $btn.text().trim().startsWith( 'Expand' );
+
+		if ( expanding ) {
+			$capGroups.removeClass( 'bmcp-cap-group--collapsed' );
+			$capGroups.find( '.bmcp-capabilities-table' ).slideDown( 180 );
+			$btn.text( 'Collapse all' );
+		} else {
+			$capGroups.addClass( 'bmcp-cap-group--collapsed' );
+			$capGroups.find( '.bmcp-capabilities-table' ).slideUp( 150 );
+			$btn.text( 'Expand all' );
+		}
+	} );
+
 	// ---- Collapsible BP cards (JS-driven for remaining non-converted cards) ----
 	// Convert plain .bmcp-card inside #tab-business-profile form into collapsible
 	$( '#tab-business-profile form .bmcp-card:not(.bmcp-card--collapsible)' ).each( function ( idx ) {
