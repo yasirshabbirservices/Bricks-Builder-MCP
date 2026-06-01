@@ -508,7 +508,7 @@ $cfg_general =
 					</div>
 				</div><!-- /body bp-typography -->
 			</div><!-- /bp-typography -->
-
+			</div><!-- /bp-typography card -->
 			<!-- Design Style -->
 			<div class="bmcp-card bmcp-card--collapsible bmcp-card--collapsed" id="bmcp-card-bp-design">
 				<button type="button" class="bmcp-card-head" aria-expanded="false" aria-controls="bmcp-body-bp-design">
