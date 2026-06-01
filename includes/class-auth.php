@@ -130,17 +130,20 @@ class Auth {
 	 * No per-tool annotations needed — pattern matching is sufficient.
 	 */
 	public static function scope_for_tool( string $tool_name ): string {
-		static $delete_patterns = [ '_delete_', 'bricks_snapshot_restore' ];
+		// Exact-match delete tools (can't use substring pattern alone)
+		static $delete_exact   = [ 'bricks_snapshot_restore' ];
+		static $delete_patterns = [ '_delete_' ];
 		static $write_patterns  = [
 			'_create_', '_update_', '_write_', '_set_', '_import_',
 			'_replace_', '_clear_', '_enable_', '_disable_', '_commit_',
 			'_discard_', '_restore', '_save', '_memory_save', '_memory_delete',
 		];
 
+		if ( in_array( $tool_name, $delete_exact, true ) ) return 'delete';
+
 		foreach ( $delete_patterns as $p ) {
-			if ( $p[0] === 'b' ? $tool_name === $p : str_contains( $tool_name, $p ) ) return 'delete';
+			if ( str_contains( $tool_name, $p ) ) return 'delete';
 		}
-		if ( $tool_name === 'bricks_snapshot_restore' ) return 'delete';
 
 		foreach ( $write_patterns as $p ) {
 			if ( str_contains( $tool_name, $p ) ) return 'write';

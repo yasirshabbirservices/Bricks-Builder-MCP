@@ -635,12 +635,12 @@ jQuery( function ( $ ) {
 			// Build masked key
 			var masked = '&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;' + escHtml( d.plain_key.slice( -4 ) );
 
-			var row = '<tr>' +
+			var row = '<tr data-key-id="' + escHtml( d.id ) + '">' +
 				'<td>' + escHtml( d.name ) + '</td>' +
 				'<td>' + pillHtml + '</td>' +
 				'<td style="color:var(--text-muted)">' + escHtml( d.created_at ) + '</td>' +
 				'<td><code style="font-size:.78rem">' + masked + '</code></td>' +
-				'<td><button type="button" class="button bmcp-icon-btn bmcp-btn-del-snap bmcp-delete-secondary-key" aria-label="Delete key">' +
+				'<td><button type="button" class="button bmcp-icon-btn bmcp-btn-del-snap bmcp-delete-secondary-key" data-key-id="' + escHtml( d.id ) + '" aria-label="Delete key">' +
 				ICON_TRASH + '</button></td></tr>';
 			$( '#bmcp-secondary-keys-table tbody' ).append( row );
 		} );

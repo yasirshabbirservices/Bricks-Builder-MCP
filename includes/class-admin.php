@@ -397,10 +397,11 @@ class Admin {
 		}
 
 		$plain_key = wp_generate_password( 32, false );
+		$key_id    = wp_generate_password( 12, false );
 
 		$secondary_keys   = get_option( BMCP_SECONDARY_KEYS_OPTION, [] );
 		$secondary_keys[] = [
-			'id'         => wp_generate_password( 8, false ),
+			'id'         => $key_id,
 			'name'       => $name,
 			'key'        => $plain_key,
 			'scopes'     => array_values( $scopes ),
@@ -410,6 +411,7 @@ class Admin {
 		update_option( BMCP_SECONDARY_KEYS_OPTION, $secondary_keys, false );
 
 		wp_send_json_success( [
+			'id'         => $key_id,
 			'plain_key'  => $plain_key,
 			'name'       => $name,
 			'scopes'     => array_values( $scopes ),

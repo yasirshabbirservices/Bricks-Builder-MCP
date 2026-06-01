@@ -50,6 +50,10 @@ class Tool_Business_Profile extends Tool_Base {
 				return $this->export_profile();
 			case 'bricks_import_business_profile':
 				return $this->import_profile( $args['profile'] ?? [] );
+			case 'bricks_get_business_profile':
+				break;
+			default:
+				return $this->err( 'Unknown tool: ' . $name );
 		}
 
 		$profile = get_option( BMCP_BUSINESS_PROFILE_OPTION, [] );

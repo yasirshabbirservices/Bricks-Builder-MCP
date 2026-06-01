@@ -1136,34 +1136,51 @@ body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-corner {
 .bmcp-field-row { display: flex; gap: 12px; }
 .bmcp-field-row .bmcp-field { flex: 1; }
 
-.bmcp-field input[type="text"],
-.bmcp-field input[type="email"],
-.bmcp-field input[type="url"],
-.bmcp-field select,
-.bmcp-field textarea {
+/* All text inputs, selects, textareas inside the plugin — dark theme */
+#bmcp-wrap input[type="text"],
+#bmcp-wrap input[type="email"],
+#bmcp-wrap input[type="url"],
+#bmcp-wrap input[type="number"],
+#bmcp-wrap input[type="search"],
+#bmcp-wrap input[type="password"],
+#bmcp-wrap select,
+#bmcp-wrap textarea {
 	background: var(--surface-3) !important;
 	border: 1px solid var(--border) !important;
 	border-radius: var(--radius-sm) !important;
 	color: var(--text) !important;
 	font-size: 0.84rem !important;
 	padding: 9px 12px !important;
-	width: 100% !important;
 	box-shadow: none !important;
 	font-family: inherit !important;
-	transition: border-color 0.15s !important;
+	transition: border-color 0.15s, box-shadow 0.15s !important;
 }
-
-.bmcp-field textarea { resize: vertical !important; line-height: 1.6 !important; }
-
-.bmcp-field input[type="text"]:focus,
-.bmcp-field input[type="email"]:focus,
-.bmcp-field input[type="url"]:focus,
-.bmcp-field select:focus,
-.bmcp-field textarea:focus {
+#bmcp-wrap input::placeholder,
+#bmcp-wrap textarea::placeholder {
+	color: var(--text-dim) !important;
+	opacity: 1 !important;
+}
+#bmcp-wrap input[type="text"]:focus,
+#bmcp-wrap input[type="email"]:focus,
+#bmcp-wrap input[type="url"]:focus,
+#bmcp-wrap input[type="number"]:focus,
+#bmcp-wrap input[type="search"]:focus,
+#bmcp-wrap input[type="password"]:focus,
+#bmcp-wrap select:focus,
+#bmcp-wrap textarea:focus {
 	border-color: var(--brand) !important;
 	outline: none !important;
-	box-shadow: 0 0 0 2px rgba(0,214,143,0.12) !important;
+	box-shadow: 0 0 0 2px rgba(0,214,143,0.14) !important;
 }
+
+/* Keep full-width where the field wrapper expects it */
+.bmcp-field input[type="text"],
+.bmcp-field input[type="email"],
+.bmcp-field input[type="url"],
+.bmcp-field select,
+.bmcp-field textarea { width: 100% !important; }
+
+.bmcp-field textarea { resize: vertical !important; line-height: 1.6 !important; }
 
 /* ---- HISTORY PAGINATION ---- */
 #bmcp-history-pagination {

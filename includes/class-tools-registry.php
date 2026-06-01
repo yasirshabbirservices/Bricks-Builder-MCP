@@ -234,10 +234,25 @@ class Tools_Registry {
 			'bricks_search_templates'     => 'site',
 			'bricks_get_template_library' => 'site',
 			// business profile (always on)
-			'bricks_get_business_profile' => 'site',
+			'bricks_get_business_profile'     => 'site',
+			'bricks_export_business_profile'  => 'site',
+			'bricks_import_business_profile'  => 'site',
 			// design system (always on)
 			'bricks_get_design_system'   => 'site',
 			'bricks_apply_design_system' => 'site',
+			// agent skills (always on)
+			'bricks_list_skills' => 'site',
+			'bricks_get_skill'   => 'site',
+			// design audit (always on)
+			'bricks_audit_design_consistency' => 'site',
+			// semantic element search (always on)
+			'bricks_search_elements' => 'site',
+			// staged preview mode (always on)
+			'bricks_enable_preview_mode'  => 'pages',
+			'bricks_disable_preview_mode' => 'pages',
+			'bricks_preview_status'       => 'pages',
+			'bricks_commit_preview'       => 'pages',
+			'bricks_discard_preview'      => 'pages',
 		];
 	}
 

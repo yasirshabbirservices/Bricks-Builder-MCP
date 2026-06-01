@@ -71,6 +71,7 @@ class Tool_Audit extends Tool_Base {
 			'post_status'    => 'any',
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
+			'no_found_rows'  => true,
 			'meta_query'     => [
 				'relation' => 'OR',
 				[ 'key' => BMCP_DB_PAGE_CONTENT, 'compare' => 'EXISTS' ],
