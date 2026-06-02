@@ -766,6 +766,19 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 
 .bmcp-snip-code { display: none; }
 
+/* Read-only <?php opening tag indicator */
+.bmcp-snip-opening-tag {
+	background: #0d1610;
+	border-bottom: 1px solid var(--border);
+	padding: 7px 16px 7px 52px; /* 52px aligns with CodeMirror's gutter */
+	font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+	font-size: 0.875rem;
+	color: #a78bfa;  /* same as PHP badge color */
+	-webkit-user-select: none;
+	user-select: none;
+	letter-spacing: 0.02em;
+}
+
 /* CodeMirror dark overrides */
 .bmcp-snip-editor-card .CodeMirror {
 	height: 520px;

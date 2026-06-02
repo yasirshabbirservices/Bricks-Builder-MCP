@@ -53,7 +53,7 @@ $hook_hidden = in_array( $s['type'], [ 'javascript', 'javascript_url', 'css', 'c
 
 // Default starter code shown to the user when creating a new snippet
 $default_code = [
-	'php' => "// Write your PHP code below — no opening <?php tag needed.\n// This snippet runs on the hook you set in the Execution panel.\n\nadd_action( 'wp_footer', function () {\n\t// Example: echo a hidden comment\n\t// echo '<!-- snippet active -->';\n} );\n",
+	'php' => "add_action( 'wp_footer', function () {\n\t// Your code here\n\t// echo '<!-- snippet active -->';\n} );\n",
 	'javascript' => "( function () {\n\t'use strict';\n\n\t// Your JavaScript runs in wp_footer on every page.\n\tdocument.addEventListener( 'DOMContentLoaded', function () {\n\t\t// DOM is ready — write your code here.\n\t\tconsole.log( 'Snippet loaded.' );\n\t} );\n\n} )();\n",
 	'javascript_url' => '',
 	'css' => "/* Add your custom styles below.\n   These are injected into <head> on every page. */\n\n.my-element {\n\t/* color: #333; */\n\t/* font-size: 1rem; */\n}\n",
@@ -123,6 +123,10 @@ $default_code = [
 				<!-- Code editor -->
 				<div class="bmcp-snip-editor-wrap" id="bmcp-code-wrap"
 					style="<?php echo in_array( $s['type'], [ 'javascript_url', 'css_url' ], true ) ? 'display:none' : ''; ?>">
+					<!-- Read-only opening tag indicator — PHP only -->
+					<div class="bmcp-snip-opening-tag" id="bmcp-opening-tag"
+						style="<?php echo 'php' !== $s['type'] ? 'display:none' : ''; ?>"
+						aria-hidden="true">&lt;?php</div>
 					<textarea id="bmcp-snip-code" name="code" spellcheck="false" autocomplete="off"
 						class="bmcp-snip-code"><?php echo esc_textarea( $s['code'] ); ?></textarea>
 				</div>

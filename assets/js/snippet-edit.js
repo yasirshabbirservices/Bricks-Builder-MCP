@@ -118,12 +118,14 @@
 				}
 			}
 
-			// show/hide URL field
-			const urlRow  = document.getElementById( 'bmcp-url-row' );
-			const codeWrap = document.getElementById( 'bmcp-code-wrap' );
-			const isUrl   = currentType === 'javascript_url' || currentType === 'css_url';
-			if ( urlRow )   urlRow.style.display   = isUrl ? '' : 'none';
-			if ( codeWrap ) codeWrap.style.display = isUrl ? 'none' : '';
+			// show/hide URL field and code editor
+			const urlRow     = document.getElementById( 'bmcp-url-row' );
+			const codeWrap   = document.getElementById( 'bmcp-code-wrap' );
+			const openingTag = document.getElementById( 'bmcp-opening-tag' );
+			const isUrl      = currentType === 'javascript_url' || currentType === 'css_url';
+			if ( urlRow )     urlRow.style.display     = isUrl ? '' : 'none';
+			if ( codeWrap )   codeWrap.style.display   = isUrl ? 'none' : '';
+			if ( openingTag ) openingTag.style.display = currentType === 'php' ? '' : 'none';
 
 			// show/hide hook field (PHP + HTML only)
 			const hookLabel = document.querySelector( '.bmcp-snip-hook-label' );
