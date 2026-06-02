@@ -188,13 +188,21 @@ class Snippets_Manager {
 			return; // Signature missing or tampered — refuse execution
 		}
 
+		// During AJAX / REST / WP-Cron the PHP snippet still runs so that any
+		// add_action / add_filter calls inside it take effect — but we buffer
+		// direct echo/print output so it cannot corrupt the JSON response.
+		$suppress_output = wp_doing_ajax()
+			|| wp_doing_cron()
+			|| ( defined( 'REST_REQUEST' ) && REST_REQUEST );
+
 		try {
-			// Clear any previous error before running
 			delete_post_meta( $id, '_bmcp_snip_error' );
+			if ( $suppress_output ) ob_start();
 			// phpcs:ignore Squiz.PHP.Eval.Discouraged -- intentional; guarded by wp_hash() above
 			eval( '?>' . $code );
+			if ( $suppress_output ) ob_end_clean();
 		} catch ( \Throwable $e ) {
-			// Auto-deactivate the snippet so it stops running on every page load
+			if ( $suppress_output ) @ob_end_clean(); // phpcs:ignore
 			self::deactivate_on_error( $id, $e );
 		}
 	}
