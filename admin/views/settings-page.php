@@ -32,7 +32,20 @@ $status_label    = $is_connected ? 'Active &amp; Connected' : 'Active';
 $status_modifier = $is_connected ? ' bmcp-status-connected' : ' bmcp-status-idle';
 
 // ── Config snippets ──────────────────────────────────────────────────
+$sse_endpoint      = rest_url( BMCP_REST_NAMESPACE . '/sse' );
+$messages_endpoint = rest_url( BMCP_REST_NAMESPACE . '/messages' );
+
 $cfg_standard = json_encode( [
+	'mcpServers' => [
+		'bricks-builder' => [
+			'type'    => 'http',
+			'url'     => $endpoint,
+			'headers' => [ 'Authorization' => 'Bearer ' . $api_key ],
+		],
+	],
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+
+$cfg_cursor = json_encode( [
 	'mcpServers' => [
 		'bricks-builder' => [
 			'type'    => 'http',
@@ -48,6 +61,15 @@ $cfg_vscode = json_encode( [
 			'type'    => 'http',
 			'url'     => $endpoint,
 			'headers' => [ 'Authorization' => 'Bearer ' . $api_key ],
+		],
+	],
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+
+$cfg_windsurf = json_encode( [
+	'mcpServers' => [
+		'bricks-builder' => [
+			'serverUrl' => $endpoint,
+			'headers'   => [ 'Authorization' => 'Bearer ' . $api_key ],
 		],
 	],
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
@@ -79,7 +101,8 @@ $cfg_general =
 
 "MCP Endpoint:   {$endpoint}\n" .
 "Auth Header:    Authorization: Bearer {$api_key}\n" .
-"Protocol:       MCP 2024-11-05 · JSON-RPC 2.0 · Streamable HTTP\n\n" .
+"Protocol:       MCP 2025-11-25 · JSON-RPC 2.0 · Streamable HTTP\n" .
+"Legacy SSE URL: {$sse_endpoint}\n\n" .
 
 "For Claude Code — add to ~/.claude/settings.json:\n\n" .
 "  {\n" .
@@ -388,8 +411,11 @@ $cfg_general =
 				<button class="bmcp-client-tab active" role="tab" aria-selected="true"  data-client="general"        id="client-tab-general"        aria-controls="bmcp-panel-general">General</button>
 				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="claude"         id="client-tab-claude"         aria-controls="bmcp-panel-claude">Claude Code</button>
 				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="claude-desktop" id="client-tab-claude-desktop" aria-controls="bmcp-panel-claude-desktop">Claude Desktop</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="cursor"         id="client-tab-cursor"         aria-controls="bmcp-panel-cursor">Cursor</button>
 				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="vscode"         id="client-tab-vscode"         aria-controls="bmcp-panel-vscode">VS Code</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="windsurf"       id="client-tab-windsurf"       aria-controls="bmcp-panel-windsurf">Windsurf</button>
 				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="gemini"         id="client-tab-gemini"         aria-controls="bmcp-panel-gemini">Gemini</button>
+				<button class="bmcp-client-tab"        role="tab" aria-selected="false" data-client="legacy-sse"     id="client-tab-legacy-sse"     aria-controls="bmcp-panel-legacy-sse">Legacy SSE</button>
 			</nav>
 
 			<div class="bmcp-client-panel active" id="bmcp-panel-general" role="tabpanel" aria-labelledby="client-tab-general">
@@ -410,7 +436,7 @@ $cfg_general =
 			</div>
 
 			<div class="bmcp-client-panel" id="bmcp-panel-vscode" role="tabpanel" aria-labelledby="client-tab-vscode" style="display:none">
-				<p class="bmcp-client-hint">Create <code>.vscode/mcp.json</code> in your project root. Requires GitHub Copilot (Agent mode) or the Continue extension.</p>
+				<p class="bmcp-client-hint">Create <code>.vscode/mcp.json</code> in your project root. Requires GitHub Copilot (Agent mode) or the Continue extension. Also works with <strong>Cline</strong> and <strong>RooCode</strong> — use the same <code>mcpServers</code> format with <code>"type": "http"</code>.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-vscode"><?php echo esc_html( $cfg_vscode ); ?></pre>
 					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-vscode" aria-label="Copy VS Code config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -425,12 +451,57 @@ $cfg_general =
 				</div>
 			</div>
 
+			<div class="bmcp-client-panel" id="bmcp-panel-cursor" role="tabpanel" aria-labelledby="client-tab-cursor" style="display:none">
+				<p class="bmcp-client-hint">Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (per project). Or open <strong>Cursor Settings → MCP → Add new global MCP server</strong> and paste the config.</p>
+				<div class="bmcp-config-block">
+					<pre id="bmcp-config-cursor"><?php echo esc_html( $cfg_cursor ); ?></pre>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-cursor" aria-label="Copy Cursor config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+				</div>
+			</div>
+
+			<div class="bmcp-client-panel" id="bmcp-panel-windsurf" role="tabpanel" aria-labelledby="client-tab-windsurf" style="display:none">
+				<p class="bmcp-client-hint">Add to <code>~/.codeium/windsurf/mcp_config.json</code>. Or open <strong>Windsurf Settings → Cascade → MCP Servers</strong> and add the server manually.</p>
+				<div class="bmcp-config-block">
+					<pre id="bmcp-config-windsurf"><?php echo esc_html( $cfg_windsurf ); ?></pre>
+					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-windsurf" aria-label="Copy Windsurf config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+				</div>
+			</div>
+
 			<div class="bmcp-client-panel" id="bmcp-panel-gemini" role="tabpanel" aria-labelledby="client-tab-gemini" style="display:none">
-				<p class="bmcp-client-hint">For <strong>Gemini CLI</strong>: add to <code>~/.gemini/settings.json</code>. For <strong>Gemini Code Assist</strong> (VS Code/JetBrains): use your editor's standard MCP HTTP config.</p>
+				<p class="bmcp-client-hint">For <strong>Gemini CLI</strong>: add to <code>~/.gemini/settings.json</code>. For <strong>Gemini Code Assist</strong> (VS Code/JetBrains): use your editor's standard MCP HTTP config instead.</p>
 				<div class="bmcp-config-block">
 					<pre id="bmcp-config-gemini"><?php echo esc_html( $cfg_gemini ); ?></pre>
 					<button type="button" class="button bmcp-icon-btn bmcp-copy-config" title="Copy" data-target="bmcp-config-gemini" aria-label="Copy Gemini config"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 				</div>
+			</div>
+
+			<div class="bmcp-client-panel" id="bmcp-panel-legacy-sse" role="tabpanel" aria-labelledby="client-tab-legacy-sse" style="display:none">
+				<p class="bmcp-client-hint">For older clients using the <strong>MCP 2024-11-05 HTTP+SSE transport</strong> (legacy Claude Desktop configs, older IDE extensions). The SSE endpoint sends an <code>endpoint</code> event pointing to the messages URL where the client should POST JSON-RPC requests.</p>
+				<table class="form-table" style="margin:4px 0 12px">
+					<tr>
+						<th style="width:140px;padding:6px 12px 6px 0;font-weight:600">SSE URL</th>
+						<td style="padding:6px 0">
+							<div class="bmcp-key-row">
+								<code class="bmcp-key-display" id="bmcp-sse-endpoint"><?php echo esc_html( $sse_endpoint ); ?></code>
+								<button type="button" class="button bmcp-icon-btn bmcp-copy-config" data-target="bmcp-sse-endpoint" title="Copy SSE URL" aria-label="Copy SSE URL"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th style="padding:6px 12px 6px 0;font-weight:600">Messages URL</th>
+						<td style="padding:6px 0">
+							<div class="bmcp-key-row">
+								<code class="bmcp-key-display" id="bmcp-messages-endpoint"><?php echo esc_html( $messages_endpoint ); ?></code>
+								<button type="button" class="button bmcp-icon-btn bmcp-copy-config" data-target="bmcp-messages-endpoint" title="Copy Messages URL" aria-label="Copy Messages URL"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th style="padding:6px 12px 6px 0;font-weight:600">Auth header</th>
+						<td style="padding:6px 0"><code>Authorization: Bearer <?php echo esc_html( $api_key ); ?></code></td>
+					</tr>
+				</table>
+				<p class="description">For modern clients (Claude Code, Claude Desktop, Cursor, VS Code, Windsurf, Gemini) use the <strong>primary <code>/mcp</code> endpoint</strong> via the other tabs. It supports MCP 2025-03-26+ Streamable HTTP and is the recommended transport.</p>
 			</div>
 
 		</div><!-- /AI Client Setup card -->

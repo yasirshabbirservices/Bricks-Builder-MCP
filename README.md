@@ -1,6 +1,28 @@
 # Bricks Builder MCP
 
-A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) HTTP server, letting Claude Code and any MCP-compatible AI client design and build your Bricks Builder website programmatically — no drag-and-drop required.
+A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) HTTP server, letting Claude Code, Claude Desktop, Cursor, VS Code, Gemini, and any MCP-compatible AI client design and build your Bricks Builder website programmatically — no drag-and-drop required.
+
+---
+
+## Client Compatibility
+
+| Client | Transport | Config format | Status |
+|---|---|---|---|
+| **Claude Code CLI** | Streamable HTTP | `~/.claude/settings.json` | ✅ |
+| **Claude Desktop** | Streamable HTTP | `claude_desktop_config.json` | ✅ |
+| **Claude.ai** (web) | Streamable HTTP | Settings → Integrations | ✅ |
+| **Cursor** | Streamable HTTP | `~/.cursor/mcp.json` | ✅ |
+| **VS Code Copilot** | Streamable HTTP | `.vscode/mcp.json` | ✅ |
+| **Continue** (VS Code/JetBrains) | Streamable HTTP | `.continue/config.json` | ✅ |
+| **Cline / RooCode** | Streamable HTTP | MCP settings UI | ✅ |
+| **Windsurf** | Streamable HTTP | `~/.codeium/windsurf/mcp_config.json` | ✅ |
+| **Zed** | Streamable HTTP | `~/.config/zed/settings.json` | ✅ |
+| **Gemini CLI** | Streamable HTTP | `~/.gemini/settings.json` | ✅ |
+| **Anthropic API** (remote MCP) | Streamable HTTP | API call with `url` + `headers` | ✅ |
+| **Claude Desktop** (legacy config) | HTTP+SSE | `/sse` endpoint | ✅ |
+| **Older IDE extensions** | HTTP+SSE | `/sse` endpoint | ✅ |
+
+**Protocol versions supported:** MCP 2024-11-05 · 2025-03-26 · 2025-11-25
 
 ---
 
@@ -54,13 +76,28 @@ WordPress will notify you automatically when a new version is available.
 
 ---
 
+## Endpoints
+
+After activation, three endpoints are available:
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/wp-json/bricks-mcp/v1/mcp` | `POST` | All MCP requests (Streamable HTTP, MCP 2025-03-26+) |
+| `/wp-json/bricks-mcp/v1/mcp` | `DELETE` | Session termination |
+| `/wp-json/bricks-mcp/v1/sse` | `GET` | SSE stream → sends `endpoint` event (legacy MCP 2024-11-05) |
+| `/wp-json/bricks-mcp/v1/messages` | `POST` | JSON-RPC for legacy SSE-transport clients |
+
+**Use the `/mcp` endpoint for all modern clients.** The `/sse` + `/messages` pair is for older clients that use the legacy HTTP+SSE transport.
+
+---
+
 ## Connecting an AI Client
 
-After activation, copy the endpoint URL and API key from **Settings → Bricks MCP → Connection**.
+After activation, copy the **Endpoint URL** and **API Key** from **Settings → Bricks MCP → Connection**.
 
 ### Claude Code
 
-Add to `~/.claude/settings.json`:
+Add to `~/.claude/settings.json` (global) or `.claude/settings.json` (per project):
 
 ```json
 {
@@ -73,6 +110,8 @@ Add to `~/.claude/settings.json`:
   }
 }
 ```
+
+Verify: `claude mcp list`
 
 ### Claude Desktop
 
@@ -93,9 +132,27 @@ Add to `claude_desktop_config.json` and restart Claude Desktop.
 }
 ```
 
-### VS Code (Copilot Agent / Continue)
+### Cursor
 
-Add to `.vscode/mcp.json`:
+Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per project):
+
+```json
+{
+  "mcpServers": {
+    "bricks-builder": {
+      "type": "http",
+      "url": "https://yoursite.com/wp-json/bricks-mcp/v1/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+Or: **Cursor Settings → MCP → Add new global MCP server** and paste the JSON above.
+
+### VS Code (GitHub Copilot Agent / Continue)
+
+Create or edit `.vscode/mcp.json` in your project root:
 
 ```json
 {
@@ -108,6 +165,64 @@ Add to `.vscode/mcp.json`:
   }
 }
 ```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "bricks-builder": {
+      "serverUrl": "https://yoursite.com/wp-json/bricks-mcp/v1/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+### Zed
+
+Add to `~/.config/zed/settings.json`:
+
+```json
+{
+  "context_servers": {
+    "bricks-builder": {
+      "transport": "http",
+      "url": "https://yoursite.com/wp-json/bricks-mcp/v1/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+### Continue (VS Code / JetBrains)
+
+Add to `.continue/config.json`:
+
+```json
+{
+  "mcpServers": [
+    {
+      "name": "bricks-builder",
+      "transport": {
+        "type": "http",
+        "url": "https://yoursite.com/wp-json/bricks-mcp/v1/mcp",
+        "requestOptions": {
+          "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+        }
+      }
+    }
+  ]
+}
+```
+
+### Cline / RooCode
+
+Open the MCP settings panel → **Add Server** → choose **HTTP** transport → enter:
+- **URL:** `https://yoursite.com/wp-json/bricks-mcp/v1/mcp`
+- **Headers:** `Authorization: Bearer YOUR_API_KEY`
 
 ### Gemini CLI
 
@@ -125,6 +240,36 @@ Add to `~/.gemini/settings.json`:
   }
 }
 ```
+
+### Anthropic API (remote MCP connector)
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+response = client.beta.messages.create(
+    model="claude-opus-4-5",
+    max_tokens=4096,
+    mcp_servers=[
+        {
+            "type": "url",
+            "url": "https://yoursite.com/wp-json/bricks-mcp/v1/mcp",
+            "name": "bricks-builder",
+            "authorization_token": "YOUR_API_KEY",
+        }
+    ],
+    messages=[{"role": "user", "content": "List all pages on the site"}],
+    betas=["mcp-client-2025-04-04"],
+)
+```
+
+### Legacy SSE transport (older clients)
+
+If your client uses the older MCP 2024-11-05 HTTP+SSE transport, configure it with:
+
+- **SSE URL:** `https://yoursite.com/wp-json/bricks-mcp/v1/sse`
+- **Messages URL:** `https://yoursite.com/wp-json/bricks-mcp/v1/messages`
+- **Auth header:** `Authorization: Bearer YOUR_API_KEY`
 
 The **General** tab in the Connection panel also provides a universal plain-text block you can paste into any AI chat to get started.
 
@@ -157,7 +302,7 @@ bricks_validate_payload  (pass your elements array)
 
 | Tab | Description |
 |---|---|
-| **Connection** | API key, endpoint URL, per-client config snippets |
+| **Connection** | API key, endpoint URLs, per-client config snippets |
 | **Instructions** | Site-specific rules appended to the AI's system prompt |
 | **Business Profile** | Brand identity, brand colors (with color pickers), typography, design style, contact, social media links, assets, and services — all returned to the AI in every session |
 | **Capabilities** | Per-tool enable/disable toggles (granular control over all tools) |
@@ -237,6 +382,29 @@ Skills are markdown files in `assets/skills/` — add your own and they appear a
 Drop Bricks Builder template JSON exports into `assets/templates/{category}/` and they become instantly searchable by the AI via `bricks_search_templates` and retrievable via `bricks_get_template_library`. Categories are discovered automatically from folder names — no code changes needed.
 
 **Format:** standard Bricks Builder export (`{"content": [...], "globalClasses": [...]}`) — export directly from Bricks and save as `template-name.json` in the matching folder.
+
+---
+
+## Changelog
+
+### v1.9.0 — MCP spec compliance for all major clients
+- `GET /mcp` now returns **405** per MCP 2025-11-25 spec (was incorrectly returning 200 JSON)
+- Added **`GET /sse`** endpoint — legacy HTTP+SSE transport (MCP 2024-11-05) for older Claude Desktop configs and IDE extensions
+- Added **`POST /messages`** endpoint — JSON-RPC receiver for legacy SSE-transport clients
+- **Protocol version negotiation** — server now echoes back the client's requested version if supported; supports 2024-11-05, 2025-03-26, 2025-11-25
+- Fixed `MCP-Session-Id` header casing (spec-correct uppercase)
+- Validates `MCP-Protocol-Version` request header; returns 400 for unsupported versions
+- `tools/list` cursor validation — returns -32602 for any invalid cursor
+- `MCP-Session-Id` and `MCP-Protocol-Version` added to CORS allowed headers
+
+### v1.8.0 — Append elements + Claude.ai fix
+- `notifications/initialized` now correctly returns HTTP 202 (was 204) — fixes tools not loading in Claude.ai
+- Added `DELETE /mcp` support for session termination
+- `append` + `insert_after` parameters on `bricks_update_page`, `bricks_update_template`, `bricks_update_post`
+- `append_elements` method in Bricks_Data with collision-safe ID regeneration
+
+### v1.7.1 — Memory system improvements
+- Stronger AI save instructions, session bootstrap improvements
 
 ---
 
