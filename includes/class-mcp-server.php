@@ -8,10 +8,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MCP_Server {
 
 	private Tools_Registry $registry;
+	private array $supported_versions;
 
-	public function __construct() {
-		$this->registry = new Tools_Registry();
+	/**
+	 * @param string[] $supported_versions Ordered newest-first list of MCP protocol
+	 *                                     versions this server supports.
+	 */
+	public function __construct( array $supported_versions = [ '2025-11-25', '2025-03-26', '2024-11-05' ] ) {
+		$this->registry          = new Tools_Registry();
 		$this->registry->load_all();
+		$this->supported_versions = $supported_versions;
 	}
 
 	public function dispatch( \WP_REST_Request $request ): \WP_REST_Response {
@@ -42,19 +48,22 @@ class MCP_Server {
 			case 'initialize':
 				$result   = $this->handle_initialize( $params );
 				$response = $this->json_response( $id, $result );
-				// MCP 2024-11-05: servers SHOULD include Mcp-Session-Id so clients can
-				// associate follow-up requests with this session.  The plugin is stateless
-				// (no in-memory session map) so any non-empty value satisfies the spec.
-				$response->header( 'Mcp-Session-Id', bin2hex( random_bytes( 16 ) ) );
+				// MCP 2025-03-26+: servers SHOULD include MCP-Session-Id so clients
+				// can associate follow-up requests with this session.  The plugin is
+				// stateless (no in-memory session map) so any non-empty token is fine.
+				$response->header( 'MCP-Session-Id', bin2hex( random_bytes( 16 ) ) );
 				return $response;
 
 			case 'notifications/initialized':
-				// MCP 2024-11-05 §6.1 — notifications MUST receive HTTP 202, not 204.
-				// Claude.ai (and other strict clients) check for 202 before calling tools/list.
+				// MCP spec §6.1: notification responses MUST be HTTP 202, not 204.
 				return new \WP_REST_Response( null, 202 );
 
 			case 'tools/list':
 				$result = $this->handle_tools_list( $params );
+				// Cursor errors use -32602 (Invalid params), not -32603.
+				if ( is_wp_error( $result ) ) {
+					return $this->error_response( $id, -32602, $result->get_error_message() );
+				}
 				break;
 
 			case 'tools/call':
@@ -83,7 +92,7 @@ class MCP_Server {
 				break;
 
 			default:
-				// Unknown notifications (no id) should be silently ignored per spec
+				// Unknown notifications (no id) must be silently ignored per spec
 				if ( $id === null ) {
 					return new \WP_REST_Response( null, 202 );
 				}
@@ -102,8 +111,18 @@ class MCP_Server {
 	// -------------------------------------------------------------------------
 
 	private function handle_initialize( array $params ): array {
+		// Protocol version negotiation per MCP spec:
+		// • If the client requests a version we support → echo it back.
+		// • Otherwise → respond with our latest supported version.
+		$client_version = $params['protocolVersion'] ?? null;
+		$negotiated     = $this->supported_versions[0]; // default: newest
+
+		if ( is_string( $client_version ) && in_array( $client_version, $this->supported_versions, true ) ) {
+			$negotiated = $client_version;
+		}
+
 		return [
-			'protocolVersion' => '2024-11-05',
+			'protocolVersion' => $negotiated,
 			'capabilities'    => [
 				'tools'     => [ 'listChanged' => false ],
 				'prompts'   => [ 'listChanged' => false ],
@@ -117,9 +136,21 @@ class MCP_Server {
 		];
 	}
 
-	private function handle_tools_list( array $params ): array {
+	private function handle_tools_list( array $params ): array|\WP_Error {
+		// This server returns all tools in a single page (no server-side pagination).
+		// Per MCP spec: an unrecognised cursor MUST return -32602 Invalid params.
+		// A null/absent cursor requests the first (and only) page → return everything.
+		$cursor = $params['cursor'] ?? null;
+		if ( $cursor !== null ) {
+			return new \WP_Error(
+				'bmcp_invalid_cursor',
+				'Invalid cursor. This server returns all tools in a single page; do not supply a cursor.'
+			);
+		}
+
 		return [
 			'tools' => $this->registry->get_all_definitions(),
+			// Omitting nextCursor signals that this is the complete list.
 		];
 	}
 
@@ -135,8 +166,8 @@ class MCP_Server {
 
 		if ( is_wp_error( $raw ) ) {
 			return [
-				'content'  => [ [ 'type' => 'text', 'text' => $raw->get_error_message() ] ],
-				'isError'  => true,
+				'content' => [ [ 'type' => 'text', 'text' => $raw->get_error_message() ] ],
+				'isError' => true,
 			];
 		}
 
@@ -245,7 +276,7 @@ class MCP_Server {
 	// Response Helpers
 	// -------------------------------------------------------------------------
 
-	private function json_response( $id, array $result ): \WP_REST_Response {
+	private function json_response( $id, array|object $result ): \WP_REST_Response {
 		return new \WP_REST_Response( [
 			'jsonrpc' => '2.0',
 			'id'      => $id,
@@ -261,7 +292,7 @@ class MCP_Server {
 				'code'    => $code,
 				'message' => $message,
 			],
-		], 200 ); // MCP spec: errors still return HTTP 200 with JSON-RPC error object
+		], 200 ); // MCP spec: JSON-RPC errors still return HTTP 200
 	}
 
 	private function get_brief_instructions(): string {
