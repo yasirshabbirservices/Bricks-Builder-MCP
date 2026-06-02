@@ -552,11 +552,16 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
 	color: var(--text);
-	font-size: 0.875rem;
-	padding: 8px 12px;
+	font-size: 0.845rem;
+	padding: 6px 10px;
+	line-height: 1.5;
 	transition: border-color 0.15s ease;
 	box-sizing: border-box;
 	font-family: inherit;
+	/* Override WP admin's aggressive select sizing */
+	height: auto !important;
+	min-height: unset !important;
+	max-height: none !important;
 }
 .bmcp-snip-input:focus,
 .bmcp-snip-select:focus,
@@ -564,32 +569,34 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 	border-color: var(--brand);
 	outline: none;
 	background: var(--surface-2);
+	box-shadow: none !important;
 }
 .bmcp-snip-input::placeholder,
 .bmcp-snip-textarea::placeholder { color: var(--text-dim); }
-.bmcp-snip-input--sm { width: 100px; }
+.bmcp-snip-input--sm { width: 80px; }
 
 .bmcp-snip-select {
-	appearance: none;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2385b8a2' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-	background-repeat: no-repeat;
-	background-position: right 10px center;
-	padding-right: 32px;
+	appearance: none !important;
+	-webkit-appearance: none !important;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2385b8a2' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+	background-repeat: no-repeat !important;
+	background-position: right 9px center !important;
+	padding-right: 28px !important;
 	cursor: pointer;
 }
 .bmcp-snip-select option { background: #0f1812; color: var(--text); }
-.bmcp-snip-textarea { resize: vertical; min-height: 64px; }
+.bmcp-snip-textarea { resize: vertical; min-height: 60px !important; }
 
 .bmcp-snip-label {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 0.76rem;
+	font-size: 0.72rem;
 	font-weight: 600;
 	color: var(--text-muted);
-	letter-spacing: 0.05em;
+	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	margin: 14px 0 5px 0;
+	margin: 12px 0 4px 0;
 }
 .bmcp-snip-label:first-child { margin-top: 0; }
 .bmcp-snip-label-hint {
@@ -814,43 +821,44 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 	flex-shrink: 0;
 }
 .bmcp-toggle input[type="checkbox"] {
-	/* Visually hidden but accessible */
-	clip: rect(0,0,0,0);
-	clip-path: inset(50%);
-	height: 1px;
-	overflow: hidden;
 	position: absolute;
-	white-space: nowrap;
-	width: 1px;
+	opacity: 0;
+	pointer-events: none;
+	width: 0;
+	height: 0;
+	margin: 0;
 }
 .bmcp-toggle-slider {
 	display: block;
-	width: 42px;
+	width: 44px;
 	height: 24px;
-	background: var(--surface-2);
-	border: 1px solid var(--border-2);
+	/* Visible track: solid border + distinct background */
+	background: #1c2e26;
+	border: 1.5px solid #2d4a3a;
 	border-radius: 12px;
 	position: relative;
 	transition: background 0.2s ease, border-color 0.2s ease;
 	flex-shrink: 0;
+	overflow: hidden;
 }
 .bmcp-toggle-slider::after {
 	content: '';
 	position: absolute;
-	top: 4px;
+	top: 50%;
 	left: 4px;
+	transform: translateY(-50%);
 	width: 14px;
 	height: 14px;
-	background: var(--text-dim);
+	background: #557a6a;
 	border-radius: 50%;
-	transition: transform 0.2s ease, background 0.2s ease;
+	transition: left 0.2s ease, background 0.2s ease;
 }
 .bmcp-toggle input:checked + .bmcp-toggle-slider {
-	background: rgba(0,214,143,.2);
-	border-color: rgba(0, 214, 143, .6);
+	background: rgba(0, 214, 143, 0.22);
+	border-color: rgba(0, 214, 143, 0.55);
 }
 .bmcp-toggle input:checked + .bmcp-toggle-slider::after {
-	transform: translateX(18px);
+	left: 22px;
 	background: var(--brand);
 }
 .bmcp-toggle input:focus-visible + .bmcp-toggle-slider {
@@ -889,8 +897,11 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 	color: var(--text);
 	font-size: 0.8rem;
 	padding: 5px 8px;
+	line-height: 1.4;
 	font-family: inherit;
 	transition: border-color 0.15s;
+	height: auto !important;
+	min-height: unset !important;
 }
 .bmcp-condition-row select:focus,
 .bmcp-condition-row input[type="text"]:focus { border-color: var(--brand); outline: none; }

@@ -224,6 +224,25 @@ class History_Manager {
 			case 'components':
 				$key = defined( 'BRICKS_DB_COMPONENTS' ) ? BRICKS_DB_COMPONENTS : 'bricks_components';
 				return get_option( $key, [] );
+			case 'snippet':
+				// Capture full snippet state so it can be fully restored
+				$post = get_post( $post_id );
+				if ( ! $post || $post->post_type !== Snippets_Manager::CPT ) return null;
+				return [
+					'title'       => $post->post_title,
+					'code'        => $post->post_content,
+					'post_status' => $post->post_status,
+					'type'        => get_post_meta( $post_id, '_bmcp_snip_type',       true ),
+					'location'    => get_post_meta( $post_id, '_bmcp_snip_location',   true ),
+					'hook'        => get_post_meta( $post_id, '_bmcp_snip_hook',        true ),
+					'priority'    => (int) get_post_meta( $post_id, '_bmcp_snip_priority', true ),
+					'description' => get_post_meta( $post_id, '_bmcp_snip_desc',       true ),
+					'tags'        => get_post_meta( $post_id, '_bmcp_snip_tags',        true ),
+					'url'         => get_post_meta( $post_id, '_bmcp_snip_url',         true ),
+					'shortcode'   => get_post_meta( $post_id, '_bmcp_snip_shortcode',   true ),
+					'conditions'  => json_decode( get_post_meta( $post_id, '_bmcp_snip_conditions', true ) ?: '[]', true ),
+					'signature'   => get_post_meta( $post_id, '_bmcp_snip_signature',   true ),
+				];
 			default:
 				return Bricks_Data::get_elements( $post_id, $area );
 		}
@@ -246,6 +265,14 @@ class History_Manager {
 			case 'components':
 				$key = defined( 'BRICKS_DB_COMPONENTS' ) ? BRICKS_DB_COMPONENTS : 'bricks_components';
 				update_option( $key, $data );
+				break;
+			case 'snippet':
+				// Restore full snippet state from snapshot
+				if ( ! is_array( $data ) || empty( $data['title'] ) ) break;
+				$restore_args = array_merge( $data, [
+					'status' => ( $data['post_status'] ?? 'draft' ) === 'publish' ? 'active' : 'inactive',
+				] );
+				Snippets_Manager::save_snippet( $restore_args, $post_id );
 				break;
 			default:
 				// Elements: write post meta + trigger Bricks CSS regeneration

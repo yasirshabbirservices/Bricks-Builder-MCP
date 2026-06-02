@@ -37,6 +37,9 @@
 		}
 	}
 
+	/* ── Default starter code ────────────────────────────────────────── */
+	const defaultCode = cfg.defaultCode || {};
+
 	/* ── CodeMirror ───────────────────────────────────────────────────── */
 	let editor = null;
 
@@ -84,11 +87,22 @@
 				.forEach( t => t.classList.remove( 'active' ) );
 			this.classList.add( 'active' );
 
-			currentType = this.dataset.type;
-			const mode  = this.dataset.mode || 'text/plain';
+			const prevType  = currentType;  // must capture BEFORE reassigning
+			currentType     = this.dataset.type;
+			const mode      = this.dataset.mode || 'text/plain';
 
 			// switch CodeMirror mode
-			if ( editor ) editor.setOption( 'mode', mode );
+			if ( editor ) {
+				editor.setOption( 'mode', mode );
+				// For new snippets, swap in the default starter code for the new type
+				if ( cfg.isNew ) {
+					const cur     = editor.getValue();
+					const prevDef = defaultCode[ prevType ] || '';
+					if ( cur === '' || cur === prevDef ) {
+						editor.setValue( defaultCode[ currentType ] || '' );
+					}
+				}
+			}
 
 			// show/hide URL field
 			const urlRow  = document.getElementById( 'bmcp-url-row' );
@@ -342,6 +356,12 @@
 				value : input ? input.value.trim() : '',
 			};
 		} );
+	}
+
+	// For new snippets, populate editor with starter code for the initial type
+	if ( cfg.isNew && editor ) {
+		const starter = defaultCode[ cfg.currentType || 'php' ] || '';
+		if ( starter ) editor.setValue( starter );
 	}
 
 	// seed existing conditions

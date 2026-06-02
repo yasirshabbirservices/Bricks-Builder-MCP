@@ -50,6 +50,16 @@ $initial_cm_mode = $cm_modes[ $s['type'] ] ?? 'text/plain';
 
 // Whether hook row should be hidden on load (JS/CSS types don't use hooks)
 $hook_hidden = in_array( $s['type'], [ 'javascript', 'javascript_url', 'css', 'css_url' ], true );
+
+// Default starter code shown to the user when creating a new snippet
+$default_code = [
+	'php' => "// Write your PHP code below — no opening <?php tag needed.\n// This snippet runs on the hook you set in the Execution panel.\n\nadd_action( 'wp_footer', function () {\n\t// Example: echo a hidden comment\n\t// echo '<!-- snippet active -->';\n} );\n",
+	'javascript' => "( function () {\n\t'use strict';\n\n\t// Your JavaScript runs in wp_footer on every page.\n\tdocument.addEventListener( 'DOMContentLoaded', function () {\n\t\t// DOM is ready — write your code here.\n\t\tconsole.log( 'Snippet loaded.' );\n\t} );\n\n} )();\n",
+	'javascript_url' => '',
+	'css' => "/* Add your custom styles below.\n   These are injected into <head> on every page. */\n\n.my-element {\n\t/* color: #333; */\n\t/* font-size: 1rem; */\n}\n",
+	'css_url' => '',
+	'html' => "<!-- Your HTML is output at the configured hook.\n     Use the Shortcode option to embed it in specific pages. -->\n\n<div class=\"my-custom-block\">\n\t<p>Hello from a snippet!</p>\n</div>\n",
+];
 ?>
 <div id="bmcp-wrap" class="wrap bmcp-snippets-wrap">
 
@@ -248,11 +258,13 @@ $hook_hidden = in_array( $s['type'], [ 'javascript', 'javascript_url', 'css', 'c
 <!-- Hidden data for JS -->
 <script id="bmcp-snip-edit-data" type="application/json"><?php
 	echo wp_json_encode( [
-		'snippetId'  => $s['id'],
-		'isNew'      => $is_new,
-		'listUrl'    => $list_url,
-		'cmMode'     => $initial_cm_mode,
-		'conditions' => $s['conditions'] ?: [],
-		'cmModes'    => $cm_modes,
+		'snippetId'    => $s['id'],
+		'isNew'        => $is_new,
+		'listUrl'      => $list_url,
+		'cmMode'       => $initial_cm_mode,
+		'conditions'   => $s['conditions'] ?: [],
+		'cmModes'      => $cm_modes,
+		'defaultCode'  => $default_code,
+		'currentType'  => $s['type'],
 	] );
 ?></script>
