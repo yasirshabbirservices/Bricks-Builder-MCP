@@ -33,6 +33,78 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 .bmcp-snippets-wrap a:focus { box-shadow: none !important; }
 
 /* ══════════════════════════════════════════════════════════════
+   BUTTONS  (bmcp-btn system — not in admin.css)
+   ══════════════════════════════════════════════════════════════ */
+.bmcp-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 8px 18px;
+	border-radius: var(--radius-sm);
+	font-size: 0.845rem;
+	font-weight: 500;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	text-decoration: none !important;
+	border: 1px solid var(--border-2);
+	background: var(--surface-2);
+	color: var(--text-muted);
+	line-height: 1.4;
+	white-space: nowrap;
+	vertical-align: middle;
+}
+.bmcp-btn:hover {
+	color: var(--text) !important;
+	background: rgba(30, 48, 40, 0.9);
+	text-decoration: none !important;
+}
+.bmcp-btn svg { flex-shrink: 0; }
+
+/* Primary — green fill */
+.bmcp-btn--primary {
+	background: var(--brand);
+	border-color: var(--brand);
+	color: #001a0d !important;
+	font-weight: 600;
+}
+.bmcp-btn--primary:hover {
+	background: var(--brand-hover) !important;
+	border-color: var(--brand-hover) !important;
+	color: #001a0d !important;
+	box-shadow: 0 0 22px rgba(0, 214, 143, 0.30);
+}
+
+/* Small */
+.bmcp-btn--sm {
+	padding: 5px 12px;
+	font-size: 0.78rem;
+}
+
+/* Ghost */
+.bmcp-btn--ghost {
+	background: transparent;
+	border-color: var(--border);
+	color: var(--text-muted);
+}
+.bmcp-btn--ghost:hover { background: var(--surface-2); color: var(--text) !important; }
+
+/* Full width */
+.bmcp-btn--full { width: 100%; justify-content: center; }
+
+/* Danger ghost */
+.bmcp-btn--danger-ghost {
+	background: transparent;
+	border: 1px solid rgba(249, 95, 114, .3);
+	color: var(--danger);
+}
+.bmcp-btn--danger-ghost:hover {
+	background: var(--danger-dim);
+	border-color: var(--danger);
+	color: var(--danger) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
    SAFE MODE BANNER
    ══════════════════════════════════════════════════════════════ */
 .bmcp-safe-mode-banner {
@@ -676,6 +748,25 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 .bmcp-snip-settings-col .bmcp-card        { padding: 18px 20px; }
 .bmcp-snip-settings-col .bmcp-snip-label:first-child { margin-top: 0; }
 
+/* Identity card — name + status combined */
+.bmcp-snip-identity-card .bmcp-snip-title-input {
+	font-size: 0.95rem;
+	font-weight: 500;
+	margin-bottom: 4px;
+}
+.bmcp-snip-status-info {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.bmcp-snip-priority-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 14px;
+}
+.bmcp-snip-priority-row .bmcp-snip-label { margin: 0; }
+
 .bmcp-snip-hook-custom { margin-top: 6px; }
 .bmcp-snip-hook-label  { margin-top: 14px; }
 
@@ -700,58 +791,72 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 	text-overflow: ellipsis;
 }
 
-.bmcp-snip-status-card { padding: 14px 20px !important; }
 .bmcp-snip-status-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid var(--border);
 }
-.bmcp-snip-status-text { font-size: 0.82rem; margin-left: 6px; font-weight: 500; }
-.bmcp-snip-status-on   { color: var(--brand); }
-.bmcp-snip-status-off  { color: var(--text-dim); }
+.bmcp-snip-status-text { font-size: 0.84rem; font-weight: 500; }
+.bmcp-snip-status-on  { color: var(--brand); }
+.bmcp-snip-status-off { color: var(--text-dim); }
 
-/* Toggle (checkbox pattern — edit page) */
+/* Toggle (checkbox pattern — edit page status) */
 .bmcp-toggle {
 	display: inline-flex;
 	align-items: center;
 	cursor: pointer;
-	position: relative;
 	-webkit-user-select: none;
 	user-select: none;
+	flex-shrink: 0;
 }
 .bmcp-toggle input[type="checkbox"] {
+	/* Visually hidden but accessible */
+	clip: rect(0,0,0,0);
+	clip-path: inset(50%);
+	height: 1px;
+	overflow: hidden;
 	position: absolute;
-	opacity: 0;
-	width: 0;
-	height: 0;
+	white-space: nowrap;
+	width: 1px;
 }
 .bmcp-toggle-slider {
-	width: 36px;
-	height: 20px;
+	display: block;
+	width: 42px;
+	height: 24px;
 	background: var(--surface-2);
 	border: 1px solid var(--border-2);
-	border-radius: 10px;
+	border-radius: 12px;
 	position: relative;
-	transition: background 0.2s, border-color 0.2s;
+	transition: background 0.2s ease, border-color 0.2s ease;
+	flex-shrink: 0;
 }
 .bmcp-toggle-slider::after {
 	content: '';
 	position: absolute;
-	top: 3px;
-	left: 3px;
-	width: 12px;
-	height: 12px;
+	top: 4px;
+	left: 4px;
+	width: 14px;
+	height: 14px;
 	background: var(--text-dim);
 	border-radius: 50%;
-	transition: transform 0.2s, background 0.2s;
+	transition: transform 0.2s ease, background 0.2s ease;
 }
-.bmcp-toggle input:checked + .bmcp-toggle-slider { background: var(--brand-dim); border-color: rgba(0,214,143,.5); }
-.bmcp-toggle input:checked + .bmcp-toggle-slider::after { transform: translateX(16px); background: var(--brand); }
+.bmcp-toggle input:checked + .bmcp-toggle-slider {
+	background: rgba(0,214,143,.2);
+	border-color: rgba(0, 214, 143, .6);
+}
+.bmcp-toggle input:checked + .bmcp-toggle-slider::after {
+	transform: translateX(18px);
+	background: var(--brand);
+}
 .bmcp-toggle input:focus-visible + .bmcp-toggle-slider {
 	outline: 2px solid var(--brand);
 	outline-offset: 3px;
-	box-shadow: 0 0 0 4px rgba(0,214,143,.18);
+	box-shadow: 0 0 0 4px rgba(0, 214, 143, .18);
 }
 
 .bmcp-snip-danger-zone { margin-top: 4px; }
