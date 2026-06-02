@@ -576,19 +576,22 @@ Pill/round: `"top": "50vh"` on all radius sides. CSS variable: `"top": "var(--ra
 
 Any settings key can have a breakpoint-specific override using the suffix `:breakpoint`:
 
-| Suffix | Screen |
-|--------|--------|
-| *(none)* | Desktop (base — all sizes) |
-| `:tablet` | ≤ 1024px |
-| `:tablet_portrait` | ≤ 768px |
-| `:mobile_landscape` | ≤ 480px |
-| `:mobile_portrait` | ≤ 375px (note: guide also calls this `:mobile`) |
+> Source: `Bricks::Breakpoints::get_default_breakpoints()` (Bricks 2.3.6). Widths are configurable in Bricks → Settings → Builder → Breakpoints.
+
+| Suffix | Media query | Default width |
+|--------|-------------|---------------|
+| *(none)* | No query — applies to ALL screens (desktop base) | — |
+| `:tablet_portrait` | `max-width: 991px` | 991px |
+| `:mobile_landscape` | `max-width: 767px` | 767px |
+| `:mobile_portrait` | `max-width: 478px` | 478px |
+
+> **There is no `:tablet` or `:tablet_landscape` breakpoint in default Bricks.** Do not use them.
 
 ```json
 {
-  "_padding": {"top": "8rem", "bottom": "8rem", "left": "2rem", "right": "2rem"},
-  "_padding:tablet_portrait": {"top": "4rem", "bottom": "4rem"},
-  "_padding:mobile_landscape": {"top": "2rem", "bottom": "2rem"},
+  "_padding": "8rem 2rem",
+  "_padding:tablet_portrait": "4rem 1.5rem",
+  "_padding:mobile_portrait": "2rem 1rem",
   "_direction": "row",
   "_direction:tablet_portrait": "column",
   "_width": "50%",
