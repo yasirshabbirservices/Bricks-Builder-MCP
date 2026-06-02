@@ -21,7 +21,7 @@
 	function showNotice( msg, type ) {
 		const el = document.createElement( 'div' );
 		el.className = 'notice notice-' + type + ' is-dismissible';
-		el.style.cssText = 'margin:8px 0;font-size:.875rem;';
+		el.style.cssText = 'margin:8px 0 0;font-size:.875rem;';
 		const p = document.createElement( 'p' );
 		p.textContent = msg;
 		el.appendChild( p );
@@ -31,26 +31,21 @@
 	}
 
 	/* ── select-all ───────────────────────────────────────────────────── */
-	const selectAll  = document.getElementById( 'bmcp-snip-select-all' );
-	const bulkBar    = document.getElementById( 'bmcp-snip-bulk-bar' );
-	const bulkCount  = document.getElementById( 'bmcp-snip-bulk-count' );
-	const bulkDelete = document.getElementById( 'bmcp-snip-bulk-delete' );
+	// HTML uses #bmcp-select-all and .bmcp-snip-check
+	const selectAll = document.getElementById( 'bmcp-select-all' );
+	const bulkBar   = document.getElementById( 'bmcp-bulk-bar' );
+	const bulkCount = document.getElementById( 'bmcp-bulk-count' );
 
 	function getChecked() {
-		return Array.from( document.querySelectorAll( '.bmcp-snip-cb:checked' ) );
+		return Array.from( document.querySelectorAll( '.bmcp-snip-check:checked' ) );
 	}
 
 	function updateBulkBar() {
 		const checked = getChecked();
-		if ( ! bulkBar ) return;
-		if ( checked.length ) {
-			bulkBar.style.display = 'flex';
-			if ( bulkCount ) bulkCount.textContent = checked.length + ' selected';
-		} else {
-			bulkBar.style.display = 'none';
-		}
-		// row highlight
-		document.querySelectorAll( '.bmcp-snip-cb' ).forEach( cb => {
+		if ( bulkBar ) bulkBar.style.display = checked.length ? 'flex' : 'none';
+		if ( bulkCount ) bulkCount.textContent = checked.length;
+		// highlight selected rows
+		document.querySelectorAll( '.bmcp-snip-check' ).forEach( cb => {
 			const row = cb.closest( 'tr' );
 			if ( row ) row.classList.toggle( 'selected', cb.checked );
 		} );
@@ -58,56 +53,76 @@
 
 	if ( selectAll ) {
 		selectAll.addEventListener( 'change', () => {
-			document.querySelectorAll( '.bmcp-snip-cb' )
+			document.querySelectorAll( '.bmcp-snip-check' )
 				.forEach( cb => { cb.checked = selectAll.checked; } );
 			updateBulkBar();
 		} );
 	}
 
-	document.querySelectorAll( '.bmcp-snip-cb' ).forEach( cb => {
-		cb.addEventListener( 'change', updateBulkBar );
+	document.querySelectorAll( '.bmcp-snip-check' ).forEach( cb => {
+		cb.addEventListener( 'change', () => {
+			if ( selectAll ) {
+				const all   = document.querySelectorAll( '.bmcp-snip-check' ).length;
+				const chkd  = document.querySelectorAll( '.bmcp-snip-check:checked' ).length;
+				selectAll.indeterminate = chkd > 0 && chkd < all;
+				selectAll.checked       = chkd === all;
+			}
+			updateBulkBar();
+		} );
 	} );
 
-	/* ── status toggle ────────────────────────────────────────────────── */
-	document.querySelectorAll( '.bmcp-snip-status-toggle' ).forEach( toggle => {
-		toggle.addEventListener( 'change', function () {
-			const id     = this.dataset.id;
-			const status = this.checked ? 'active' : 'inactive';
-			const pill   = this.closest( 'td' ).querySelector( '.bmcp-snip-status-label' );
+	/* ── status toggle (button.bmcp-snip-toggle) ──────────────────────── */
+	document.querySelectorAll( '.bmcp-snip-toggle' ).forEach( btn => {
+		btn.addEventListener( 'click', function () {
+			const id        = this.dataset.id;
+			const isOn      = this.classList.contains( 'is-on' );
+			const newStatus = isOn ? 'inactive' : 'active';
 
-			ajax( 'bmcp_snip_toggle', { id, status } ).then( res => {
-				if ( res.success ) {
-					if ( pill ) {
-						pill.textContent = status === 'active' ? 'Active' : 'Inactive';
-						pill.className   = 'bmcp-snip-status-label ' +
-							( status === 'active' ? 'bmcp-snip-status-on' : 'bmcp-snip-status-off' );
+			// optimistic UI update
+			this.classList.toggle( 'is-on', ! isOn );
+			this.classList.toggle( 'is-off', isOn );
+			const row = this.closest( 'tr' );
+			if ( row ) {
+				row.classList.toggle( 'is-active',   ! isOn );
+				row.classList.toggle( 'is-inactive',  isOn );
+			}
+
+			ajax( 'bmcp_snip_toggle', { id, status: newStatus } ).then( res => {
+				if ( ! res.success ) {
+					// revert on failure
+					this.classList.toggle( 'is-on',  isOn );
+					this.classList.toggle( 'is-off', ! isOn );
+					if ( row ) {
+						row.classList.toggle( 'is-active',  isOn );
+						row.classList.toggle( 'is-inactive', ! isOn );
 					}
-				} else {
-					// revert
-					this.checked = ! this.checked;
 					showNotice( ( res.data && res.data.message ) || 'Could not update status.', 'error' );
 				}
 			} ).catch( () => {
-				this.checked = ! this.checked;
+				this.classList.toggle( 'is-on',  isOn );
+				this.classList.toggle( 'is-off', ! isOn );
 				showNotice( 'Request failed.', 'error' );
 			} );
 		} );
 	} );
 
-	/* ── row delete ───────────────────────────────────────────────────── */
-	document.querySelectorAll( '.bmcp-snip-row-delete' ).forEach( btn => {
+	/* ── row delete (button[data-delete]) ─────────────────────────────── */
+	document.querySelectorAll( '[data-delete]' ).forEach( btn => {
 		btn.addEventListener( 'click', function () {
-			const id    = this.dataset.id;
-			const title = this.dataset.title || 'this snippet';
+			const id  = this.dataset.delete;
+			const row = this.closest( 'tr' );
+			const title = ( row && row.querySelector( '.bmcp-snip-title' ) )
+				? row.querySelector( '.bmcp-snip-title' ).textContent.trim()
+				: 'this snippet';
+
 			if ( ! confirm( 'Delete "' + title + '"? This cannot be undone.' ) ) return;
 
 			ajax( 'bmcp_snip_delete', { id } ).then( res => {
 				if ( res.success ) {
-					const row = this.closest( 'tr' );
 					if ( row ) {
 						row.style.transition = 'opacity 0.25s';
 						row.style.opacity = '0';
-						setTimeout( () => row.remove(), 260 );
+						setTimeout( () => { row.remove(); updateBulkBar(); }, 260 );
 					}
 					showNotice( 'Snippet deleted.', 'success' );
 				} else {
@@ -117,43 +132,42 @@
 		} );
 	} );
 
-	/* ── bulk delete ──────────────────────────────────────────────────── */
-	if ( bulkDelete ) {
-		bulkDelete.addEventListener( 'click', () => {
-			const ids = getChecked().map( cb => cb.value );
+	/* ── bulk actions (data-bulk buttons) ─────────────────────────────── */
+	document.querySelectorAll( '[data-bulk]' ).forEach( btn => {
+		btn.addEventListener( 'click', function () {
+			const action = this.dataset.bulk;
+			const ids    = getChecked().map( cb => cb.value );
 			if ( ! ids.length ) return;
-			if ( ! confirm( 'Delete ' + ids.length + ' snippet(s)? This cannot be undone.' ) ) return;
 
-			Promise.all( ids.map( id => ajax( 'bmcp_snip_delete', { id } ) ) ).then( results => {
-				const ok  = results.filter( r => r.success ).length;
-				const fail = results.length - ok;
-				if ( ok ) {
-					getChecked().forEach( cb => {
-						const row = cb.closest( 'tr' );
-						if ( row ) row.remove();
-					} );
-					updateBulkBar();
-					if ( selectAll ) selectAll.checked = false;
-					showNotice( ok + ' snippet(s) deleted.', 'success' );
-				}
-				if ( fail ) showNotice( fail + ' deletion(s) failed.', 'error' );
-			} );
-		} );
-	}
+			if ( action === 'delete' ) {
+				if ( ! confirm( 'Delete ' + ids.length + ' snippet(s)? This cannot be undone.' ) ) return;
+				Promise.all( ids.map( id => ajax( 'bmcp_snip_delete', { id } ) ) ).then( results => {
+					const ok   = results.filter( r => r.success ).length;
+					const fail = results.length - ok;
+					if ( ok ) {
+						getChecked().forEach( cb => {
+							const row = cb.closest( 'tr' );
+							if ( row ) row.remove();
+						} );
+						updateBulkBar();
+						if ( selectAll ) { selectAll.checked = false; selectAll.indeterminate = false; }
+						showNotice( ok + ' snippet(s) deleted.', 'success' );
+					}
+					if ( fail ) showNotice( fail + ' deletion(s) failed.', 'error' );
+				} );
+			}
 
-	/* ── safe mode toggle ─────────────────────────────────────────────── */
-	const safeModeToggle = document.getElementById( 'bmcp-safe-mode-toggle' );
-	if ( safeModeToggle ) {
-		safeModeToggle.addEventListener( 'click', function ( e ) {
-			e.preventDefault();
-			ajax( 'bmcp_snip_safe_mode', { enable: this.dataset.enable } ).then( res => {
-				if ( res.success ) {
-					location.reload();
-				} else {
-					showNotice( 'Could not change safe mode.', 'error' );
-				}
-			} );
+			if ( action === 'activate' || action === 'deactivate' ) {
+				const status = action === 'activate' ? 'active' : 'inactive';
+				Promise.all( ids.map( id => ajax( 'bmcp_snip_toggle', { id, status } ) ) ).then( results => {
+					const ok = results.filter( r => r.success ).length;
+					if ( ok ) {
+						showNotice( ok + ' snippet(s) ' + status + 'd.', 'success' );
+						setTimeout( () => location.reload(), 600 );
+					}
+				} );
+			}
 		} );
-	}
+	} );
 
 } )();

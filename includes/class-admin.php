@@ -42,15 +42,15 @@ class Admin {
 			[ $this, 'render_settings_page' ]
 		);
 
-		// If Bricks is active, also show an "MCP" entry under the Bricks menu.
-		// Using the Settings page URL as the slug bypasses Bricks' admin URL rewriting.
+		// If Bricks is active, show MCP + Snippets entries under the Bricks menu.
 		if ( defined( 'BRICKS_VERSION' ) || get_template() === 'bricks' ) {
 			add_submenu_page(
 				'bricks',
 				__( 'Bricks MCP', 'bricks-builder-mcp' ),
 				__( 'MCP', 'bricks-builder-mcp' ),
 				'manage_options',
-				'options-general.php?page=bricks-mcp'
+				'bricks-mcp-settings',
+				[ $this, 'render_settings_page' ]
 			);
 
 			// Snippets submenu under Bricks
@@ -180,8 +180,8 @@ class Admin {
 	}
 
 	public function enqueue_assets( string $hook ): void {
-		// ── Main settings page ─────────────────────────────────────────
-		if ( $hook === 'settings_page_bricks-mcp' || $hook === 'bricks_page_bricks-mcp-settings' ) {
+		// ── Main settings page (Settings > Bricks MCP  OR  Bricks > MCP) ─
+		if ( in_array( $hook, [ 'settings_page_bricks-mcp', 'bricks_page_bricks-mcp-settings', 'bricks_page_bricks-mcp' ], true ) ) {
 			wp_enqueue_style(
 				'bmcp-admin',
 				BMCP_PLUGIN_URL . 'assets/css/admin.css',
