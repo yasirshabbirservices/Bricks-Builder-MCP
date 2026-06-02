@@ -189,14 +189,47 @@ class Snippets_Manager {
 		}
 
 		try {
+			// Clear any previous error before running
+			delete_post_meta( $id, '_bmcp_snip_error' );
 			// phpcs:ignore Squiz.PHP.Eval.Discouraged -- intentional; guarded by wp_hash() above
 			eval( '?>' . $code );
 		} catch ( \Throwable $e ) {
-			if ( current_user_can( 'manage_options' ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( sprintf( 'Bricks MCP Snippets [%s]: %s', get_the_title( $id ), $e->getMessage() ) );
-			}
+			// Auto-deactivate the snippet so it stops running on every page load
+			self::deactivate_on_error( $id, $e );
 		}
+	}
+
+	/**
+	 * Deactivate a snippet after a runtime error and store the error message.
+	 * Uses direct DB update to avoid triggering save hooks mid-execution.
+	 */
+	private static function deactivate_on_error( int $id, \Throwable $e ): void {
+		global $wpdb;
+
+		$msg = sprintf(
+			'[%s] %s in %s on line %d',
+			get_class( $e ),
+			$e->getMessage(),
+			$e->getFile(),
+			$e->getLine()
+		);
+
+		// Store the error so it can be displayed in the admin UI
+		update_post_meta( $id, '_bmcp_snip_error', $msg );
+
+		// Set post_status to draft — snippet will not execute on next load
+		$wpdb->update(
+			$wpdb->posts,
+			[ 'post_status' => 'draft' ],
+			[ 'ID' => $id, 'post_type' => self::CPT ],
+			[ '%s' ],
+			[ '%d', '%s' ]
+		);
+		clean_post_cache( $id );
+
+		// Always write to PHP error log so server admins can see it
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'Bricks MCP Snippet #' . $id . ' auto-deactivated: ' . $msg );
 	}
 
 	private function output_inline_js( int $id ): void {
@@ -250,10 +283,12 @@ class Snippets_Manager {
 			if ( empty( $sig ) || ! self::verify( $code, $sig ) ) return '';
 			ob_start();
 			try {
+				delete_post_meta( $id, '_bmcp_snip_error' );
 				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- intentional; guarded by wp_hash() above
 				eval( '?>' . $code );
 			} catch ( \Throwable $e ) {
 				ob_end_clean();
+				self::deactivate_on_error( $id, $e );
 				return '';
 			}
 			return (string) ob_get_clean();
@@ -412,6 +447,8 @@ class Snippets_Manager {
 			$conditions = is_array( $decoded ) ? $decoded : [];
 		}
 
+		$error = get_post_meta( $post->ID, '_bmcp_snip_error', true );
+
 		$data = [
 			'id'          => $post->ID,
 			'title'       => $post->post_title,
@@ -426,6 +463,7 @@ class Snippets_Manager {
 			'shortcode'   => get_post_meta( $post->ID, '_bmcp_snip_shortcode', true ) ?: ( 'bmcp-snippet-' . $post->ID ),
 			'conditions'  => $conditions,
 			'modified'    => $post->post_modified,
+			'error'       => $error ?: '',   // set when snippet was auto-deactivated by a runtime error
 		];
 
 		if ( $with_code ) {
@@ -507,6 +545,7 @@ class Snippets_Manager {
 		update_post_meta( $new_id, '_bmcp_snip_shortcode',  $shortcode );
 		update_post_meta( $new_id, '_bmcp_snip_conditions', wp_json_encode( $clean_conditions ) );
 		update_post_meta( $new_id, '_bmcp_snip_signature',  $signature );
+		delete_post_meta( $new_id, '_bmcp_snip_error' ); // clear any previous runtime error
 
 		return $new_id;
 	}

@@ -188,6 +188,12 @@ function bmcp_snip_type_info( string $type ): array {
 						<a href="<?php echo esc_url( $edit_url ); ?>" class="bmcp-snip-title">
 							<?php echo esc_html( $snip['title'] ); ?>
 						</a>
+						<?php if ( ! empty( $snip['error'] ) ) : ?>
+							<span class="bmcp-snip-error-badge">
+								<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+								Auto-deactivated: <?php echo esc_html( wp_trim_words( $snip['error'], 10 ) ); ?>
+							</span>
+						<?php endif; ?>
 						<?php if ( $snip['description'] ) : ?>
 							<span class="bmcp-snip-desc"><?php echo esc_html( wp_trim_words( $snip['description'], 12 ) ); ?></span>
 						<?php endif; ?>

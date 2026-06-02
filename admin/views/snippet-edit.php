@@ -173,6 +173,18 @@ $default_code = [
 				</div>
 			</div>
 
+			<!-- Runtime error notice (shown when snippet was auto-deactivated) -->
+			<?php if ( ! empty( $s['error'] ) ) : ?>
+			<div class="bmcp-snip-error-card">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+				<div>
+					<strong>Auto-deactivated due to runtime error</strong>
+					<code><?php echo esc_html( $s['error'] ); ?></code>
+					<span>Fix the code above and Save — the error clears automatically on successful save.</span>
+				</div>
+			</div>
+			<?php endif; ?>
+
 			<!-- 2. Execution settings -->
 			<div class="bmcp-card bmcp-snip-settings-card">
 				<h3 class="bmcp-snip-settings-heading">

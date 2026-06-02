@@ -532,6 +532,22 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 }
 .bmcp-snip-pagination .page-numbers.dots { border: none; background: transparent; }
 
+/* ── Runtime error badge (list table) ───────────────────────── */
+.bmcp-snip-error-badge {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 0.74rem;
+	color: var(--danger);
+	background: var(--danger-dim);
+	border: 1px solid rgba(249, 95, 114, 0.22);
+	border-radius: 5px;
+	padding: 3px 8px;
+	margin-top: 5px;
+	line-height: 1.4;
+}
+.bmcp-snip-error-badge svg { flex-shrink: 0; }
+
 /* ── Safe mode footer link ───────────────────────────────────── */
 .bmcp-snip-safemode-link {
 	font-size: 0.8rem;
@@ -750,6 +766,35 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 .bmcp-snip-editor-card .CodeMirror-matchingbracket { color: var(--brand) !important; background: var(--brand-glow); }
 .bmcp-snip-editor-card .CodeMirror-scrollbar-filler,
 .bmcp-snip-editor-card .CodeMirror-gutter-filler { background: #0a100e; }
+
+/* ── Runtime error card (edit page) ─────────────────────────── */
+.bmcp-snip-error-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	background: var(--danger-dim);
+	border: 1px solid rgba(249, 95, 114, 0.3);
+	border-left: 3px solid var(--danger);
+	border-radius: var(--radius-sm);
+	padding: 12px 14px;
+	margin-bottom: 12px;
+	font-size: 0.82rem;
+	color: var(--text);
+}
+.bmcp-snip-error-card svg { flex-shrink: 0; color: var(--danger); margin-top: 2px; }
+.bmcp-snip-error-card div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.bmcp-snip-error-card strong { color: var(--danger); font-size: 0.84rem; }
+.bmcp-snip-error-card code {
+	font-family: 'JetBrains Mono', Consolas, monospace;
+	font-size: 0.76rem;
+	color: #fca5a5;
+	background: rgba(0,0,0,.25);
+	border-radius: 4px;
+	padding: 4px 8px;
+	word-break: break-all;
+	white-space: pre-wrap;
+}
+.bmcp-snip-error-card span { font-size: 0.76rem; color: var(--text-muted); }
 
 /* ── Description card (below code editor, left column) ─────── */
 .bmcp-snip-desc-card { padding: 16px 20px !important; }
