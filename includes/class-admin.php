@@ -234,12 +234,12 @@ class Admin {
 
 			$action = sanitize_key( $_GET['action'] ?? '' );
 			if ( $action === 'edit' || $action === 'new' ) {
-				// Edit / new page — needs CodeMirror
+				// Edit / new page — CodeMirror loaded separately; our script has no hard dep on it
 				wp_enqueue_code_editor( [ 'type' => 'application/x-httpd-php' ] );
 				wp_enqueue_script(
 					'bmcp-snippet-edit',
 					BMCP_PLUGIN_URL . 'assets/js/snippet-edit.js',
-					[ 'wp-codemirror' ],
+					[],   // no hard dep — CodeMirror init is graceful if wp.codeEditor is absent
 					BMCP_VERSION,
 					true
 				);

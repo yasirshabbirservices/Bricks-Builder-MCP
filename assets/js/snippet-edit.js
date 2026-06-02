@@ -11,8 +11,13 @@
 	if ( ! dataEl ) return;
 	const cfg = JSON.parse( dataEl.textContent || dataEl.innerHTML );
 
-	const ajaxUrl = window.bmcpSnippets ? window.bmcpSnippets.ajaxUrl : '';
-	const nonce   = window.bmcpSnippets ? window.bmcpSnippets.nonce   : '';
+	// ajaxurl is always set by WordPress in admin; bmcpSnippets.ajaxUrl is preferred
+	const ajaxUrl = ( window.bmcpSnippets && window.bmcpSnippets.ajaxUrl )
+		? window.bmcpSnippets.ajaxUrl
+		: ( window.ajaxurl || '' );
+	const nonce = ( window.bmcpSnippets && window.bmcpSnippets.nonce )
+		? window.bmcpSnippets.nonce
+		: '';
 
 	/* ── helpers ──────────────────────────────────────────────────────── */
 	function ajax( action, data ) {
@@ -22,7 +27,16 @@
 			method  : 'POST',
 			headers : { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body    : new URLSearchParams( data ),
-		} ).then( r => r.json() );
+		} ).then( r => {
+			// If response isn't JSON (PHP error / wrong URL), surface the status
+			const ct = r.headers.get( 'content-type' ) || '';
+			if ( ! ct.includes( 'json' ) ) {
+				return r.text().then( txt => {
+					throw new Error( 'Non-JSON response (' + r.status + '): ' + txt.slice( 0, 120 ) );
+				} );
+			}
+			return r.json();
+		} );
 	}
 
 	function setSaveStatus( msg, cls ) {
@@ -189,9 +203,11 @@
 					const msg = res.data && res.data.message ? res.data.message : 'Save failed.';
 					setSaveStatus( '✗ ' + msg, 'error' );
 				}
-			} ).catch( () => {
+			} ).catch( err => {
 				saveBtn.disabled = false;
-				setSaveStatus( '✗ Request failed', 'error' );
+				const msg = ( err && err.message ) ? err.message.slice( 0, 100 ) : 'Request failed';
+				setSaveStatus( '✗ ' + msg, 'error' );
+				console.error( '[bmcp] save error:', err );
 			} );
 		} );
 	}
