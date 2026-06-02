@@ -40,6 +40,7 @@ class Tools_Registry {
 			new Tools\Tool_Skills(),
 			new Tools\Tool_Audit(),
 			new Tools\Tool_Preview(),
+			new Tools\Tool_Snippets(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -253,6 +254,14 @@ class Tools_Registry {
 			'bricks_preview_status'       => 'pages',
 			'bricks_commit_preview'       => 'pages',
 			'bricks_discard_preview'      => 'pages',
+			// snippets
+			'bmcp_snippets_list'   => 'snippets',
+			'bmcp_snippet_get'     => 'snippets',
+			'bmcp_snippet_create'  => 'snippets',
+			'bmcp_snippet_update'  => 'snippets',
+			'bmcp_snippet_delete'  => 'snippets',
+			'bmcp_snippet_toggle'  => 'snippets',
+			'bmcp_snippets_export' => 'snippets',
 		];
 	}
 
