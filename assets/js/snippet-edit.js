@@ -92,8 +92,7 @@
 	initEditor( cfg.cmMode );
 
 	/* ── type tabs ────────────────────────────────────────────────────── */
-	const hiddenType = document.getElementById( 'bmcp-snip-type' ) || {};
-	let   currentType = cfg.type || 'php';
+	let currentType = cfg.currentType || 'php';
 
 	document.querySelectorAll( '.bmcp-snip-type-tab' ).forEach( tab => {
 		tab.addEventListener( 'click', function () {

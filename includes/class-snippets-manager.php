@@ -305,6 +305,7 @@ class Snippets_Manager {
 		if ( 'javascript' === $type ) return '<script>' . $code . '</script>';
 		if ( 'css'        === $type ) return '<style>'  . $code . '</style>';
 
+		// HTML type: wp_kses_post intentionally strips <script> — use 'javascript' type for JS.
 		return wp_kses_post( $code );
 	}
 
@@ -487,8 +488,14 @@ class Snippets_Manager {
 	public static function save_snippet( array $data, int $id = 0 ): int|\WP_Error {
 		$title    = sanitize_text_field(     $data['title']       ?? 'Untitled Snippet' );
 		$code     =                          $data['code']        ?? '';
-		$type     = sanitize_key(            $data['type']        ?? 'php' );
-		$location = sanitize_key(            $data['location']    ?? 'everywhere' );
+
+		// Validate type and location against the known-good lists; fall back to safe defaults
+		$type_raw = sanitize_key( $data['type'] ?? 'php' );
+		$type     = in_array( $type_raw, self::TYPES, true ) ? $type_raw : 'php';
+
+		$location_raw = sanitize_key( $data['location'] ?? 'everywhere' );
+		$location     = in_array( $location_raw, self::LOCATIONS, true ) ? $location_raw : 'everywhere';
+
 		$hook     = sanitize_text_field(     $data['hook']        ?? 'init' );
 		$priority = (int) (                  $data['priority']    ?? 10 );
 		$desc     = sanitize_textarea_field( $data['description'] ?? '' );
@@ -535,6 +542,15 @@ class Snippets_Manager {
 		$shortcode = sanitize_key( $data['shortcode'] ?? '' );
 		if ( ! $shortcode ) {
 			$shortcode = 'bmcp-snippet-' . $new_id;
+		}
+
+		// Strip any leading <?php tag — the executor prepends '?>' itself, so the
+		// tag is redundant and the decorator already shows it visually.
+		if ( 'php' === $type ) {
+			$code = ltrim( $code );
+			if ( str_starts_with( $code, '<?php' ) ) {
+				$code = ltrim( substr( $code, 5 ) );
+			}
 		}
 
 		// Sign PHP code using wp_hash() (same as Bricks code element)

@@ -528,7 +528,7 @@ class Admin {
 			'priority'    => (int) ( $_POST['priority']   ?? 10 ),
 			'description' => sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) ),
 			'tags'        => sanitize_text_field( wp_unslash( $_POST['tags']        ?? '' ) ),
-			'url'         => sanitize_url( wp_unslash( $_POST['url']         ?? '' ) ),
+			'url'         => esc_url_raw( wp_unslash( $_POST['url']          ?? '' ) ),
 			'conditions'  => json_decode( wp_unslash( $_POST['conditions'] ?? '[]' ), true ) ?: [],
 		];
 
@@ -540,6 +540,7 @@ class Admin {
 			$existing = Snippets_Manager::get_snippet( $id );
 			if ( ! $existing ) {
 				wp_send_json_error( [ 'message' => 'Snippet not found.' ] );
+				return;
 			}
 			$args = array_merge( $existing, $args );
 		}
