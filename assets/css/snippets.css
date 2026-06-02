@@ -751,6 +751,20 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 .bmcp-snip-editor-card .CodeMirror-scrollbar-filler,
 .bmcp-snip-editor-card .CodeMirror-gutter-filler { background: #0a100e; }
 
+/* ── Description card (below code editor, left column) ─────── */
+.bmcp-snip-desc-card { padding: 16px 20px !important; }
+.bmcp-snip-desc-row {
+	display: grid;
+	grid-template-columns: 1fr 220px;
+	gap: 16px;
+	align-items: start;
+}
+.bmcp-snip-desc-col .bmcp-snip-label,
+.bmcp-snip-tags-col .bmcp-snip-label { margin-top: 0; }
+@media (max-width: 700px) {
+	.bmcp-snip-desc-row { grid-template-columns: 1fr; }
+}
+
 /* ── Settings column ───────────────────────────────────────── */
 .bmcp-snip-settings-col .bmcp-card        { padding: 18px 20px; }
 .bmcp-snip-settings-col .bmcp-snip-label:first-child { margin-top: 0; }

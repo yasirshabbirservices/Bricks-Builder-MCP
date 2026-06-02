@@ -541,8 +541,6 @@ class Admin {
 			if ( ! $existing ) {
 				wp_send_json_error( [ 'message' => 'Snippet not found.' ] );
 			}
-			// Snapshot before overwriting so admin can undo via History tab
-			History_Manager::capture( $id, 'snippet', 'ajax_snip_save' );
 			$args = array_merge( $existing, $args );
 		}
 
@@ -561,8 +559,6 @@ class Admin {
 		}
 
 		$id = (int) ( $_POST['id'] ?? 0 );
-		// Snapshot before deletion — allows recovery via History tab
-		History_Manager::capture( $id, 'snippet', 'ajax_snip_delete' );
 		if ( ! Snippets_Manager::delete_snippet( $id ) ) {
 			wp_send_json_error( [ 'message' => 'Could not delete snippet.' ] );
 		}

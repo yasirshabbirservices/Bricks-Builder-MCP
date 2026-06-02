@@ -128,6 +128,23 @@ $default_code = [
 				</div>
 
 			</div>
+
+			<!-- Description + Tags (below the editor) -->
+			<div class="bmcp-card bmcp-snip-settings-card bmcp-snip-desc-card">
+				<div class="bmcp-snip-desc-row">
+					<div class="bmcp-snip-desc-col">
+						<label class="bmcp-snip-label" for="bmcp-snip-desc">Description</label>
+						<textarea id="bmcp-snip-desc" rows="2" class="bmcp-snip-textarea"
+							placeholder="What does this snippet do?"><?php echo esc_textarea( $s['description'] ); ?></textarea>
+					</div>
+					<div class="bmcp-snip-tags-col">
+						<label class="bmcp-snip-label" for="bmcp-snip-tags">Tags</label>
+						<input type="text" id="bmcp-snip-tags" value="<?php echo esc_attr( $s['tags'] ); ?>"
+							placeholder="woocommerce, checkout, fixes" class="bmcp-snip-input">
+					</div>
+				</div>
+			</div>
+
 		</div><!-- .bmcp-snip-editor-col -->
 
 		<!-- RIGHT: Settings Panel -->
@@ -198,18 +215,7 @@ $default_code = [
 				</div>
 			</div>
 
-			<!-- 3. Description + Tags -->
-			<div class="bmcp-card bmcp-snip-settings-card">
-				<label class="bmcp-snip-label" for="bmcp-snip-desc">Description</label>
-				<textarea id="bmcp-snip-desc" rows="3" class="bmcp-snip-textarea"
-					placeholder="What does this snippet do?"><?php echo esc_textarea( $s['description'] ); ?></textarea>
-
-				<label class="bmcp-snip-label" for="bmcp-snip-tags">Tags</label>
-				<input type="text" id="bmcp-snip-tags" value="<?php echo esc_attr( $s['tags'] ); ?>"
-					placeholder="woocommerce, checkout, fixes" class="bmcp-snip-input">
-			</div>
-
-			<!-- 4. Shortcode (existing snippets only) -->
+			<!-- 3. Shortcode (existing snippets only — appears when saved) -->
 			<?php if ( ! $is_new ) : ?>
 			<div class="bmcp-card bmcp-snip-settings-card">
 				<label class="bmcp-snip-label">

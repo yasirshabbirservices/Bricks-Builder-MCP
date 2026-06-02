@@ -314,14 +314,6 @@ class Tools_Registry {
 			case 'bricks_delete_component':
 				return [ 0, 'components' ];
 
-			// Snippet writes — snapshot the full snippet before modification
-			case 'bmcp_snippet_update':
-				return [ (int) ( $args['id'] ?? 0 ), 'snippet' ];
-			case 'bmcp_snippet_delete':
-				return [ (int) ( $args['id'] ?? 0 ), 'snippet' ];
-			case 'bmcp_snippet_toggle':
-				return [ (int) ( $args['id'] ?? 0 ), 'snippet' ];
-
 			default:
 				return null;
 		}
