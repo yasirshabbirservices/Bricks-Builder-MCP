@@ -593,6 +593,31 @@ body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-corner {
 .bmcp-client-panel { display: none; }
 .bmcp-client-panel.active { display: block; }
 
+/* Fix WordPress form-table th/td colour inside the dark admin theme.
+   WP's default .form-table styles inherit the WP admin text colour which
+   looks washed-out against our surface.  Override to use our palette. */
+.bmcp-client-panel .form-table,
+.bmcp-client-panel .form-table th,
+.bmcp-client-panel .form-table td {
+	background: transparent !important;
+	border: none !important;
+	vertical-align: middle !important;
+}
+.bmcp-client-panel .form-table th {
+	font-size: 0.78rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--text-muted) !important;
+	white-space: nowrap;
+	width: auto !important;
+	padding: 5px 16px 5px 0 !important;
+}
+.bmcp-client-panel .form-table td {
+	color: var(--text) !important;
+	padding: 5px 0 !important;
+}
+
 .bmcp-client-hint {
 	color: var(--text-muted);
 	font-size: 0.84rem;

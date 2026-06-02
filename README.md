@@ -48,7 +48,7 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Template Library** | Search and retrieve built-in wireframe templates by category |
 | **Session Context** | Single startup call: site info, palette, classes, fonts, framework, business profile, and memories |
 | **Validation** | Validate element arrays before writing — catches corrupt payloads early |
-| **Agent Skills** | On-demand best-practice guides: accessibility, SEO, CSS, performance, typography, layout, dynamic data |
+| **Agent Skills** | On-demand best-practice guides: elements, mobile-first, CSS, JS, accessibility, SEO, performance, typography, layout, dynamic data |
 | **Design Audit** | Scan all pages for design inconsistencies — hardcoded colors, mismatched fonts, spacing drift |
 | **Element Search** | Find elements by type, class, setting key/value, or text content across all pages |
 | **Preview Mode** | Staged editing: AI writes to draft copies, you review, then commit or discard in one step |
@@ -360,12 +360,14 @@ The plugin checks for new releases every 15 minutes and shows the standard WordP
 
 ## Agent Skills
 
-The plugin ships 8 on-demand best-practice guides for AI agents. When building a page, the AI checks the `available_skills` index in `bricks_get_session_context` and loads the relevant guide with `bricks_get_skill(slug)` before starting work — not all at once, only what the current task requires.
+The plugin ships 10 on-demand best-practice guides for AI agents. When building a page, the AI checks the `available_skills` index in `bricks_get_session_context` and loads the relevant guide with `bricks_get_skill(slug)` before starting work — not all at once, only what the current task requires.
 
 | Skill | When the AI loads it |
 |---|---|
-| `bricks-elements` | Any element array creation or editing |
+| `bricks-elements` | **Always** — any element array creation, editing, or layout writing |
+| `mobile-first` | **Always** — any page build or layout task (mobile-first is mandatory) |
 | `css-best-practices` | Any styling work — classes, variables, inline settings |
+| `javascript` | Any custom JS, Bricks interactions setup, or third-party JS integration |
 | `accessibility` | Forms, navs, modals, images, interactive elements |
 | `seo-html` | Any page with headings, metadata, or content structure |
 | `performance` | Image-heavy sections, query loops, above-fold content |
@@ -386,6 +388,15 @@ Drop Bricks Builder template JSON exports into `assets/templates/{category}/` an
 ---
 
 ## Changelog
+
+### v1.10.0 — Skills rewrite + mobile-first + JS skill
+- Added **`mobile-first`** skill — mandatory mobile-first design strategy, Bricks breakpoint system, touch targets (44×44px), `100svh`, fluid layouts, off-canvas navigation, iOS form tips
+- Added **`javascript`** skill — Bricks-first rule (use native elements before JS), ES2020+ patterns, event delegation, passive listeners, `IntersectionObserver`, debounce/throttle, XSS prevention, WordPress context
+- Rewrote **`bricks-elements`** skill — complete element catalog, priority rules table (interactive → component → layout → code), slider-nested infinity slider example, posts loop, accordion pattern
+- Rewrote **`css-best-practices`** skill — mandatory CSS custom properties, required variable categories with full code blocks, modern CSS (logical properties, container queries, clamp, subgrid, oklch), cross-browser guidance
+- AI initialization now references all four mandatory skills in `instructions` field
+- Updated Custom Instructions with 12 best-practice sections covering element selection, mobile-first, CSS variables, design system, cross-browser CSS, JS, dynamic content, performance, accessibility, security, media, and quality standards
+- Fixed Legacy SSE tab heading color contrast in admin UI
 
 ### v1.9.0 — MCP spec compliance for all major clients
 - `GET /mcp` now returns **405** per MCP 2025-11-25 spec (was incorrectly returning 200 JSON)

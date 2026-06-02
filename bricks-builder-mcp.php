@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://github.com/yasirshabbirservices/Bricks-Builder-MCP
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.9.0
+ * Version:     1.10.0
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     MIT
@@ -96,43 +96,91 @@ function bmcp_activate() {
 
 	if ( get_option( BMCP_INSTRUCTIONS_OPTION ) === false ) {
 		$default_instructions = <<<'INSTRUCTIONS'
-* Use Advanced Custom Fields (ACF), ACF Pro, or JetEngine whenever available instead of relying on native WordPress functions or building unnecessary custom solutions for post types, taxonomies, meta fields, relationships, options pages, or dynamic content structures.
+ELEMENT SELECTION — ALWAYS USE NATIVE BRICKS ELEMENTS FIRST
+* Never use a generic div, container, or code element when a purpose-built Bricks element exists.
+  Priority order: interactive/purpose-built element → Bricks component/template → layout element → code (last resort)
+* Logo slider / image carousel → use slider-nested (NOT sections or divs in a row)
+* FAQ / accordion → use accordion element
+* Tabbed content → use tabs element
+* Collapsible → use toggle element
+* Modal / lightbox → use popup element
+* Repeating content → use posts (query loop) element
+* Navigation → use nav-menu or off-canvas elements
+* Reusable sections → embed via template element
 
-* Follow the existing design system consistently. Always reuse predefined CSS variables, global classes, spacing, typography, colors, and utility patterns already implemented on the website.
+MOBILE-FIRST DESIGN — MANDATORY
+* Design for mobile first (390px viewport) before desktop. Every layout must be fully functional and visually correct on mobile before desktop styles are added.
+* Default settings must produce a single-column, stacked layout that works on small screens.
+* All interactive elements must have minimum 44×44px touch targets.
+* Use 100svh (not 100vh) for full-height sections — svh accounts for mobile browser chrome.
+* Never use fixed pixel widths that overflow on small screens. Prefer: 100%, min(600px, 100%), clamp(), or auto-fill grid.
+* Reduce section padding on mobile: use spacing-xl or spacing-lg on mobile, spacing-section on desktop.
 
-* Prefer native Bricks Builder functionality before introducing custom PHP, JavaScript, or sandbox functions. Use built-in dynamic data, query loops, conditions, interactions, and templating whenever possible. Fully test all custom implementations before deployment.
+CSS CUSTOM PROPERTIES — MANDATORY
+* Every repeatable value must be a CSS variable — no raw hex colors, no hardcoded px spacing, no hardcoded font sizes.
+* Required variable categories: color tokens (--color-primary, --color-text, etc.), spacing scale (--spacing-xs through --spacing-section), typography (--font-size-xs through --font-size-4xl using clamp()), layout (--container-width, --border-radius-*), effects (--shadow-*, --transition).
+* Font sizes must use clamp() for fluid scaling: clamp(min, preferred-vw, max)
+* Check session context for existing variables before creating new ones — never duplicate.
 
-* Keep the media library properly organized. Upload and manage assets inside their appropriate folders/categories using HappyFiles Pro if it exists to maintain a scalable and maintainable media structure.
+DESIGN SYSTEM
+* Always reuse predefined CSS variables, global classes, spacing, typography, colors, and utility patterns from the existing design system.
+* Reuse existing components, templates, global styles, and utility classes before creating new ones.
+* Follow the existing design system direction — never introduce a new pattern that contradicts established styles.
 
-* Reuse existing components, templates, global styles, and utility classes before creating new ones to maintain consistency and reduce maintenance overhead.
+CROSS-BROWSER & MODERN CSS
+* Use modern CSS (logical properties, clamp, container queries, CSS Grid subgrid) with @supports fallbacks for newly-available features.
+* Verify cross-browser support on caniuse.com for any CSS or JS feature before using it.
+* Never add vendor prefixes to universally-supported properties (flex, grid, transform, transition, border-radius, etc.).
 
-* Maintain clean, modular, and scalable architecture. Avoid duplicate logic, unnecessary abstractions, plugin bloat, and over-engineering.
+JAVASCRIPT
+* Prefer Bricks native interactions, elements, and CSS over custom JavaScript.
+* When JS is necessary: use ES2020+, const/let (never var), async/await, event delegation, passive listeners, IntersectionObserver for scroll effects.
+* Never use innerHTML with user-supplied data — use textContent.
+* Debounce resize/input events, throttle scroll events.
 
-* Prioritize performance-first development:
-  - Minimize unnecessary scripts and dependencies
-  - Reduce database queries where possible
-  - Optimize DOM structure and asset loading
-  - Avoid heavy frontend libraries unless required
+DYNAMIC CONTENT
+* Use ACF, ACF Pro, or JetEngine whenever available for post types, meta fields, relationships, options pages, and dynamic content structures.
+* Prefer native Bricks dynamic data, query loops, conditions, and interactions over custom PHP or sandbox functions.
 
-* Follow WordPress security best practices:
-  - Sanitize and validate all inputs
-  - Escape outputs correctly
-  - Use nonce verification where needed
-  - Apply proper capability/permission checks
-  - Secure all API and AJAX endpoints
+PERFORMANCE
+* Minimize scripts and dependencies — check if Bricks interactions or native CSS replace JS.
+* Lazy-load all below-fold images (_loading: lazy). Do NOT lazy-load above-fold hero images.
+* Use fetchpriority="high" on the hero/LCP image.
+* Set explicit width + height on all images to prevent CLS.
+* Use WebP format for photos. Use SVG for logos and icons.
+* Defer non-critical JavaScript.
 
-* Build mobile-first, responsive layouts by default and ensure consistency across desktop, tablet, and mobile breakpoints.
+ACCESSIBILITY — WCAG 2.1 AA
+* Semantic HTML: use correct Bricks tag settings (section, main, nav, header, footer, article, aside).
+* One h1 per page. Never skip heading levels. Never use headings for styling.
+* All images need alt text (_alt setting). Decorative images: empty alt + aria-hidden="true".
+* All form inputs need associated labels. Required fields must be communicated visually and via required attribute.
+* Color contrast: 4.5:1 for normal text, 3:1 for large text.
+* All interactive elements keyboard-reachable. Never remove focus outlines without a visible replacement.
 
-* Ensure all custom code is production-ready, maintainable, and documented where necessary for future scalability and team collaboration.
+SECURITY (WordPress)
+* Sanitize and validate all inputs. Escape all outputs. Use nonce verification. Apply capability checks.
+* Secure all custom API and AJAX endpoints.
 
-* Before releasing any feature or update, always verify:
-  - Responsive behavior
+MEDIA LIBRARY
+* Upload and manage assets in appropriate folders/categories using HappyFiles Pro if available.
+
+QUALITY STANDARDS — MANDATORY BEFORE ANY WRITE
+* Load bricks-elements skill before building any element array.
+* Load mobile-first skill before starting any layout.
+* Load the relevant skills for the current task (css-best-practices, accessibility, performance, etc.)
+* Always validate with bricks_validate_payload before writing. Never skip.
+* Confirm with the user before any global or destructive operation (color palette, theme styles, replace across all pages).
+* Never read or modify payment credentials or sensitive user data.
+
+PRE-RELEASE CHECKLIST
+  - Responsive behavior on mobile_portrait (390px), tablet, and desktop
   - Dynamic data accuracy
-  - Accessibility basics
+  - Accessibility: heading hierarchy, alt text, contrast, keyboard navigation
   - Cross-browser compatibility
   - Error handling and fallback states
-  - Performance impact
-  - Console/network errors
+  - Performance: LCP, CLS, no unused scripts
+  - No console errors
 INSTRUCTIONS;
 		update_option( BMCP_INSTRUCTIONS_OPTION, $default_instructions, false );
 	}

@@ -372,8 +372,10 @@ This plugin provides skill guides you can load on demand. The `available_skills`
 
 | Slug | Load before... |
 |---|---|
-| `bricks-elements` | Any element array creation, editing, or layout writing |
+| `bricks-elements` | **Always** — any element array creation, editing, or layout writing |
+| `mobile-first` | **Always** — any page build, layout task, or responsive styling |
 | `css-best-practices` | Any styling work — classes, variables, or inline settings |
+| `javascript` | Any custom JS, Bricks interactions setup, or third-party JS integration |
 | `accessibility` | Any form, nav, modal, interactive element, or image |
 | `seo-html` | Any page with headings, metadata, or content structure |
 | `performance` | Image-heavy sections, query loops, or above-fold content |

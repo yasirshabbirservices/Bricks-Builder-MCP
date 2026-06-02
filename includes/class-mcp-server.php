@@ -300,6 +300,10 @@ class MCP_Server {
 			. 'Start every session with bricks_get_session_context, then bricks_get_system_prompt for the full guide. '
 			. 'After bricks_get_session_context: if global_classes and css_variables are both empty, ask the user whether to set up the design system now, confirm styles already exist, or proceed with neutral placeholders. '
 			. 'Always validate with bricks_validate_payload before writing. '
-			. 'Use global classes, CSS variables, and theme styles before any inline settings. Never use _cssCustom for values expressible via Bricks settings.';
+			. 'Use global classes, CSS variables, and theme styles before any inline settings. Never use _cssCustom for values expressible via Bricks settings. '
+			. 'Load bricks_get_skill("bricks-elements") before building any element array. '
+			. 'Load bricks_get_skill("mobile-first") before starting any layout or page build. '
+			. 'Load bricks_get_skill("css-best-practices") before any styling work. '
+			. 'Load bricks_get_skill("javascript") before writing any custom JS.';
 	}
 }
