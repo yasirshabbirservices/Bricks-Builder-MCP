@@ -19,6 +19,19 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-thumb  { background: #2
 body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-thumb:hover { background: #00d68f; }
 body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #080d0b; }
 
+/* ══════════════════════════════════════════════════════════════
+   BRANDED CHECKBOXES — all #bmcp-wrap pages
+   ══════════════════════════════════════════════════════════════ */
+#bmcp-wrap input[type="checkbox"] {
+	accent-color: #00d68f;
+	width: 15px;
+	height: 15px;
+	cursor: pointer;
+	vertical-align: middle;
+}
+/* Slightly larger for the select-all header checkbox */
+#bmcp-wrap #bmcp-select-all { width: 15px; height: 15px; }
+
 /* ── Reset WP defaults inside our wrap ──────────────────────── */
 .bmcp-snippets-wrap :focus-visible {
 	outline: 2px solid #00d68f !important;
@@ -242,30 +255,43 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 .bmcp-snip-search {
 	display: flex;
 	align-items: center;
-	gap: 8px;
 	margin-left: auto;
-	position: relative;
+	flex-shrink: 0;
 }
-.bmcp-snip-search svg {
+/* Wrapper: icon + input stacked with proper relative positioning */
+.bmcp-snip-search-inner {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+.bmcp-snip-search-icon {
 	position: absolute;
-	left: 10px;
+	left: 9px;
+	top: 50%;
+	transform: translateY(-50%);
 	color: var(--text-dim);
 	pointer-events: none;
 	flex-shrink: 0;
+	z-index: 1;
 }
 .bmcp-snip-search-input {
 	background: var(--surface-3);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
 	color: var(--text);
-	font-size: 0.85rem;
-	padding: 7px 12px 7px 34px;
-	width: 220px;
+	font-size: 0.845rem;
+	padding: 6px 12px 6px 30px;
+	width: 200px;
 	font-family: inherit;
+	line-height: 1.5;
 	transition: border-color 0.15s ease;
+	height: auto !important;
+	min-height: unset !important;
 }
-.bmcp-snip-search-input:focus { border-color: var(--brand); outline: none; }
+.bmcp-snip-search-input:focus { border-color: var(--brand); outline: none; box-shadow: none !important; }
 .bmcp-snip-search-input::placeholder { color: var(--text-dim); }
+/* Clear button that browsers add to search inputs */
+.bmcp-snip-search-input::-webkit-search-cancel-button { filter: invert(0.5); cursor: pointer; }
 
 /* ══════════════════════════════════════════════════════════════
    SNIPPETS TABLE
@@ -336,14 +362,7 @@ body.bricks_page_bricks-mcp-snippets ::-webkit-scrollbar-corner { background: #0
 .bmcp-snip-table td.col-status  { text-align: center; }
 .bmcp-snip-table td.col-actions { text-align: center; }
 
-/* Checkboxes */
-.bmcp-snip-table input[type="checkbox"],
-#bmcp-select-all {
-	accent-color: var(--brand);
-	width: 15px;
-	height: 15px;
-	cursor: pointer;
-}
+/* Checkboxes — accent-color set globally in branded-checkboxes block above */
 
 /* ── Status toggle button ────────────────────────────────────── */
 .bmcp-snip-toggle {
