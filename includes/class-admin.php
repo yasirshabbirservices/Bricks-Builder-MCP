@@ -544,7 +544,7 @@ class Admin {
 			$args = array_merge( $existing, $args );
 		}
 
-		$result = Snippets_Manager::save_snippet( $args, $id > 0 ? $id : null );
+		$result = Snippets_Manager::save_snippet( $args, $id );
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( [ 'message' => $result->get_error_message() ] );
 		}

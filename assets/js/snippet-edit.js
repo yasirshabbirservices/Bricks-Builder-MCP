@@ -181,11 +181,8 @@
 				if ( res.success ) {
 					setSaveStatus( '✓ Saved', 'success' );
 					if ( cfg.isNew && res.data && res.data.id ) {
-						// redirect to edit URL for newly created snippet
-						const editUrl = cfg.listUrl.replace(
-							'bricks-mcp-snippets',
-							'bricks-mcp-snippets&action=edit&snippet_id=' + res.data.id
-						);
+						// redirect to edit page for the newly created snippet
+						const editUrl = cfg.listUrl + '&action=edit&snippet_id=' + res.data.id;
 						setTimeout( () => { location.href = editUrl; }, 600 );
 					}
 				} else {
