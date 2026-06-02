@@ -174,6 +174,36 @@ class Tool_Validator extends Tool_Base {
 				$warnings[] = "{$ctx}: leaf element '{$el['name']}' has non-empty children array — these children will be ignored by Bricks.";
 			}
 
+			// Code signature checks — Bricks 1.9.7+ requires wp_hash() signatures for code execution.
+			// Note: this plugin auto-signs on write, so these warnings only fire if the AI manually
+			// set signature to empty/wrong value or forgot to include executeCode.
+			$el_name = $el['name'] ?? '';
+			$el_settings = $el['settings'] ?? [];
+
+			if ( $el_name === 'code' && ! empty( $el_settings['executeCode'] ) && ! empty( $el_settings['code'] ) ) {
+				if ( empty( $el_settings['signature'] ) ) {
+					$warnings[] = "{$ctx}: code element has executeCode=true but no signature — auto-signed on write, but verify code execution is enabled in Bricks → Settings → Custom code.";
+				}
+			}
+
+			if ( $el_name === 'svg' && ( $el_settings['source'] ?? '' ) === 'code' && ! empty( $el_settings['code'] ) ) {
+				if ( empty( $el_settings['signature'] ) ) {
+					$warnings[] = "{$ctx}: svg element uses inline code but has no signature — auto-signed on write.";
+				}
+			}
+
+			if ( ! empty( $el_settings['query']['useQueryEditor'] ) && ! empty( $el_settings['query']['queryEditor'] ) ) {
+				if ( empty( $el_settings['query']['signature'] ) ) {
+					$warnings[] = "{$ctx}: query loop uses queryEditor (custom PHP) but has no signature — auto-signed on write, but verify code execution is enabled in Bricks → Settings → Custom code.";
+				}
+			}
+
+			// Warn about deprecated elements
+			$deprecated_elements = [ 'html' ];
+			if ( isset( $el['name'] ) && in_array( $el['name'], $deprecated_elements, true ) ) {
+				$warnings[] = "{$ctx}: element '{$el['name']}' is deprecated and will not appear in the Bricks panel.";
+			}
+
 			// Warn on unknown element names
 			$known_elements = $this->get_known_elements();
 			if ( isset( $el['name'] ) && ! in_array( $el['name'], $known_elements, true ) ) {
@@ -367,19 +397,91 @@ class Tool_Validator extends Tool_Base {
 		return $id;
 	}
 
+	/**
+	 * Complete list of known Bricks element names.
+	 * Source: Bricks Builder 2.3.6 includes/elements/ + includes/woocommerce/elements/
+	 */
 	private function get_known_elements(): array {
 		return [
+			// Layout (nestable)
 			'section', 'container', 'block', 'div',
-			'heading', 'text-basic', 'rich-text', 'button', 'image', 'icon', 'text-link',
-			'video', 'audio', 'map', 'code', 'shortcode', 'divider', 'spacer',
-			'social-icons', 'social-sharing', 'icon-box', 'list', 'accordion-nested', 'accordion',
-			'tabs-nested', 'tabs', 'slider-nested', 'carousel', 'image-gallery', 'image-carousel',
-			'nav-nested', 'nav-menu', 'form', 'search', 'breadcrumbs', 'back-to-top',
-			'posts', 'pagination', 'post-navigation', 'post-title', 'post-content', 'post-excerpt',
-			'post-meta', 'post-taxonomy', 'post-author', 'post-comments', 'related-posts', 'post-toc',
-			'counter', 'countdown', 'progress-bar', 'rating', 'testimonials', 'team-members',
-			'pricing-tables', 'animated-typing', 'alert', 'logo', 'sidebar', 'toggle',
-			'dropdown', 'offcanvas', 'woocommerce', 'checkout', 'cart', 'my-account',
+
+			// Basic
+			'heading', 'text', 'text-basic', 'text-link', 'button', 'image', 'icon', 'video',
+
+			// General interactive
+			'accordion', 'accordion-nested',
+			'tabs', 'tabs-nested',
+			'toggle', 'toggle-mode',
+			'slider', 'slider-nested',
+			'offcanvas', 'dropdown',
+			'form', 'countdown', 'counter', 'animated-typing',
+			'back-to-top', 'alert', 'progress-bar', 'rating',
+			'divider', 'pie-chart', 'social-icons',
+
+			// Content & media
+			'audio', 'carousel', 'image-gallery', 'svg', 'lottie',
+			'code', 'shortcode',
+
+			// Navigation
+			'nav-nested', 'nav-menu', 'logo', 'search',
+			'breadcrumbs', 'pagination', 'sidebar',
+
+			// Maps
+			'map', 'map-leaflet', 'map-connector',
+
+			// Dynamic / query
+			'posts', 'template', 'related-posts', 'query-results-summary',
+
+			// Social embeds
+			'instagram-feed', 'facebook-page',
+
+			// WordPress widget
+			'wordpress',
+
+			// Single post
+			'post-title', 'post-content', 'post-excerpt',
+			'post-author', 'post-meta', 'post-taxonomy',
+			'post-navigation', 'post-comments', 'post-toc',
+			'post-reading-time', 'post-reading-progress-bar', 'post-sharing',
+
+			// Legacy / non-preferred (still valid, warn handled separately)
+			'icon-box', 'list', 'team-members', 'testimonials', 'pricing-tables',
+
+			// Query filters
+			'filter-search', 'filter-checkbox', 'filter-radio', 'filter-select',
+			'filter-datepicker', 'filter-range', 'filter-submit', 'filter-active-filters',
+
+			// Components
+			'slot',
+
+			// WooCommerce product
+			'product-title', 'product-price', 'product-gallery',
+			'product-short-description', 'product-content',
+			'product-add-to-cart', 'product-rating', 'product-stock',
+			'product-meta', 'product-tabs', 'product-additional-information',
+			'product-reviews', 'product-upsells', 'product-related',
+
+			// WooCommerce cart
+			'woocommerce-cart-items', 'woocommerce-cart-coupon', 'woocommerce-cart-collaterals',
+
+			// WooCommerce checkout
+			'woocommerce-checkout-customer-details', 'woocommerce-checkout-order-review',
+			'woocommerce-checkout-order-payment', 'woocommerce-checkout-coupon',
+			'woocommerce-checkout-login', 'woocommerce-checkout-order-table',
+			'woocommerce-checkout-thankyou',
+
+			// WooCommerce account
+			'woocommerce-account-page', 'woocommerce-account-orders',
+			'woocommerce-account-form-login', 'woocommerce-account-form-register',
+			'woocommerce-account-form-edit-account', 'woocommerce-account-addresses',
+			'woocommerce-account-form-edit-address', 'woocommerce-account-downloads',
+			'woocommerce-account-payment-methods', 'woocommerce-account-view-order',
+			'woocommerce-account-add-payment-method', 'woocommerce-account-form-lost-password',
+			'woocommerce-account-form-reset-password',
+
+			// WooCommerce misc
+			'woocommerce-mini-cart', 'woocommerce-notice', 'woocommerce-breadcrumbs',
 		];
 	}
 }

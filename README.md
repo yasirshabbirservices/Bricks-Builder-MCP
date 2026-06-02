@@ -389,6 +389,17 @@ Drop Bricks Builder template JSON exports into `assets/templates/{category}/` an
 
 ## Changelog
 
+### v1.11.0 — Code signature auto-generation + accurate Bricks 2.3.6 element catalog
+
+- **Auto-signs code elements** — `set_elements()` now calls `wp_hash()` on every `code`, `svg` (inline), and `queryEditor` element before saving, so AI-written PHP/JS actually executes on the frontend (Bricks 1.9.7+ requirement)
+- **New `bricks_code_execution_status` tool** — lets AI check whether `executeCodeEnabled` is on and whether `BRICKS_LOCK_CODE_SIGNATURES` is active before writing code elements
+- **Validator warns on missing signatures** — `bricks_validate_payload` now flags code/svg/queryEditor elements that lack a signature (auto-signed on write anyway)
+- **Validator warns on deprecated elements** — flags use of `html` element (deprecated in Bricks source)
+- **Complete element catalog from Bricks 2.3.6 source** — `get_known_elements()` rewritten with all 82 core elements + WooCommerce elements, correct nestable flags, deprecated elements marked
+- **Fixed breakpoints everywhere** — corrected to actual values from `Bricks::Breakpoints::get_default_breakpoints()`: tablet_portrait=991px, mobile_landscape=767px, mobile_portrait=478px (removed non-existent `tablet_landscape`)
+- **`bricks-elements` skill** — full element catalog rewrite with priority table, all nestable elements, WooCommerce elements, filter elements, correct breakpoints
+- **`mobile-first` skill** — breakpoint table sourced from Bricks 2.3.6, removed `tablet_landscape`, corrected all px values
+
 ### v1.10.0 — Skills rewrite + mobile-first + JS skill
 - Added **`mobile-first`** skill — mandatory mobile-first design strategy, Bricks breakpoint system, touch targets (44×44px), `100svh`, fluid layouts, off-canvas navigation, iOS form tips
 - Added **`javascript`** skill — Bricks-first rule (use native elements before JS), ES2020+ patterns, event delegation, passive listeners, `IntersectionObserver`, debounce/throttle, XSS prevention, WordPress context

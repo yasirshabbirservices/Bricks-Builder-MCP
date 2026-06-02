@@ -68,6 +68,9 @@ class Bricks_Data {
 			return $validated;
 		}
 
+		// Sign any code/svg/queryEditor elements before saving
+		$validated = self::sign_elements( $validated );
+
 		$key = self::meta_key( $area );
 		update_post_meta( $post_id, $key, $validated );
 
@@ -276,6 +279,89 @@ class Bricks_Data {
 		unset( $el );
 
 		return array_values( $elements );
+	}
+
+	// -------------------------------------------------------------------------
+	// Code signature generation
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Walk an elements array and inject Bricks code signatures wherever required.
+	 *
+	 * Bricks 1.9.7+ verifies a `wp_hash()` signature before executing any code.
+	 * Without this, code/svg/queryEditor elements silently fail on the frontend.
+	 *
+	 * Elements that require signatures (source: Bricks 2.3.6 Admin::process_elements_for_signature):
+	 *   - `code` element  with `settings.executeCode` set → sign settings.code
+	 *   - `svg`  element  with `settings.source === 'code'` → sign settings.code
+	 *   - Any element     with `settings.query.useQueryEditor` + `settings.query.queryEditor` → sign query.queryEditor
+	 *
+	 * @param array $elements Flat elements array (already normalized).
+	 * @return array          Elements with signatures injected.
+	 */
+	public static function sign_elements( array $elements ): array {
+		$user_id = get_current_user_id();
+		$time    = time();
+
+		foreach ( $elements as &$el ) {
+			$name     = $el['name'] ?? '';
+			$settings = $el['settings'] ?? [];
+
+			// ── code element: sign when executeCode is enabled ────────────────
+			if ( $name === 'code' && ! empty( $settings['executeCode'] ) && ! empty( $settings['code'] ) ) {
+				$code                         = $settings['code'];
+				$el['settings']['signature']  = wp_hash( $code );
+				$el['settings']['user_id']    = $user_id;
+				$el['settings']['time']       = $time;
+			}
+
+			// ── svg element: sign when source is inline code ──────────────────
+			if ( $name === 'svg' && ( $settings['source'] ?? '' ) === 'code' && ! empty( $settings['code'] ) ) {
+				$code                         = $settings['code'];
+				$el['settings']['signature']  = wp_hash( $code );
+				$el['settings']['user_id']    = $user_id;
+				$el['settings']['time']       = $time;
+			}
+
+			// ── query loop: sign queryEditor PHP ─────────────────────────────
+			if (
+				! empty( $settings['query']['useQueryEditor'] ) &&
+				! empty( $settings['query']['queryEditor'] )
+			) {
+				$code = $settings['query']['queryEditor'];
+				$el['settings']['query']['signature'] = wp_hash( $code );
+				$el['settings']['query']['user_id']   = $user_id;
+				$el['settings']['query']['time']      = $time;
+			}
+		}
+		unset( $el );
+
+		return $elements;
+	}
+
+	/**
+	 * Check if Bricks code execution is enabled on this site.
+	 *
+	 * @return array { enabled: bool, locked: bool, message: string }
+	 */
+	public static function get_code_execution_status(): array {
+		$settings = self::get_global_settings();
+		$enabled  = ! empty( $settings['executeCodeEnabled'] );
+		$locked   = defined( 'BRICKS_LOCK_CODE_SIGNATURES' ) && \BRICKS_LOCK_CODE_SIGNATURES;
+
+		if ( $locked ) {
+			$message = 'Code signatures are locked via BRICKS_LOCK_CODE_SIGNATURES constant. Contact the site owner.';
+		} elseif ( ! $enabled ) {
+			$message = 'Code execution is DISABLED. Enable it at: Bricks → Settings → Custom code → Enable code execution. Without this, code/svg/queryEditor elements will not execute.';
+		} else {
+			$message = 'Code execution is enabled. Signatures are auto-generated when writing elements via this plugin.';
+		}
+
+		return [
+			'enabled' => $enabled,
+			'locked'  => $locked,
+			'message' => $message,
+		];
 	}
 
 	// -------------------------------------------------------------------------

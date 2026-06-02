@@ -27,6 +27,11 @@ class Tool_Settings extends Tool_Base {
 	public function define(): array {
 		return [
 			[
+				'name'        => 'bricks_code_execution_status',
+				'description' => 'Check whether Bricks code execution is enabled on this site. Call before writing any code element (name: "code"), SVG element with inline code (name: "svg", source: "code"), or any query loop with useQueryEditor. If disabled, PHP/code elements will not execute on the frontend. Returns: enabled (bool), locked (bool), message (string with instructions to enable if needed). Note: this plugin automatically generates code signatures (wp_hash) when writing elements — you do not need to set the "signature" field yourself.',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
 				'name'        => 'bricks_get_global_settings',
 				'description' => 'Get Bricks Builder global settings (typography, spacing, custom CSS/JS, feature flags, etc.). Sensitive keys are automatically filtered out.',
 				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
@@ -175,6 +180,8 @@ class Tool_Settings extends Tool_Base {
 
 	public function execute( string $name, array $args ): array|\WP_Error {
 		switch ( $name ) {
+			case 'bricks_code_execution_status':
+				return Bricks_Data::get_code_execution_status();
 			case 'bricks_get_global_settings':
 				return $this->get_global_settings();
 			case 'bricks_update_global_settings':
