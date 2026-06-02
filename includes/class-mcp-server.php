@@ -40,12 +40,18 @@ class MCP_Server {
 
 		switch ( $method ) {
 			case 'initialize':
-				$result = $this->handle_initialize( $params );
-				break;
+				$result   = $this->handle_initialize( $params );
+				$response = $this->json_response( $id, $result );
+				// MCP 2024-11-05: servers SHOULD include Mcp-Session-Id so clients can
+				// associate follow-up requests with this session.  The plugin is stateless
+				// (no in-memory session map) so any non-empty value satisfies the spec.
+				$response->header( 'Mcp-Session-Id', bin2hex( random_bytes( 16 ) ) );
+				return $response;
 
 			case 'notifications/initialized':
-				// Acknowledgement notification — no response needed per spec
-				return new \WP_REST_Response( null, 204 );
+				// MCP 2024-11-05 §6.1 — notifications MUST receive HTTP 202, not 204.
+				// Claude.ai (and other strict clients) check for 202 before calling tools/list.
+				return new \WP_REST_Response( null, 202 );
 
 			case 'tools/list':
 				$result = $this->handle_tools_list( $params );
@@ -71,7 +77,16 @@ class MCP_Server {
 				$result = $this->handle_resources_read( $params );
 				break;
 
+			case 'ping':
+				// MCP keepalive — respond with empty object
+				$result = new \stdClass();
+				break;
+
 			default:
+				// Unknown notifications (no id) should be silently ignored per spec
+				if ( $id === null ) {
+					return new \WP_REST_Response( null, 202 );
+				}
 				return $this->error_response( $id, -32601, 'Method not found: ' . $method );
 		}
 

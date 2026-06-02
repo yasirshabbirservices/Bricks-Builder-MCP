@@ -16,7 +16,7 @@ class Rest_API {
 			BMCP_REST_NAMESPACE,
 			'/mcp',
 			[
-				'methods'             => [ 'POST', 'GET' ],
+				'methods'             => [ 'POST', 'GET', 'DELETE' ],
 				'callback'            => [ $this, 'handle_request' ],
 				'permission_callback' => [ $this, 'permission_callback' ],
 			]
@@ -60,10 +60,16 @@ class Rest_API {
 		// Handle GET (capability probe) — return a minimal initialization response
 		if ( $request->get_method() === 'GET' ) {
 			return new \WP_REST_Response( [
-				'server'  => 'Bricks Builder MCP',
-				'version' => BMCP_VERSION,
+				'server'   => 'Bricks Builder MCP',
+				'version'  => BMCP_VERSION,
 				'endpoint' => rest_url( BMCP_REST_NAMESPACE . '/mcp' ),
 			], 200 );
+		}
+
+		// Handle DELETE — MCP 2024-11-05 §6.4: clients send DELETE to terminate a session.
+		// The plugin is stateless so there is no session to destroy; simply acknowledge.
+		if ( $request->get_method() === 'DELETE' ) {
+			return new \WP_REST_Response( null, 200 );
 		}
 
 		$server = new MCP_Server();
