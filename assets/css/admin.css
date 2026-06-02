@@ -54,6 +54,12 @@ body.bricks_page_bricks-mcp-settings ::-webkit-scrollbar-corner {
 	border-radius: 3px !important;
 }
 
+/* Branded checkboxes across all plugin pages */
+#bmcp-wrap input[type="checkbox"] {
+	accent-color: #00d68f;
+	cursor: pointer;
+}
+
 /* Override WP's default blue focus box-shadow */
 #bmcp-wrap input:focus,
 #bmcp-wrap select:focus,

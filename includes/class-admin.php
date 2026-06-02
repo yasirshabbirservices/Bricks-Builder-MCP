@@ -24,6 +24,12 @@ class Admin {
 		add_action( 'wp_ajax_bmcp_import_profile',      [ $this, 'ajax_import_profile' ] );
 		add_action( 'wp_ajax_bmcp_add_secondary_key',   [ $this, 'ajax_add_secondary_key' ] );
 		add_action( 'wp_ajax_bmcp_delete_secondary_key', [ $this, 'ajax_delete_secondary_key' ] );
+
+		// Snippets Manager AJAX
+		add_action( 'wp_ajax_bmcp_snip_save',      [ $this, 'ajax_snip_save' ] );
+		add_action( 'wp_ajax_bmcp_snip_delete',    [ $this, 'ajax_snip_delete' ] );
+		add_action( 'wp_ajax_bmcp_snip_toggle',    [ $this, 'ajax_snip_toggle' ] );
+		add_action( 'wp_ajax_bmcp_snip_safe_mode', [ $this, 'ajax_snip_safe_mode' ] );
 	}
 
 	public function register_menu(): void {
@@ -36,15 +42,25 @@ class Admin {
 			[ $this, 'render_settings_page' ]
 		);
 
-		// If Bricks is active, also show an "MCP" entry under the Bricks menu.
-		// Using the Settings page URL as the slug bypasses Bricks' admin URL rewriting.
+		// If Bricks is active, show MCP + Snippets entries under the Bricks menu.
 		if ( defined( 'BRICKS_VERSION' ) || get_template() === 'bricks' ) {
 			add_submenu_page(
 				'bricks',
 				__( 'Bricks MCP', 'bricks-builder-mcp' ),
 				__( 'MCP', 'bricks-builder-mcp' ),
 				'manage_options',
-				'options-general.php?page=bricks-mcp'
+				'bricks-mcp-settings',
+				[ $this, 'render_settings_page' ]
+			);
+
+			// Snippets submenu under Bricks
+			add_submenu_page(
+				'bricks',
+				__( 'Snippets', 'bricks-builder-mcp' ),
+				__( 'Snippets', 'bricks-builder-mcp' ),
+				'manage_options',
+				'bricks-mcp-snippets',
+				[ $this, 'render_snippets_page' ]
 			);
 		}
 	}
@@ -164,38 +180,82 @@ class Admin {
 	}
 
 	public function enqueue_assets( string $hook ): void {
-		// Accept both the Settings page hook and the Bricks submenu hook
-		if ( $hook !== 'settings_page_bricks-mcp' && $hook !== 'bricks_page_bricks-mcp-settings' ) {
-			return;
+		// ── Main settings page (Settings > Bricks MCP  OR  Bricks > MCP) ─
+		if ( in_array( $hook, [ 'settings_page_bricks-mcp', 'bricks_page_bricks-mcp-settings', 'bricks_page_bricks-mcp' ], true ) ) {
+			wp_enqueue_style(
+				'bmcp-admin',
+				BMCP_PLUGIN_URL . 'assets/css/admin.css',
+				[],
+				BMCP_VERSION
+			);
+
+			wp_enqueue_script(
+				'bmcp-admin',
+				BMCP_PLUGIN_URL . 'assets/js/admin.js',
+				[ 'jquery' ],
+				BMCP_VERSION,
+				true
+			);
+
+			wp_localize_script( 'bmcp-admin', 'bmcpAdmin', [
+				'nonce'      => wp_create_nonce( 'bmcp_admin_nonce' ),
+				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+				'apiKey'     => Auth::get_key(),
+				'endpoint'   => rest_url( BMCP_REST_NAMESPACE . '/mcp' ),
+				'strings'    => [
+					'copied'        => __( 'Copied!', 'bricks-builder-mcp' ),
+					'regenerated'   => __( 'API key regenerated.', 'bricks-builder-mcp' ),
+					'confirm_regen' => __( 'Regenerating the API key will invalidate your current Claude Code configuration. Continue?', 'bricks-builder-mcp' ),
+					'cleared'       => __( 'Activity log cleared.', 'bricks-builder-mcp' ),
+				],
+			] );
 		}
 
-		wp_enqueue_style(
-			'bmcp-admin',
-			BMCP_PLUGIN_URL . 'assets/css/admin.css',
-			[],
-			BMCP_VERSION
-		);
+		// ── Snippets pages ─────────────────────────────────────────────
+		if ( $hook === 'bricks_page_bricks-mcp-snippets' ) {
+			wp_enqueue_style(
+				'bmcp-admin',
+				BMCP_PLUGIN_URL . 'assets/css/admin.css',
+				[],
+				BMCP_VERSION
+			);
+			wp_enqueue_style(
+				'bmcp-snippets',
+				BMCP_PLUGIN_URL . 'assets/css/snippets.css',
+				[ 'bmcp-admin' ],
+				BMCP_VERSION
+			);
 
-		wp_enqueue_script(
-			'bmcp-admin',
-			BMCP_PLUGIN_URL . 'assets/js/admin.js',
-			[ 'jquery' ],
-			BMCP_VERSION,
-			true
-		);
+			// Shared data for both snippets JS files
+			$snippets_data = [
+				'nonce'   => wp_create_nonce( 'bmcp_admin_nonce' ),
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			];
 
-		wp_localize_script( 'bmcp-admin', 'bmcpAdmin', [
-			'nonce'      => wp_create_nonce( 'bmcp_admin_nonce' ),
-			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-			'apiKey'     => Auth::get_key(),
-			'endpoint'   => rest_url( BMCP_REST_NAMESPACE . '/mcp' ),
-			'strings'    => [
-				'copied'      => __( 'Copied!', 'bricks-builder-mcp' ),
-				'regenerated' => __( 'API key regenerated.', 'bricks-builder-mcp' ),
-				'confirm_regen' => __( 'Regenerating the API key will invalidate your current Claude Code configuration. Continue?', 'bricks-builder-mcp' ),
-				'cleared'     => __( 'Activity log cleared.', 'bricks-builder-mcp' ),
-			],
-		] );
+			$action = sanitize_key( $_GET['action'] ?? '' );
+			if ( $action === 'edit' || $action === 'new' ) {
+				// Edit / new page — CodeMirror loaded separately; our script has no hard dep on it
+				wp_enqueue_code_editor( [ 'type' => 'application/x-httpd-php' ] );
+				wp_enqueue_script(
+					'bmcp-snippet-edit',
+					BMCP_PLUGIN_URL . 'assets/js/snippet-edit.js',
+					[],   // no hard dep — CodeMirror init is graceful if wp.codeEditor is absent
+					BMCP_VERSION,
+					true
+				);
+				wp_localize_script( 'bmcp-snippet-edit', 'bmcpSnippets', $snippets_data );
+			} else {
+				// List page
+				wp_enqueue_script(
+					'bmcp-snippets-admin',
+					BMCP_PLUGIN_URL . 'assets/js/snippets-admin.js',
+					[],
+					BMCP_VERSION,
+					true
+				);
+				wp_localize_script( 'bmcp-snippets-admin', 'bmcpSnippets', $snippets_data );
+			}
+		}
 	}
 
 	public function render_settings_page(): void {
@@ -432,6 +492,114 @@ class Admin {
 
 		update_option( BMCP_SECONDARY_KEYS_OPTION, $filtered, false );
 		wp_send_json_success();
+	}
+
+	// =========================================================================
+	// Snippets Manager — render + AJAX
+	// =========================================================================
+
+	public function render_snippets_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Permission denied.', 'bricks-builder-mcp' ) );
+		}
+		$action = sanitize_key( $_GET['action'] ?? '' );
+		if ( $action === 'edit' || $action === 'new' ) {
+			include BMCP_PLUGIN_DIR . 'admin/views/snippet-edit.php';
+		} else {
+			include BMCP_PLUGIN_DIR . 'admin/views/snippets-page.php';
+		}
+	}
+
+	public function ajax_snip_save(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
+		}
+
+		$id = (int) ( $_POST['id'] ?? 0 );
+
+		$args = [
+			'title'       => sanitize_text_field( wp_unslash( $_POST['title']       ?? '' ) ),
+			'code'        => wp_unslash( $_POST['code']        ?? '' ),
+			'type'        => sanitize_key( $_POST['type']        ?? 'php' ),
+			'status'      => sanitize_key( $_POST['status']      ?? 'inactive' ),
+			'location'    => sanitize_key( $_POST['location']    ?? 'everywhere' ),
+			'hook'        => sanitize_key( $_POST['hook']        ?? 'init' ),
+			'priority'    => (int) ( $_POST['priority']   ?? 10 ),
+			'description' => sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) ),
+			'tags'        => sanitize_text_field( wp_unslash( $_POST['tags']        ?? '' ) ),
+			'url'         => esc_url_raw( wp_unslash( $_POST['url']          ?? '' ) ),
+			'conditions'  => json_decode( wp_unslash( $_POST['conditions'] ?? '[]' ), true ) ?: [],
+		];
+
+		if ( empty( $args['title'] ) ) {
+			wp_send_json_error( [ 'message' => 'Snippet name is required.' ] );
+		}
+
+		if ( $id > 0 ) {
+			$existing = Snippets_Manager::get_snippet( $id );
+			if ( ! $existing ) {
+				wp_send_json_error( [ 'message' => 'Snippet not found.' ] );
+				return;
+			}
+			$args = array_merge( $existing, $args );
+		}
+
+		$result = Snippets_Manager::save_snippet( $args, $id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( [ 'message' => $result->get_error_message() ] );
+		}
+
+		wp_send_json_success( [ 'id' => $result, 'message' => 'Snippet saved.' ] );
+	}
+
+	public function ajax_snip_delete(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
+		}
+
+		$id = (int) ( $_POST['id'] ?? 0 );
+		if ( ! Snippets_Manager::delete_snippet( $id ) ) {
+			wp_send_json_error( [ 'message' => 'Could not delete snippet.' ] );
+		}
+
+		wp_send_json_success( [ 'id' => $id ] );
+	}
+
+	public function ajax_snip_toggle(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
+		}
+
+		$id     = (int) ( $_POST['id'] ?? 0 );
+		$status = sanitize_key( $_POST['status'] ?? 'inactive' );
+		if ( ! in_array( $status, [ 'active', 'inactive' ], true ) ) {
+			$status = 'inactive';
+		}
+
+		if ( ! Snippets_Manager::toggle_snippet( $id, $status ) ) {
+			wp_send_json_error( [ 'message' => 'Snippet not found.' ] );
+		}
+
+		wp_send_json_success( [ 'id' => $id, 'status' => $status ] );
+	}
+
+	public function ajax_snip_safe_mode(): void {
+		check_ajax_referer( 'bmcp_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
+		}
+
+		// Blocked if constant is set
+		if ( defined( 'BMCP_SNIPPETS_SAFE_MODE' ) ) {
+			wp_send_json_error( [ 'message' => 'Safe mode is locked by a server constant.' ] );
+		}
+
+		$enable = filter_var( $_POST['enable'] ?? true, FILTER_VALIDATE_BOOLEAN );
+		update_option( Snippets_Manager::SAFE_MODE_OPT, $enable ? '1' : '0', false );
+		wp_send_json_success( [ 'safe_mode' => $enable ] );
 	}
 
 	public function ajax_import_profile(): void {

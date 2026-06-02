@@ -52,8 +52,9 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Design Audit** | Scan all pages for design inconsistencies — hardcoded colors, mismatched fonts, spacing drift |
 | **Element Search** | Find elements by type, class, setting key/value, or text content across all pages |
 | **Preview Mode** | Staged editing: AI writes to draft copies, you review, then commit or discard in one step |
+| **Snippets** | Create, edit, toggle, and export PHP/JS/CSS/HTML snippets; AI-manageable via 7 dedicated tools |
 
-**82 MCP tools** across all groups.
+**89 MCP tools** across all groups.
 
 ---
 
@@ -388,6 +389,19 @@ Drop Bricks Builder template JSON exports into `assets/templates/{category}/` an
 ---
 
 ## Changelog
+
+### v1.12.0 — Snippets Manager
+
+- **Built-in Snippets Manager** — create and manage PHP, JavaScript, CSS, HTML, and external URL snippets directly from WordPress admin (`Bricks → Snippets`)
+- **7 new MCP tools** — `bmcp_snippets_list`, `bmcp_snippet_get`, `bmcp_snippet_create`, `bmcp_snippet_update`, `bmcp_snippet_delete`, `bmcp_snippet_toggle`, `bmcp_snippets_export` — AI can create, edit, toggle, and export snippets programmatically
+- **Security** — PHP snippets signed with `wp_hash()` on every save; unsigned/tampered snippets are silently skipped at runtime (same model as Bricks code elements)
+- **Safe mode** — disable all snippet execution via `BMCP_SNIPPETS_SAFE_MODE` constant or admin toggle; constant takes hard precedence over the DB option
+- **Execution conditions** — 4-rule AND-logic system: `post_type`, `user_role`, `logged_in`, `url_pattern`; each rule supports `equals` / `not_equals` operators
+- **Snippet types** — `php` (hook-attached eval), `javascript` / `javascript_url` (wp_footer inline or enqueued), `css` / `css_url` (wp_head inline or enqueued), `html` (raw output on hook)
+- **Locations** — everywhere, frontend only, admin only, or shortcode only
+- **CodeMirror editor** — uses WordPress' built-in `wp_enqueue_code_editor()` with PHP/JS/CSS/HTML syntax highlighting and mode-switching; zero extra JS bundle weight
+- **Shortcode support** — every snippet gets a unique `[bmcp_snippet_*]` shortcode for inline placement
+- **Dark-theme admin UI** — matches MCP plugin branding; two-column edit layout with type tabs, conditions builder, status toggle, and tags
 
 ### v1.11.0 — Code signature auto-generation + accurate Bricks 2.3.6 element catalog
 
