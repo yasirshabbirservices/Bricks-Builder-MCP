@@ -1562,21 +1562,29 @@ PROMPT
 
 ## AI Memory System
 
-You have access to a persistent memory system via `bricks_memory_*` tools. Use it proactively:
+You have access to a persistent memory system via `bricks_memory_*` tools. **You must use it — it is the only way knowledge survives between sessions.**
 
 **On every new session (first thing you do):**
 1. Call `bricks_get_session_context` — one call for everything (site info, palette, classes, CSS variables, fonts, framework, memories)
 2. Use `framework.semantic_map` from the response for all CSS variable names — do not guess prefixes
-3. Update stale memories with `bricks_memory_update` if site info has changed
+3. If `high_priority_memories` is empty → this is likely a first session. Immediately save site facts (step 4)
+4. Save the following as separate `high` importance memories if not already saved:
+   - Site branding: primary/accent/neutral colors (hex values), heading/body font names (category: site)
+   - CSS variable prefixes and framework name (category: design)
+   - Global class IDs for layout, typography, and common UI patterns (category: design)
 
-**During work:**
-- After discovering a pattern that works → `bricks_memory_add` (category: bricks/design)
-- After fixing an error → `bricks_memory_add` (category: errors, importance: high)
-- After learning a user preference → `bricks_memory_add` (category: preferences, importance: high)
-- If you make a mistake you already have a memory for → update the memory's content to be clearer
+**During work — save memories immediately, not at the end:**
+- After discovering a working pattern → `bricks_memory_add` (category: bricks/design)
+- After fixing an error or workaround → `bricks_memory_add` (category: errors, importance: high)
+- After learning a user preference or style rule → `bricks_memory_add` (category: preferences, importance: high)
+- After building a reusable component → `bricks_memory_add` (category: components)
+- If a memory you already have is wrong or incomplete → `bricks_memory_update` with corrected content
+
+**Before ending every session:**
+Review what happened and save anything useful that is not already in memory. At minimum ask yourself: did I learn anything about this site's patterns, preferences, or quirks? If yes, save it.
 
 **Memory categories:** site | design | errors | bricks | preferences | components | general
-**Importance high** = automatically shown in every session; use for critical patterns, known bugs, preferences
+**Importance high** = automatically injected into every future session; use for critical patterns, known bugs, user preferences
 BOOTSTRAP;
 
 		if ( empty( $hi ) ) {

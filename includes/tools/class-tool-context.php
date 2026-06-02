@@ -16,7 +16,7 @@ class Tool_Context extends Tool_Base {
 		return [
 			[
 				'name'        => 'bricks_get_session_context',
-				'description' => 'Get all context needed at the start of an AI session in a single call: site info, color palette, global classes, CSS variables, registered fonts, active design framework (CoreFramework / OxyProps / YStudio / Advanced Themer / BricksTemplate), semantic CSS variable map, and high-priority memories. Use this INSTEAD of calling bricks_get_site_info + bricks_get_color_palette + bricks_get_global_classes + bricks_memory_list separately — it reduces startup from 5 calls to 1.',
+				'description' => 'Get all context needed at the start of an AI session in a single call: site info, color palette, global classes, CSS variables, registered fonts, active design framework (CoreFramework / OxyProps / YStudio / Advanced Themer / BricksTemplate), semantic CSS variable map, and high-priority memories. Use this INSTEAD of calling bricks_get_site_info + bricks_get_color_palette + bricks_get_global_classes + bricks_memory_list separately — it reduces startup from 5 calls to 1. If high_priority_memories is empty in the response, save site branding, CSS variable prefixes, and global class IDs as high-importance memories immediately using bricks_memory_add.',
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
