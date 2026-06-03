@@ -3,18 +3,31 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://github.com/yasirshabbirservices/Bricks-Builder-MCP
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.13.2
+ * Version:     1.13.3
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     MIT
  * Text Domain: bricks-builder-mcp
+ * Requires PHP: 8.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',                  '1.13.2' );
+// PHP 8.0+ required — union return types are used throughout the codebase.
+// Show a friendly admin notice and bail early instead of letting PHP fatal.
+if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
+	add_action( 'admin_notices', static function () {
+		printf(
+			'<div class="notice notice-error"><p><strong>Bricks Builder MCP</strong> requires PHP 8.0 or higher. Your server is running PHP %s. Please upgrade PHP or contact your host.</p></div>',
+			esc_html( PHP_VERSION )
+		);
+	} );
+	return; // Stop loading — prevents any class file with PHP 8.0 syntax from being parsed
+}
+
+define( 'BMCP_VERSION',                  '1.13.3' );
 define( 'BMCP_PLUGIN_FILE',              __FILE__ );
 define( 'BMCP_PLUGIN_DIR',               plugin_dir_path( __FILE__ ) );
 define( 'BMCP_PLUGIN_URL',               plugin_dir_url( __FILE__ ) );

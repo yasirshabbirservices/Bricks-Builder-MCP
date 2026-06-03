@@ -548,7 +548,7 @@ class Snippets_Manager {
 		// tag is redundant and the decorator already shows it visually.
 		if ( 'php' === $type ) {
 			$code = ltrim( $code );
-			if ( str_starts_with( $code, '<?php' ) ) {
+			if ( substr( $code, 0, 5 ) === '<?php' ) {
 				$code = ltrim( substr( $code, 5 ) );
 			}
 		}
