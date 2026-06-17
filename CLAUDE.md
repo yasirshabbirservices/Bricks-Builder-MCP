@@ -31,6 +31,13 @@ Call `bricks_get_business_profile`. If the profile is empty/mostly blank, ask:
 1. **Provide business details** — name, tagline, colors, contact, services, social links → save via `bricks_import_business_profile`
 2. **Skip** — use placeholder content
 
+### Child Theme
+Check if the active theme is a Bricks child theme. If the site is using the parent Bricks theme directly:
+1. **Yes, set it up** — create and activate a Bricks child theme (style.css + functions.php)
+2. **No, skip** — continue with parent theme
+
+If a child theme is active, all custom CSS, functions.php changes, and template overrides MUST go in the child theme directory.
+
 Do NOT trigger onboarding during connection setup, MCP config sharing, page listing, or read-only operations.
 
 ## Project Structure

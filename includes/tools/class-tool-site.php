@@ -252,7 +252,11 @@ Then execute in order:
 1. `bricks_update_color_palette` — create the brand palette
 2. `bricks_create_global_class` — create: heading-1, heading-2, body-text, btn-primary, section-padding, container
 3. `bricks_update_global_settings` — register Google Fonts if provided
-4. Confirm setup is complete, then proceed with the original request.
+4. `bricks_update_theme_styles` — set site-wide element defaults:
+   - **Container element**: set `max-width` to a CSS variable (e.g. `var(--container-width)`, default `1200px`) and `margin: 0 auto` for centering
+   - **Section element**: set `padding` using CSS variables (e.g. `var(--section-padding-l)` for top/bottom, `var(--section-padding-lr)` for left/right)
+   - This ensures every new container and section inherits consistent spacing site-wide without per-element overrides
+5. Confirm setup is complete, then proceed with the original request.
 
 **If user picks 3 (I'll handle it later):**
 Proceed using:
@@ -264,6 +268,36 @@ Proceed using:
 
 ### semantic_map warning:
 If `framework === 'none'` AND `css_variables` is empty, the `semantic_map` values (`var(--color-primary)`, `var(--space-m)`, etc.) are **generic placeholders not defined on this site**. Do not use them. Use palette hex values or the neutral fallbacks above instead.
+
+---
+
+## CHILD THEME CHECK
+
+During onboarding (first build/design request), check if the active theme is a Bricks child theme by inspecting the `bricks_get_site_info` response (or `bricks_get_session_context` → `site_info`).
+
+**If the site is using the Bricks parent theme directly (no child theme active):**
+
+Ask the user:
+
+> "I notice this site is using the Bricks parent theme directly. Would you like me to install and activate a Bricks child theme?
+>
+> A child theme is recommended because:
+> - Custom CSS, functions.php, and template overrides survive Bricks theme updates
+> - It keeps your customizations separate from the parent theme files
+> - It's WordPress best practice for any production site
+>
+> 1. **Yes, set it up** — I'll create and activate a Bricks child theme
+> 2. **No, skip** — continue with the parent theme as-is"
+
+**If user picks 1 (Yes, set it up):**
+Create the child theme by adding the required files (style.css with `Template: bricks` header, functions.php that enqueues parent styles) and activate it. All subsequent custom CSS, functions, and template work should go in the child theme.
+
+**If user picks 2 (No, skip):**
+Proceed as normal. Do not ask again this session.
+
+**If a child theme is already active:** Skip this check silently and proceed.
+
+**Once a child theme is active:** All custom CSS additions, functions.php modifications, and template file overrides MUST go in the child theme directory — never modify parent theme files.
 
 ---
 
@@ -614,6 +648,8 @@ Any settings key can have a breakpoint-specific override using the suffix `:brea
 ---
 
 ## Standard Section Template
+
+**Important:** The CSS variables below (`--container-width`, `--section-padding-l`, `--section-padding-lr`) must be defined in **Bricks Theme Styles** via `bricks_update_theme_styles` so they apply site-wide. Set container `max-width` and section `padding` as element defaults in theme styles — this avoids repeating these values on every page.
 
 ```json
 [

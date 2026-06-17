@@ -127,6 +127,7 @@ DESIGN SYSTEM
 * Always reuse predefined CSS variables, global classes, spacing, typography, colors, and utility patterns from the existing design system.
 * Reuse existing components, templates, global styles, and utility classes before creating new ones.
 * Follow the existing design system direction — never introduce a new pattern that contradicts established styles.
+* Set container max-width and section padding as element defaults in Bricks Theme Styles (via bricks_update_theme_styles) using CSS variables (e.g. --container-width, --section-padding-l, --section-padding-lr) so every page inherits consistent layout without per-element overrides.
 
 CROSS-BROWSER & MODERN CSS
 * Use modern CSS (logical properties, clamp, container queries, CSS Grid subgrid) with @supports fallbacks for newly-available features.
@@ -179,6 +180,7 @@ ONBOARDING — FIRST BUILD TASK ONLY
 * On the first build/design request (not connection or read-only operations), check for a design system file (.claude/DESIGN.md in the project root).
 * If missing, offer the user two options: upload a design system file, or share brand details manually.
 * Also check the Business Profile (bricks_get_business_profile) — if empty, offer to collect business details or skip.
+* Check if a Bricks child theme is active. If the site is using the parent Bricks theme directly, ask the user if they want to install and activate a child theme. If yes, create it and do all custom work (CSS, functions.php, template overrides) in the child theme. If already active, skip silently.
 * Only ask once per session. Do not ask during connection setup, page listing, or read-only tasks.
 
 QUALITY STANDARDS — MANDATORY BEFORE ANY WRITE
