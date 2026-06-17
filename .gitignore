@@ -2,5 +2,6 @@ dist/
 *.zip
 .DS_Store
 Thumbs.db
-/.claude
+/.claude/*
+!/.claude/skills/
 .mcp.json

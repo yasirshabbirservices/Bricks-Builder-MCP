@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://github.com/yasirshabbirservices/Bricks-Builder-MCP
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.12.0
+ * Version:     1.13.0
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     MIT
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',                  '1.12.0' );
+define( 'BMCP_VERSION',                  '1.13.0' );
 define( 'BMCP_PLUGIN_FILE',              __FILE__ );
 define( 'BMCP_PLUGIN_DIR',               plugin_dir_path( __FILE__ ) );
 define( 'BMCP_PLUGIN_URL',               plugin_dir_url( __FILE__ ) );
@@ -141,6 +141,15 @@ JAVASCRIPT
 DYNAMIC CONTENT
 * Use ACF, ACF Pro, or JetEngine whenever available for post types, meta fields, relationships, options pages, and dynamic content structures.
 * Prefer native Bricks dynamic data, query loops, conditions, and interactions over custom PHP or sandbox functions.
+
+SURECART ECOMMERCE
+* When SureCart is active, use native SureCart Bricks elements (Product, Media, PriceChooser, BuyButton, etc.) — never build product layouts with generic containers.
+* Use SureCart dynamic tags ({sc_product_selected_price}, {sc_product_description}, etc.) for product data display.
+* Load the surecart skill before building any SureCart product page, collection, or checkout.
+* Use CartMenuIcon in headers, not custom cart implementations.
+* Embed checkout forms via [sc_form id="X"] shortcode — call surecart_list_forms for available form IDs.
+* Product pages should follow the hierarchy: Product → Media + ProductData + PriceChooser + VariantPills + Quantity + BuyButton.
+* Never access or expose SureCart API keys, payment credentials, or customer financial data.
 
 PERFORMANCE
 * Minimize scripts and dependencies — check if Bricks interactions or native CSS replace JS.

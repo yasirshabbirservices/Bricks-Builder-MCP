@@ -75,6 +75,7 @@ class Tool_Site extends Tool_Base {
 			'bricks_mcp_version' => BMCP_VERSION,
 			'active_theme'       => get_template(),
 			'woocommerce_active' => class_exists( 'WooCommerce' ),
+			'surecart_active'    => class_exists( 'SureCart' ) || post_type_exists( 'sc_product' ),
 			'locale'             => get_locale(),
 			'timezone'           => wp_timezone_string(),
 			'front_page_id'      => $front_page_id,
@@ -382,6 +383,7 @@ This plugin provides skill guides you can load on demand. The `available_skills`
 | `bricks-dynamic-data` | ACF fields, JetEngine meta, or any query loop |
 | `typography` | Any text styling, font selection, or readability work |
 | `layout-patterns` | Any new section, hero, grid, or responsive layout |
+| `surecart` | Any SureCart product page, collection, checkout, cart, or ecommerce layout |
 
 **Rules:**
 - Load only the skill(s) relevant to the current task — not all at once
@@ -1545,6 +1547,46 @@ Call `bricks_apply_design_system({ "preset": "brickstemplate" })` to import all 
 5. Replace all placeholder_map entries with real content; verify every `_cssGlobalClasses` array uses IDs from `class_reference`
 6. `bricks_validate_payload` → fix any issues
 7. Write to page → `bricks_clear_cache`
+
+---
+
+## SureCart Ecommerce Integration
+
+If SureCart is active on this site (`surecart_active: true` in site info), you have access to SureCart-specific tools:
+
+### Data Tools (require SureCart active)
+| Tool | Purpose |
+|------|---------|
+| `surecart_list_products` | List SureCart products with price range, stock, collections |
+| `surecart_get_product` | Full product details — sc_id, prices, stock, gallery, collections |
+| `surecart_list_collections` | List product collections (sc_collection taxonomy) |
+| `surecart_get_collection` | Collection details with product list |
+| `surecart_list_forms` | List checkout forms with shortcodes |
+
+### Reference Tools (always available — use for planning)
+| Tool | Purpose |
+|------|---------|
+| `surecart_get_dynamic_tags` | All 21 SureCart Bricks dynamic data tags with filters |
+| `surecart_get_bricks_elements` | All 31+ SureCart Bricks elements with controls and hierarchy |
+| `surecart_get_template_guide` | Template types, build patterns, shortcode reference |
+
+### SureCart + Bricks Workflow
+1. Call `surecart_get_bricks_elements` to understand the element hierarchy
+2. Call `surecart_get_dynamic_tags` for available dynamic data tags
+3. Build product pages using: Product → Media + ProductData + PriceChooser + VariantPills + Quantity + BuyButton
+4. Build product grids using query loop on `sc_product` with ProductCard wrapper
+5. Use `{sc_product_selected_price}` and other interactive tags for live price updates
+6. Add CartMenuIcon to header templates for cart access
+7. Embed checkout forms via `[sc_form id="X"]` shortcode — call `surecart_list_forms` for IDs
+
+### Key SureCart Dynamic Tags
+- **Price display:** `{sc_product_selected_price}` (updates on selection), `{sc_product_price}` (static)
+- **Sale display:** `<s>{sc_product_selected_scratch_price}</s> {sc_product_selected_price}`
+- **Description:** `{sc_product_description:30}` (with word limit)
+- **Stock:** `{sc_product_stock:available}`
+- **Reviews:** `{sc_product_review_average_ratings}`, `{sc_product_review_total_ratings}`
+
+Also load the `surecart` skill via `bricks_get_skill({skill: "surecart"})` before building any SureCart page.
 
 ---
 

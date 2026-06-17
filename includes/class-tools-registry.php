@@ -43,6 +43,7 @@ class Tools_Registry {
 			new Tools\Tool_Accessibility(),
 			new Tools\Tool_Preview(),
 			new Tools\Tool_Schema(),
+			new Tools\Tool_SureCart(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -270,6 +271,15 @@ class Tools_Registry {
 			// breakpoints (settings group)
 			'bricks_get_breakpoints'    => 'settings',
 			'bricks_update_breakpoints' => 'settings',
+			// surecart (always on — tools self-disable when SureCart not active)
+			'surecart_list_products'        => 'site',
+			'surecart_get_product'          => 'site',
+			'surecart_list_collections'     => 'site',
+			'surecart_get_collection'       => 'site',
+			'surecart_list_forms'           => 'site',
+			'surecart_get_dynamic_tags'     => 'site',
+			'surecart_get_bricks_elements'  => 'site',
+			'surecart_get_template_guide'   => 'site',
 		];
 	}
 
