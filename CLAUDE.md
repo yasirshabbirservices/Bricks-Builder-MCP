@@ -6,13 +6,32 @@
 
 1. Create a `CLAUDE.md` file in the project root (if it doesn't already exist)
 2. Copy the `.claude/skills/` folder from this repo into the project's `.claude/` directory
+3. Check if `.claude/DESIGN.md` exists — if not, ask the user to provide a design system file or share brand details (see Onboarding below)
 
-This ensures the AI has access to all Bricks Builder, SureCart, and Web Optimization skill references.
+This ensures the AI has access to all Bricks Builder, SureCart, Business Profile, and Web Optimization skill references.
 
 ```bash
 # From your project root:
 cp -r /path/to/Bricks-Builder-MCP/.claude/skills/ .claude/skills/
 ```
+
+## Onboarding (First Build Task Only)
+
+When the user requests to **start building or designing** (not during connection setup or read-only operations), run these checks once per session:
+
+### Design System File
+Check if `.claude/DESIGN.md` exists in the project root. If missing, ask the user:
+1. **Upload a design system file** — save it to `.claude/DESIGN.md`
+2. **Share details manually** — brand colors, fonts, style preferences (use for the session, save key tokens to AI memory)
+
+User can skip — proceed with the site's existing palette and globals from `bricks_get_session_context`.
+
+### Business Profile
+Call `bricks_get_business_profile`. If the profile is empty/mostly blank, ask:
+1. **Provide business details** — name, tagline, colors, contact, services, social links → save via `bricks_import_business_profile`
+2. **Skip** — use placeholder content
+
+Do NOT trigger onboarding during connection setup, MCP config sharing, page listing, or read-only operations.
 
 ## Project Structure
 
@@ -64,6 +83,7 @@ bricks-builder-mcp/
 │   └── skills/                     # Claude Code skill references
 │       ├── bricks-builder-dev/     # Bricks element API, hooks, seeding, DB map
 │       ├── surecart/               # SureCart elements, dynamic tags, integration
+│       ├── business-profile/       # Onboarding, brand fields, content substitution
 │       └── web-optimization/       # Accessibility, SEO, AEO, GEO
 └── CLAUDE.md                       # This file
 ```
@@ -110,6 +130,7 @@ Markdown files with YAML frontmatter served via `bricks_get_skill` tool. The AI 
 Full skill references for Claude Code sessions. Include:
 - **bricks-builder-dev**: Element API (base.php), hooks, seeding cookbook, DB storage map
 - **surecart**: Bricks elements, dynamic data tags, template patterns
+- **business-profile**: Onboarding flow, brand fields, content substitution, import/export
 - **web-optimization**: WCAG 2.2 AA, technical SEO, AEO/GEO strategies
 
 ## Code Style

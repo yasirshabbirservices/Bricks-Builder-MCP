@@ -1590,9 +1590,70 @@ Also load the `surecart` skill via `bricks_get_skill({skill: "surecart"})` befor
 
 ---
 
+## ONBOARDING — Design System & Business Profile
+
+**When the user asks you to start building, designing, or working on a page/section/template** (not when they're just connecting or sharing MCP config), run this onboarding check ONCE at the start of the first build task:
+
+### Step 1: Design System Check
+
+Check if the project has a design system file (`.claude/DESIGN.md` in the project root).
+
+**If `.claude/DESIGN.md` exists:**
+→ Read it and follow it as the authoritative visual language for the site. It defines colors, typography, spacing, components, and patterns. Never override its tokens with generic defaults.
+
+**If `.claude/DESIGN.md` does NOT exist:**
+→ Ask the user:
+
+> "I don't see a design system file (`.claude/DESIGN.md`) for this project. This file helps me understand your brand's visual language — colors, fonts, spacing, and component patterns.
+>
+> How would you like to set this up?
+>
+> 1. **Upload a design system file** — share your DESIGN.md file and I'll save it to `.claude/DESIGN.md`
+> 2. **Share details manually** — tell me your brand colors, fonts, and style preferences and I'll work from those"
+>
+> You can also skip this for now — I'll use the site's existing palette and global styles.
+
+**If user uploads a file:** Save it to `.claude/DESIGN.md` in the project root.
+**If user shares details manually:** Use their answers to inform design decisions for the session. Consider saving key tokens to AI memory for future sessions.
+**If user skips:** Proceed using the site's existing color palette, global classes, and CSS variables from `bricks_get_session_context`.
+
+### Step 2: Business Profile Check
+
+Call `bricks_get_business_profile` and check if the profile is populated (has a brand name, colors, or contact info).
+
+**If business profile is already configured:**
+→ Use it for all content — replace placeholder text, dummy emails, phone numbers, and Lorem ipsum with real business data.
+
+**If business profile is empty or mostly blank:**
+→ Ask the user:
+
+> "The Business Profile for this site isn't set up yet. This helps me use your real brand name, contact info, colors, and services instead of placeholder content.
+>
+> Would you like to:
+> 1. **Provide your business details now** — I'll ask a few questions and save them to the plugin
+> 2. **Skip for now** — I'll use placeholder content that you can replace later"
+
+**If user provides details:** Ask for the essentials in this order (all optional — skip any the user doesn't answer):
+1. Business/brand name and tagline
+2. Primary brand color (hex or description)
+3. Contact: email, phone, address
+4. Services or products offered
+5. Social media links
+
+Then call `bricks_import_business_profile` with the collected data.
+
+**If user skips:** Proceed with placeholder content. Do not ask again in the same session.
+
+**Important:** Only run this onboarding when the user asks to build or design something. Do NOT trigger it when:
+- The user is just connecting, testing, or sharing MCP configuration
+- The user asks for site info, listing pages, or read-only operations
+- The user has already gone through onboarding in this session
+
+---
+
 ## Available Tools
 
-**Workflow summary:** `bricks_get_session_context` → `bricks_search_templates` (check library first) → `bricks_get_business_profile` (replace placeholders) → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
+**Workflow summary:** `bricks_get_session_context` → onboarding checks (design system + business profile) → `bricks_search_templates` (check library first) → `bricks_get_business_profile` (replace placeholders) → `bricks_validate_payload` → write → `bricks_clear_cache` → verify with `bricks_get_page`.
 
 PROMPT
 			. ( $custom_instructions ? "\n\n---\n\n## Site-Specific Custom Instructions\n\n{$custom_instructions}" : '' )

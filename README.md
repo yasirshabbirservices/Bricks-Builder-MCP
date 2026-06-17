@@ -51,9 +51,15 @@ A WordPress plugin that exposes a [Model Context Protocol (MCP)](https://modelco
 | **Agent Skills** | On-demand best-practice guides: elements, mobile-first, CSS, JS, accessibility, SEO, performance, typography, layout, dynamic data |
 | **Design Audit** | Scan all pages for design inconsistencies — hardcoded colors, mismatched fonts, spacing drift |
 | **Element Search** | Find elements by type, class, setting key/value, or text content across all pages |
+| **SureCart** | Browse SureCart products, collections, forms + reference guides for elements and dynamic tags |
 | **Preview Mode** | Staged editing: AI writes to draft copies, you review, then commit or discard in one step |
+| **Accessibility Audit** | WCAG 2.2 AA audit — alt text, headings, ARIA, semantic HTML |
+| **SEO Audit** | SEO analysis + heading structure — works without an SEO plugin |
+| **Performance Audit** | Core Web Vitals checks — LCP, CLS, INP |
+| **Structured Data** | JSON-LD schema management — FAQPage, LocalBusiness, Product, etc. |
+| **Onboarding** | Design system file check + business profile setup on first build task |
 
-**82 MCP tools** across all groups.
+**~113 MCP tools** across all groups.
 
 ---
 
@@ -298,6 +304,20 @@ bricks_validate_payload  (pass your elements array)
 
 ---
 
+## Onboarding (Automatic)
+
+When you ask the AI to **build or design** something for the first time, it automatically runs two onboarding checks:
+
+1. **Design System** — checks for `.claude/DESIGN.md` in your project. If missing, offers two options:
+   - **Upload** a design system file (colors, fonts, spacing, component patterns)
+   - **Share manually** — answer a few questions about your brand
+
+2. **Business Profile** — checks the plugin's Business Profile tab. If empty, offers to collect your business details (name, colors, contact, services, social links) so the AI uses real content instead of placeholders.
+
+Both are optional — you can skip either one. The AI won't ask again in the same session, and it never triggers during connection setup or read-only operations.
+
+---
+
 ## Settings
 
 | Tab | Description |
@@ -360,7 +380,7 @@ The plugin checks for new releases every 15 minutes and shows the standard WordP
 
 ## Agent Skills
 
-The plugin ships 10 on-demand best-practice guides for AI agents. When building a page, the AI checks the `available_skills` index in `bricks_get_session_context` and loads the relevant guide with `bricks_get_skill(slug)` before starting work — not all at once, only what the current task requires.
+The plugin ships 11 on-demand best-practice guides for AI agents. When building a page, the AI checks the `available_skills` index in `bricks_get_session_context` and loads the relevant guide with `bricks_get_skill(slug)` before starting work — not all at once, only what the current task requires.
 
 | Skill | When the AI loads it |
 |---|---|
@@ -374,6 +394,7 @@ The plugin ships 10 on-demand best-practice guides for AI agents. When building 
 | `bricks-dynamic-data` | ACF, JetEngine, or any query loop |
 | `typography` | Text styling, font selection, readability |
 | `layout-patterns` | New sections, heroes, grids, responsive layouts |
+| `surecart` | Any SureCart product page, collection, checkout, or ecommerce layout |
 
 Skills are markdown files in `assets/skills/` — add your own and they appear automatically in `bricks_list_skills` with no code changes.
 
@@ -387,7 +408,46 @@ Drop Bricks Builder template JSON exports into `assets/templates/{category}/` an
 
 ---
 
+## Claude Code Skills (.claude/skills/)
+
+The repo includes full skill references under `.claude/skills/` for Claude Code sessions. Copy these into your project's `.claude/` directory for maximum AI accuracy:
+
+| Skill | What it covers |
+|---|---|
+| **bricks-builder-dev** | Bricks element PHP API, hooks, seeding cookbook, DB storage map |
+| **surecart** | SureCart Bricks elements, dynamic data tags, template patterns |
+| **business-profile** | Onboarding flow, brand fields, content substitution, import/export |
+| **web-optimization** | WCAG 2.2 AA accessibility, technical SEO, AEO/GEO strategies |
+
+---
+
 ## Changelog
+
+### v1.14.0 — Onboarding flows + business profile skill
+
+- **Design system onboarding** — on the first build task, the AI checks for `.claude/DESIGN.md` and offers the user two options: upload a design system file or share brand details manually
+- **Business profile onboarding** — checks if the Business Profile is populated; if empty, offers to collect business details (name, colors, contact, services, social) or skip
+- **Business profile Claude Code skill** — new `.claude/skills/business-profile/` with full onboarding flow, field reference, and content substitution guide
+- **Onboarding only triggers on build tasks** — connection setup, MCP config, and read-only operations do not trigger onboarding prompts
+- Updated system prompt, custom instructions, CLAUDE.md, and README
+
+### v1.13.0 — SureCart integration + Claude Code skills
+
+- **SureCart tool** (8 tools) — list/get products, collections, forms + 3 reference tools (dynamic tags, Bricks elements, template guide)
+- **Self-disabling pattern** — data tools require SureCart active; reference tools always available for planning
+- **CLAUDE.md** — project development guide with architecture docs, tool patterns, and onboarding instructions
+- **Claude Code skills** — `.claude/skills/` with Bricks Builder dev, SureCart, and Web Optimization skill references
+- **Built-in surecart skill** — `assets/skills/surecart.md` for on-demand loading via `bricks_get_skill`
+- **System prompt updated** — SureCart workflow section with element hierarchy, dynamic tags cheatsheet, and tool reference
+- **Site info** — `surecart_active` field in `bricks_get_site_info` response
+
+### v1.12.0 — Accessibility, SEO, performance audits + structured data
+
+- **Accessibility audit** — WCAG 2.2 AA: alt text, headings, ARIA, semantic HTML
+- **SEO audit + heading structure** — works without an SEO plugin
+- **Performance audit** — Core Web Vitals: LCP, CLS, INP checks
+- **JSON-LD structured data** — FAQPage, LocalBusiness, Product, etc.
+- **Breakpoints tools** — get/update breakpoint configuration
 
 ### v1.11.0 — Code signature auto-generation + accurate Bricks 2.3.6 element catalog
 

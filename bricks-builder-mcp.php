@@ -3,7 +3,7 @@
  * Plugin Name: Bricks Builder MCP
  * Plugin URI:  https://github.com/yasirshabbirservices/Bricks-Builder-MCP
  * Description: Model Context Protocol (MCP) server for Bricks Builder — lets Claude Code and any MCP-compatible AI build and design your site directly.
- * Version:     1.13.0
+ * Version:     1.14.0
  * Author:      Yasir Shabbir
  * Author URI:  https://yasirshabbir.com
  * License:     MIT
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BMCP_VERSION',                  '1.13.0' );
+define( 'BMCP_VERSION',                  '1.14.0' );
 define( 'BMCP_PLUGIN_FILE',              __FILE__ );
 define( 'BMCP_PLUGIN_DIR',               plugin_dir_path( __FILE__ ) );
 define( 'BMCP_PLUGIN_URL',               plugin_dir_url( __FILE__ ) );
@@ -173,6 +173,12 @@ SECURITY (WordPress)
 
 MEDIA LIBRARY
 * Upload and manage assets in appropriate folders/categories using HappyFiles Pro if available.
+
+ONBOARDING — FIRST BUILD TASK ONLY
+* On the first build/design request (not connection or read-only operations), check for a design system file (.claude/DESIGN.md in the project root).
+* If missing, offer the user two options: upload a design system file, or share brand details manually.
+* Also check the Business Profile (bricks_get_business_profile) — if empty, offer to collect business details or skip.
+* Only ask once per session. Do not ask during connection setup, page listing, or read-only tasks.
 
 QUALITY STANDARDS — MANDATORY BEFORE ANY WRITE
 * Load bricks-elements skill before building any element array.
