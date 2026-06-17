@@ -175,6 +175,30 @@ class Tool_Settings extends Tool_Base {
 					'required' => [ 'style_id', 'settings' ],
 				],
 			],
+			[
+				'name'        => 'bricks_get_breakpoints',
+				'description' => 'Get all Bricks breakpoints including custom ones. Returns each breakpoint with key, label, width, icon, and flags (base, custom, paused, edited). The "base" breakpoint is where unsuffixed CSS properties apply. In desktop-first mode, desktop is base. In mobile-first mode, the smallest breakpoint is base. Understanding breakpoints is critical for responsive design — element settings use breakpoint-suffixed keys (e.g. _padding:tablet_portrait).',
+				'inputSchema' => [ 'type' => 'object', 'properties' => [] ],
+			],
+			[
+				'name'        => 'bricks_update_breakpoints',
+				'description' => 'Update Bricks breakpoints. Pass the FULL breakpoints array (replacement, not merge). Each breakpoint needs: key (string), label (string), width (integer, px), icon (string). Optional flags: base (boolean — only ONE breakpoint should be base), custom (boolean), paused (boolean — disables without deleting). Order matters: store width-descending for desktop-first, width-descending with base=true on the smallest for mobile-first. After updating, CSS files are automatically regenerated. Also set customBreakpoints=true in global settings if adding custom breakpoints.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'breakpoints' => [
+							'type'        => 'array',
+							'description' => 'Full breakpoints array. Example: [{"key":"desktop","label":"Desktop","width":1280,"icon":"ti-desktop"},{"key":"tablet_portrait","label":"Tablet","width":1024,"icon":"ti-tablet"},{"key":"mobile_landscape","label":"Mobile Landscape","width":768,"icon":"ti-mobile"},{"key":"mobile","label":"Mobile","width":480,"icon":"ti-mobile","base":true}]',
+							'items'       => [ 'type' => 'object' ],
+						],
+						'mobile_first' => [
+							'type'        => 'boolean',
+							'description' => 'Set to true to enable mobile-first mode. The smallest breakpoint will have base=true and CSS uses min-width media queries. Default: false (desktop-first, max-width).',
+						],
+					],
+					'required' => [ 'breakpoints' ],
+				],
+			],
 		];
 	}
 
@@ -212,6 +236,10 @@ class Tool_Settings extends Tool_Base {
 				return $this->get_theme_styles();
 			case 'bricks_update_theme_styles':
 				return $this->update_theme_styles( $args );
+			case 'bricks_get_breakpoints':
+				return $this->get_breakpoints();
+			case 'bricks_update_breakpoints':
+				return $this->update_breakpoints( $args );
 		}
 		return $this->err( 'Unknown tool: ' . $name );
 	}
@@ -470,6 +498,99 @@ class Tool_Settings extends Tool_Base {
 			'fonts' => $fonts,
 			'count' => count( $fonts ),
 			'tip'   => 'Use font-family values from this list in _typography settings to ensure consistency.',
+		];
+	}
+
+	// -------------------------------------------------------------------------
+	// Breakpoints
+	// -------------------------------------------------------------------------
+
+	private function get_breakpoints(): array {
+		$bp_key      = defined( 'BRICKS_DB_BREAKPOINTS' ) ? BRICKS_DB_BREAKPOINTS : 'bricks_breakpoints';
+		$breakpoints = get_option( $bp_key, [] );
+		$gs_key      = defined( 'BRICKS_DB_GLOBAL_SETTINGS' ) ? BRICKS_DB_GLOBAL_SETTINGS : 'bricks_global_settings';
+		$settings    = get_option( $gs_key, [] );
+
+		$custom_enabled = ! empty( $settings['customBreakpoints'] );
+
+		$base_key = 'desktop';
+		foreach ( $breakpoints as $bp ) {
+			if ( ! empty( $bp['base'] ) ) {
+				$base_key = $bp['key'] ?? 'desktop';
+				break;
+			}
+		}
+
+		$is_mobile_first = $base_key !== 'desktop';
+
+		return [
+			'breakpoints'      => is_array( $breakpoints ) ? $breakpoints : [],
+			'count'            => is_array( $breakpoints ) ? count( $breakpoints ) : 0,
+			'custom_enabled'   => $custom_enabled,
+			'base_breakpoint'  => $base_key,
+			'mode'             => $is_mobile_first ? 'mobile-first' : 'desktop-first',
+			'tip'              => $is_mobile_first
+				? 'Mobile-first: unsuffixed element settings apply to the base (smallest) breakpoint. Use :tablet_portrait, :mobile_landscape, :desktop suffixes for larger screens.'
+				: 'Desktop-first: unsuffixed element settings apply to desktop. Use :tablet_portrait, :mobile_landscape, :mobile suffixes for smaller screens.',
+		];
+	}
+
+	private function update_breakpoints( array $args ): array|\WP_Error {
+		$err = $this->require_cap( 'manage_options' );
+		if ( $err ) return $err;
+
+		$breakpoints  = $this->arr_arg( $args, 'breakpoints' );
+		$mobile_first = $this->bool_arg( $args, 'mobile_first', false );
+
+		if ( empty( $breakpoints ) ) {
+			return $this->err( '"breakpoints" must be a non-empty array.' );
+		}
+
+		foreach ( $breakpoints as $i => $bp ) {
+			if ( empty( $bp['key'] ) || empty( $bp['label'] ) || empty( $bp['width'] ) ) {
+				return $this->err( "Breakpoint at index {$i} is missing required fields: key, label, width." );
+			}
+		}
+
+		if ( $mobile_first ) {
+			foreach ( $breakpoints as &$bp ) {
+				unset( $bp['base'] );
+			}
+			unset( $bp );
+			$widths = array_column( $breakpoints, 'width' );
+			$min_idx = array_search( min( $widths ), $widths, true );
+			$breakpoints[ $min_idx ]['base'] = true;
+		}
+
+		$bp_key = defined( 'BRICKS_DB_BREAKPOINTS' ) ? BRICKS_DB_BREAKPOINTS : 'bricks_breakpoints';
+		update_option( $bp_key, $breakpoints );
+
+		$gs_key  = defined( 'BRICKS_DB_GLOBAL_SETTINGS' ) ? BRICKS_DB_GLOBAL_SETTINGS : 'bricks_global_settings';
+		$settings = get_option( $gs_key, [] );
+		if ( ! is_array( $settings ) ) $settings = [];
+
+		$has_custom = false;
+		foreach ( $breakpoints as $bp ) {
+			if ( ! empty( $bp['custom'] ) ) {
+				$has_custom = true;
+				break;
+			}
+		}
+		if ( $has_custom ) {
+			$settings['customBreakpoints'] = true;
+			update_option( $gs_key, $settings );
+		}
+
+		if ( class_exists( '\Bricks\Breakpoints' ) ) {
+			\Bricks\Breakpoints::init_breakpoints();
+			\Bricks\Breakpoints::regenerate_bricks_css_files();
+		}
+
+		return [
+			'success'      => true,
+			'breakpoints'  => $breakpoints,
+			'mobile_first' => $mobile_first,
+			'message'      => 'Breakpoints updated and CSS files regenerated.',
 		];
 	}
 

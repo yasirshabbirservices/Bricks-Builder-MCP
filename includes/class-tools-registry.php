@@ -39,7 +39,10 @@ class Tools_Registry {
 			new Tools\Tool_Design_System(),
 			new Tools\Tool_Skills(),
 			new Tools\Tool_Audit(),
+			new Tools\Tool_Performance(),
+			new Tools\Tool_Accessibility(),
 			new Tools\Tool_Preview(),
+			new Tools\Tool_Schema(),
 		];
 
 		foreach ( $groups as $handler ) {
@@ -253,6 +256,20 @@ class Tools_Registry {
 			'bricks_preview_status'       => 'pages',
 			'bricks_commit_preview'       => 'pages',
 			'bricks_discard_preview'      => 'pages',
+			// structured data / schema (always on)
+			'bricks_get_structured_data'    => 'site',
+			'bricks_update_structured_data' => 'site',
+			'bricks_delete_structured_data' => 'site',
+			// accessibility audit (always on)
+			'bricks_audit_accessibility' => 'site',
+			// seo audit + heading structure (always on — no SEO plugin required)
+			'bricks_audit_seo'              => 'site',
+			'bricks_get_heading_structure'  => 'site',
+			// performance audit (always on)
+			'bricks_audit_performance' => 'site',
+			// breakpoints (settings group)
+			'bricks_get_breakpoints'    => 'settings',
+			'bricks_update_breakpoints' => 'settings',
 		];
 	}
 
@@ -294,10 +311,19 @@ class Tools_Registry {
 			case 'bricks_update_page_seo':
 				return [ (int) ( $args['post_id'] ?? 0 ), 'content' ];
 
+			// Structured data writes
+			case 'bricks_update_structured_data':
+			case 'bricks_delete_structured_data':
+				return [ (int) ( $args['post_id'] ?? 0 ), 'content' ];
+
 			// Post writes
 			case 'bricks_update_post':
 			case 'bricks_delete_post':
 				return [ (int) ( $args['post_id'] ?? 0 ), 'content' ];
+
+			// Breakpoint writes
+			case 'bricks_update_breakpoints':
+				return [ 0, 'breakpoints' ];
 
 			// Component writes
 			case 'bricks_create_component':
