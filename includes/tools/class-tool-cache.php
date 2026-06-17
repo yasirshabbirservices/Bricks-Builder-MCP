@@ -16,7 +16,7 @@ class Tool_Cache extends Tool_Base {
 			],
 			[
 				'name'        => 'bricks_regenerate_css',
-				'description' => 'Regenerate all Bricks CSS files. IMPORTANT: Bricks compiles element styles into static CSS files only when saved through the editor. When you create or update pages, templates, theme styles, or global classes via MCP tools, the element data is saved but CSS is NOT compiled. Call this tool after any write operation that changes visual styles to ensure changes are visible on the frontend. Optionally pass a post_id to regenerate CSS for a single page/template instead of the entire site.',
+				'description' => 'Regenerate Bricks CSS files (per-post element CSS, theme styles, global classes, color palette, variables). Call after any MCP write that changes styles — pages, templates, theme styles, global classes, or color palette. Pass post_id to regenerate a single page/template, or omit to regenerate all CSS site-wide. IMPORTANT: For best results, define styles via global classes (_cssGlobalClasses) rather than inline element settings — global class CSS regenerates reliably, while per-element inline CSS may require opening the page in Bricks editor for full compilation.',
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
@@ -41,48 +41,69 @@ class Tool_Cache extends Tool_Base {
 	}
 
 	private function regenerate_css( array $args ): array|\WP_Error {
-		if ( ! class_exists( '\Bricks\Breakpoints' ) ) {
-			return $this->err( 'Bricks is not active — cannot regenerate CSS files.' );
+		$post_id    = (int) ( $args['post_id'] ?? 0 );
+		$regenerated = [];
+
+		// Try Assets_Files first — this is the correct all-files regenerator
+		// Handles: per-post CSS, theme styles, global classes, variables, color palette
+		if ( class_exists( '\Bricks\Assets_Files' ) && method_exists( '\Bricks\Assets_Files', 'regenerate_css_files' ) ) {
+
+			if ( $post_id > 0 ) {
+				$post = get_post( $post_id );
+				if ( ! $post ) {
+					return $this->err( "Post {$post_id} not found." );
+				}
+
+				// Per-post CSS via Assets_Files
+				if ( method_exists( '\Bricks\Assets_Files', 'generate_post_css_file' ) ) {
+					\Bricks\Assets_Files::generate_post_css_file( $post_id );
+					$regenerated[] = "post {$post_id} ({$post->post_title})";
+				} else {
+					// Fallback: regenerate everything
+					\Bricks\Assets_Files::regenerate_css_files();
+					$regenerated[] = 'all CSS files (per-post method unavailable)';
+				}
+			} else {
+				\Bricks\Assets_Files::regenerate_css_files();
+				$regenerated[] = 'all CSS files (per-post, theme styles, global classes, variables, color palette)';
+			}
+
+			return [
+				'success'     => true,
+				'scope'       => $post_id > 0 ? 'single' : 'all',
+				'post_id'     => $post_id ?: null,
+				'regenerated' => $regenerated,
+				'message'     => 'CSS regenerated: ' . implode( ', ', $regenerated ) . '. Note: styles defined via _cssGlobalClasses are fully compiled. Per-element inline styles (_padding, _margin, etc.) may not fully compile until the page is saved in the Bricks editor — prefer global classes for reliable MCP styling.',
+			];
 		}
 
-		$post_id = (int) ( $args['post_id'] ?? 0 );
-
-		if ( $post_id > 0 ) {
-			// Regenerate CSS for a single post/template
+		// Fallback: try CSS_Files class for per-post
+		if ( $post_id > 0 && class_exists( '\Bricks\CSS_Files' ) && method_exists( '\Bricks\CSS_Files', 'generate_post_css_file' ) ) {
 			$post = get_post( $post_id );
 			if ( ! $post ) {
 				return $this->err( "Post {$post_id} not found." );
 			}
 
-			// Bricks generates per-post CSS via its CSS_Files class
-			if ( class_exists( '\Bricks\CSS_Files' ) && method_exists( '\Bricks\CSS_Files', 'generate_post_css_file' ) ) {
-				\Bricks\CSS_Files::generate_post_css_file( $post_id );
-				return [
-					'success' => true,
-					'scope'   => 'single',
-					'post_id' => $post_id,
-					'message' => "CSS regenerated for post {$post_id} ({$post->post_title}).",
-				];
-			}
+			\Bricks\CSS_Files::generate_post_css_file( $post_id );
+			return [
+				'success' => true,
+				'scope'   => 'single',
+				'post_id' => $post_id,
+				'message' => "CSS regenerated for post {$post_id} ({$post->post_title}).",
+			];
+		}
 
-			// Fallback: regenerate all if per-post method unavailable
+		// Last resort: Breakpoints regeneration (handles breakpoint-derived CSS only)
+		if ( class_exists( '\Bricks\Breakpoints' ) ) {
 			\Bricks\Breakpoints::regenerate_bricks_css_files();
 			return [
 				'success' => true,
 				'scope'   => 'all',
-				'post_id' => $post_id,
-				'message' => "Per-post CSS regeneration not available in this Bricks version. Regenerated all CSS files instead.",
+				'message' => 'CSS regenerated via Breakpoints fallback. Assets_Files class not available in this Bricks version — consider updating Bricks for full CSS regeneration support.',
 			];
 		}
 
-		// Regenerate all CSS files site-wide
-		\Bricks\Breakpoints::regenerate_bricks_css_files();
-
-		return [
-			'success' => true,
-			'scope'   => 'all',
-			'message' => 'All Bricks CSS files regenerated. Element styles from MCP writes are now compiled and visible on the frontend.',
-		];
+		return $this->err( 'Bricks is not active — cannot regenerate CSS files.' );
 	}
 
 	private function clear_cache(): array {
@@ -143,7 +164,7 @@ class Tool_Cache extends Tool_Base {
 			$flushed[] = 'SG Optimizer';
 		}
 
-		// Bricks CSS file cache — bump post modified to re-trigger CSS regeneration
+		// Bricks CSS file cache
 		do_action( 'bricks_cache_cleared' );
 
 		return [
