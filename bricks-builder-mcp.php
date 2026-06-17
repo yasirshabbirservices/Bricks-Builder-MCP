@@ -88,6 +88,7 @@ function bmcp_activate() {
 		'posts'       => true,
 		'media'       => true,
 		'woocommerce' => true,
+		'surecart'    => true,
 		'site'        => true,
 	];
 	if ( get_option( BMCP_ENABLED_TOOLS_OPTION ) === false ) {

@@ -963,6 +963,19 @@ $cfg_general =
 						'bricks_list_product_categories' => [ 'label' => 'List Product Categories', 'desc' => 'Browse product categories' ],
 					],
 				],
+				'surecart' => [
+					'label' => 'SureCart', 'icon' => '◇',
+					'tools' => [
+						'surecart_list_products'       => [ 'label' => 'List Products',       'desc' => 'Browse SureCart products with prices and stock (requires SureCart)' ],
+						'surecart_get_product'         => [ 'label' => 'Get Product',         'desc' => 'Read full product details — sc_id, prices, gallery, collections' ],
+						'surecart_list_collections'    => [ 'label' => 'List Collections',    'desc' => 'Browse SureCart product collections' ],
+						'surecart_get_collection'      => [ 'label' => 'Get Collection',      'desc' => 'Collection details with product list' ],
+						'surecart_list_forms'          => [ 'label' => 'List Forms',          'desc' => 'List checkout forms with shortcodes' ],
+						'surecart_get_dynamic_tags'    => [ 'label' => 'Dynamic Tags',        'desc' => 'All SureCart Bricks dynamic data tags' ],
+						'surecart_get_bricks_elements' => [ 'label' => 'Bricks Elements',     'desc' => 'All SureCart Bricks elements with hierarchy' ],
+						'surecart_get_template_guide'  => [ 'label' => 'Template Guide',      'desc' => 'Template types, build patterns, shortcodes' ],
+					],
+				],
 			];
 
 			?>
