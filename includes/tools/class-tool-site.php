@@ -647,6 +647,25 @@ Any settings key can have a breakpoint-specific override using the suffix `:brea
 
 ---
 
+## CRITICAL: CSS Regeneration After MCP Writes
+
+Bricks compiles element styles into static CSS files **only when saved through the Bricks editor UI**. When you create or update pages, templates, theme styles, or global classes via MCP tools, the element data is saved to the database but the CSS is NOT compiled. This means style changes will NOT be visible on the frontend until CSS is regenerated.
+
+**After any write that changes visual styles, call `bricks_regenerate_css`.**
+
+When to call it:
+- After `bricks_update_page` or `bricks_create_page` with styled elements
+- After `bricks_update_template` or `bricks_create_template`
+- After `bricks_update_theme_styles` or `bricks_update_color_palette`
+- After `bricks_create_global_class` or `bricks_update_global_class`
+- After any batch of style-related writes (call once at the end, not after each individual write)
+
+You can pass a `post_id` to regenerate CSS for a single page/template, or omit it to regenerate all CSS files site-wide. For a batch of changes across multiple pages, omit `post_id` to regenerate everything at once.
+
+After regenerating CSS, also call `bricks_clear_cache` if a caching plugin is active to ensure the frontend serves the new CSS files.
+
+---
+
 ## Standard Section Template
 
 **Important:** The CSS variables below (`--container-width`, `--section-padding-l`, `--section-padding-lr`) must be defined in **Bricks Theme Styles** via `bricks_update_theme_styles` so they apply site-wide. Set container `max-width` and section `padding` as element defaults in theme styles — this avoids repeating these values on every page.

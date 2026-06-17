@@ -216,6 +216,7 @@ class Tools_Registry {
 			'bricks_snapshot_delete'  => 'site',
 			// cache (always on)
 			'bricks_clear_cache'      => 'site',
+			'bricks_regenerate_css'   => 'site',
 			// search & replace (always on)
 			'bricks_search_content'   => 'site',
 			'bricks_replace_content'  => 'site',

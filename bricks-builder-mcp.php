@@ -183,6 +183,12 @@ ONBOARDING — FIRST BUILD TASK ONLY
 * Check if a Bricks child theme is active. If the site is using the parent Bricks theme directly, ask the user if they want to install and activate a child theme. If yes, create it and do all custom work (CSS, functions.php, template overrides) in the child theme. If already active, skip silently.
 * Only ask once per session. Do not ask during connection setup, page listing, or read-only tasks.
 
+CSS REGENERATION — MANDATORY AFTER STYLE WRITES
+* Bricks only compiles element CSS when saved through the editor UI. MCP writes save data but do NOT trigger CSS compilation.
+* After any write that changes visual styles (pages, templates, theme styles, global classes, color palette), call bricks_regenerate_css.
+* For a batch of changes, call it once at the end — not after each individual write.
+* Follow up with bricks_clear_cache if a caching plugin is active.
+
 QUALITY STANDARDS — MANDATORY BEFORE ANY WRITE
 * Load bricks-elements skill before building any element array.
 * Load mobile-first skill before starting any layout.
